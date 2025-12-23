@@ -84,56 +84,56 @@ Update the file after completing each sub-task, not just after completing an ent
 
 ---
 
-- [ ] 1.0 Project Setup & Infrastructure
-  - [ ] 1.1 Create new Vite + React + TypeScript project (`npm create vite@latest zakat-fitrah-app -- --template react-ts`)
-  - [ ] 1.2 Navigate to project directory (`cd zakat-fitrah-app`)
-  - [ ] 1.3 Install core dependencies: `npm install @supabase/supabase-js @tanstack/react-query react-router-dom zustand`
-  - [ ] 1.4 Install TailwindCSS: `npm install -D tailwindcss postcss autoprefixer && npx tailwindcss init -p`
-  - [ ] 1.5 Configure TailwindCSS in `tailwind.config.js` (content paths for src directory)
-  - [ ] 1.6 Add TailwindCSS directives to `src/index.css`
-  - [ ] 1.7 Install shadcn/ui dependencies: `npm install class-variance-authority clsx tailwind-merge lucide-react`
-  - [ ] 1.8 Initialize shadcn/ui: `npx shadcn-ui@latest init` (choose Default style, Slate color)
-  - [ ] 1.9 Verify `components.json` created with correct path aliases
-  - [ ] 1.10 Verify `src/lib/utils.ts` created with `cn()` helper function
-  - [ ] 1.11 Install form libraries: `npm install react-hook-form zod @hookform/resolvers`
-  - [ ] 1.12 Install export libraries: `npm install jspdf jspdf-autotable xlsx`
-  - [ ] 1.13 Install chart library: `npm install recharts`
-  - [ ] 1.14 Install date utilities: `npm install date-fns`
-  - [ ] 1.15 Configure TypeScript path aliases in `tsconfig.json` (`@/*` → `./src/*`)
-  - [ ] 1.16 Update `vite.config.ts` to support path aliases
-  - [ ] 1.17 Create `.env.example` with Supabase variables template
-  - [ ] 1.18 Create `.env` file (copy from .env.example, add to .gitignore)
-  - [ ] 1.19 Update `package.json` scripts (dev, build, preview, lint)
-  - [ ] 1.20 Initialize git repository if not already initialized
+- [x] 1.0 Project Setup & Infrastructure
+  - [x] 1.1 Create new Vite + React + TypeScript project (`npm create vite@latest zakat-fitrah-app -- --template react-ts`)
+  - [x] 1.2 Navigate to project directory (`cd zakat-fitrah-app`)
+  - [x] 1.3 Install core dependencies: `npm install @supabase/supabase-js @tanstack/react-query react-router-dom zustand`
+  - [x] 1.4 Install TailwindCSS: `npm install -D tailwindcss postcss autoprefixer && npx tailwindcss init -p`
+  - [x] 1.5 Configure TailwindCSS in `tailwind.config.js` (content paths for src directory)
+  - [x] 1.6 Add TailwindCSS directives to `src/index.css`
+  - [x] 1.7 Install shadcn/ui dependencies: `npm install class-variance-authority clsx tailwind-merge lucide-react`
+  - [x] 1.8 Initialize shadcn/ui: `npx shadcn-ui@latest init` (choose Default style, Slate color)
+  - [x] 1.9 Verify `components.json` created with correct path aliases
+  - [x] 1.10 Verify `src/lib/utils.ts` created with `cn()` helper function
+  - [x] 1.11 Install form libraries: `npm install react-hook-form zod @hookform/resolvers`
+  - [x] 1.12 Install export libraries: `npm install jspdf jspdf-autotable xlsx`
+  - [x] 1.13 Install chart library: `npm install recharts`
+  - [x] 1.14 Install date utilities: `npm install date-fns`
+  - [x] 1.15 Configure TypeScript path aliases in `tsconfig.json` (`@/*` → `./src/*`)
+  - [x] 1.16 Update `vite.config.ts` to support path aliases
+  - [x] 1.17 Create `.env.example` with Supabase variables template
+  - [x] 1.18 Create `.env` file (copy from .env.example, add to .gitignore)
+  - [x] 1.19 Update `package.json` scripts (dev, build, preview, lint)
+  - [x] 1.20 Initialize git repository if not already initialized
 
 ---
 
-- [ ] 2.0 Database Schema & Supabase Configuration
-  - [ ] 2.1 Create new Supabase project at supabase.com
-  - [ ] 2.2 Copy project URL and anon key to `.env` file
-  - [ ] 2.3 Create `supabase/migrations/001_initial_schema.sql` file
-  - [ ] 2.4 Write SQL for `users` table (extends auth.users with role, nama_lengkap, is_active)
-  - [ ] 2.5 Write SQL for `tahun_zakat` table (id, tahun_hijriah, tahun_masehi, nilai_beras_kg, nilai_uang_rp, is_active, timestamps)
-  - [ ] 2.6 Write SQL for `kategori_mustahik` table (id, nama, deskripsi) with 8 asnaf
-  - [ ] 2.7 Write SQL for `muzakki` table (id, nama_kk, alamat, no_telp, timestamps)
-  - [ ] 2.8 Write SQL for `pembayaran_zakat` table with all foreign keys and enums
-  - [ ] 2.9 Write SQL for `mustahik` table with kategori relation
-  - [ ] 2.10 Write SQL for `distribusi_zakat` table with status enum
-  - [ ] 2.11 Write SQL for `audit_logs` table with jsonb columns
-  - [ ] 2.12 Create indexes for foreign keys and frequently searched columns
-  - [ ] 2.13 Run migration via Supabase SQL Editor
-  - [ ] 2.14 Verify all tables created successfully
-  - [ ] 2.15 Create `supabase/migrations/002_rls_policies.sql`
-  - [ ] 2.16 Write RLS policy for admin role (full access to all tables)
-  - [ ] 2.17 Write RLS policy for petugas role (CRUD except delete final reports)
-  - [ ] 2.18 Write RLS policy for viewer role (read-only access)
-  - [ ] 2.19 Enable RLS on all tables (`ALTER TABLE ... ENABLE ROW LEVEL SECURITY`)
-  - [ ] 2.20 Run RLS migration via Supabase SQL Editor
-  - [ ] 2.21 Test RLS policies with different user roles
-  - [ ] 2.22 Create `supabase/seed.sql` with sample data
-  - [ ] 2.23 Insert 8 kategori_mustahik (Fakir, Miskin, Amil, Muallaf, Riqab, Gharimin, Fisabilillah, Ibnu Sabil)
-  - [ ] 2.24 Insert sample tahun_zakat for current year
-  - [ ] 2.25 Run seed data via SQL Editor
+- [x] 2.0 Database Schema & Supabase Configuration
+  - [x] 2.1 Create new Supabase project at supabase.com
+  - [x] 2.2 Copy project URL and anon key to `.env` file
+  - [x] 2.3 Create `supabase/migrations/001_initial_schema.sql` file
+  - [x] 2.4 Write SQL for `users` table (extends auth.users with role, nama_lengkap, is_active)
+  - [x] 2.5 Write SQL for `tahun_zakat` table (id, tahun_hijriah, tahun_masehi, nilai_beras_kg, nilai_uang_rp, is_active, timestamps)
+  - [x] 2.6 Write SQL for `kategori_mustahik` table (id, nama, deskripsi) with 8 asnaf
+  - [x] 2.7 Write SQL for `muzakki` table (id, nama_kk, alamat, no_telp, timestamps)
+  - [x] 2.8 Write SQL for `pembayaran_zakat` table with all foreign keys and enums
+  - [x] 2.9 Write SQL for `mustahik` table with kategori relation
+  - [x] 2.10 Write SQL for `distribusi_zakat` table with status enum
+  - [x] 2.11 Write SQL for `audit_logs` table with jsonb columns
+  - [x] 2.12 Create indexes for foreign keys and frequently searched columns
+  - [x] 2.13 Run migration via Supabase SQL Editor
+  - [x] 2.14 Verify all tables created successfully
+  - [x] 2.15 Create `supabase/migrations/002_rls_policies.sql`
+  - [x] 2.16 Write RLS policy for admin role (full access to all tables)
+  - [x] 2.17 Write RLS policy for petugas role (CRUD except delete final reports)
+  - [x] 2.18 Write RLS policy for viewer role (read-only access)
+  - [x] 2.19 Enable RLS on all tables (`ALTER TABLE ... ENABLE ROW LEVEL SECURITY`)
+  - [x] 2.20 Run RLS migration via Supabase SQL Editor
+  - [x] 2.21 Test RLS policies with different user roles
+  - [x] 2.22 Create `supabase/seed.sql` with sample data
+  - [x] 2.23 Insert 8 kategori_mustahik (Fakir, Miskin, Amil, Muallaf, Riqab, Gharimin, Fisabilillah, Ibnu Sabil)
+  - [x] 2.24 Insert sample tahun_zakat for current year
+  - [x] 2.25 Run seed data via SQL Editor
 
 ---
 
