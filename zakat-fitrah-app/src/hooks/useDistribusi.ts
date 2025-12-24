@@ -142,18 +142,18 @@ export function useStokCheck(tahunZakatId: string | null) {
       // Get pemasukan totals
       const { data: pemasukanData, error: pemasukanError } = await supabase
         .from('pembayaran_zakat')
-        .select('jenis_zakat, total_kg, total_rp')
+        .select('jenis_zakat, jumlah_beras_kg, jumlah_uang_rp')
         .eq('tahun_zakat_id', tahunZakatId);
 
       if (pemasukanError) throw pemasukanError;
 
       const totalBerasPemasukan = (pemasukanData as any)
         ?.filter((p: any) => p.jenis_zakat === 'beras')
-        .reduce((sum: number, p: any) => sum + (p.total_kg || 0), 0) || 0;
+        .reduce((sum: number, p: any) => sum + (p.jumlah_beras_kg || 0), 0) || 0;
 
       const totalUangPemasukan = (pemasukanData as any)
         ?.filter((p: any) => p.jenis_zakat === 'uang')
-        .reduce((sum: number, p: any) => sum + (p.total_rp || 0), 0) || 0;
+        .reduce((sum: number, p: any) => sum + (p.jumlah_uang_rp || 0), 0) || 0;
 
       // Get distribusi totals
       const { data: distribusiData, error: distribusiError } = await supabase
@@ -194,7 +194,7 @@ export function useCreateDistribusi() {
       // Check stock first
       const { data: stokData } = await supabase
         .from('pembayaran_zakat')
-        .select('jenis_zakat, total_kg, total_rp')
+        .select('jenis_zakat, jumlah_beras_kg, jumlah_uang_rp')
         .eq('tahun_zakat_id', input.tahun_zakat_id);
 
       const { data: distribusiData } = await supabase
@@ -204,8 +204,8 @@ export function useCreateDistribusi() {
         .eq('status', 'selesai');
 
       const totalPemasukan = input.jenis_distribusi === 'beras'
-        ? (stokData as any)?.filter((p: any) => p.jenis_zakat === 'beras').reduce((s: number, p: any) => s + (p.total_kg || 0), 0) || 0
-        : (stokData as any)?.filter((p: any) => p.jenis_zakat === 'uang').reduce((s: number, p: any) => s + (p.total_rp || 0), 0) || 0;
+        ? (stokData as any)?.filter((p: any) => p.jenis_zakat === 'beras').reduce((s: number, p: any) => s + (p.jumlah_beras_kg || 0), 0) || 0
+        : (stokData as any)?.filter((p: any) => p.jenis_zakat === 'uang').reduce((s: number, p: any) => s + (p.jumlah_uang_rp || 0), 0) || 0;
 
       const totalDistribusi = input.jenis_distribusi === 'beras'
         ? (distribusiData as any)?.filter((d: any) => d.jenis_distribusi === 'beras').reduce((s: number, d: any) => s + (d.jumlah || 0), 0) || 0
@@ -219,6 +219,10 @@ export function useCreateDistribusi() {
         );
       }
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       const { data, error } = await (supabase
         .from('distribusi_zakat')
         .insert as any)({
@@ -229,6 +233,7 @@ export function useCreateDistribusi() {
           tanggal_distribusi: input.tanggal_distribusi,
           catatan: input.catatan || null,
           status: 'pending',
+          petugas_distribusi: user.id,
         })
         .select();
 

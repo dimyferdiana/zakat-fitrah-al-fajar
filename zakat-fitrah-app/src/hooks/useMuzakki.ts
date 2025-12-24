@@ -30,8 +30,8 @@ interface PembayaranZakat {
   tanggal_bayar: string;
   jumlah_jiwa: number;
   jenis_zakat: 'beras' | 'uang';
-  total_beras_kg: number | null;
-  total_uang_rp: number | null;
+  jumlah_beras_kg: number | null;
+  jumlah_uang_rp: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -178,6 +178,10 @@ export function useCreatePembayaran() {
           ? input.jumlah_jiwa * typedTahunZakat.nilai_uang_rp
           : null;
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       // Create pembayaran
       const { data, error } = await (supabase.from('pembayaran_zakat').insert as any)({
         muzakki_id: muzakkiId,
@@ -185,8 +189,13 @@ export function useCreatePembayaran() {
         tanggal_bayar: input.tanggal_bayar,
         jumlah_jiwa: input.jumlah_jiwa,
         jenis_zakat: input.jenis_zakat,
-        total_beras_kg: totalBerasKg,
-        total_uang_rp: totalUangRp,
+        nilai_per_orang: input.jenis_zakat === 'beras' 
+          ? typedTahunZakat.nilai_beras_kg 
+          : typedTahunZakat.nilai_uang_rp,
+        total_zakat: totalBerasKg || totalUangRp,
+        jumlah_beras_kg: totalBerasKg,
+        jumlah_uang_rp: totalUangRp,
+        petugas_penerima: user.id,
       }).select().single();
 
       if (error) throw error;
@@ -238,13 +247,22 @@ export function useUpdatePembayaran() {
           ? input.jumlah_jiwa * typedTahunZakat.nilai_uang_rp
           : null;
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       // Update pembayaran
       const { data, error } = await (supabase.from('pembayaran_zakat').update as any)({
         tanggal_bayar: input.tanggal_bayar,
         jumlah_jiwa: input.jumlah_jiwa,
         jenis_zakat: input.jenis_zakat,
-        total_beras_kg: totalBerasKg,
-        total_uang_rp: totalUangRp,
+        nilai_per_orang: input.jenis_zakat === 'beras' 
+          ? typedTahunZakat.nilai_beras_kg 
+          : typedTahunZakat.nilai_uang_rp,
+        total_zakat: totalBerasKg || totalUangRp,
+        jumlah_beras_kg: totalBerasKg,
+        jumlah_uang_rp: totalUangRp,
+        petugas_penerima: user.id,
         updated_at: new Date().toISOString(),
       }).eq('id', input.id).select().single();
 

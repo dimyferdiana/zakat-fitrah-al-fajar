@@ -36,7 +36,8 @@ export function NilaiZakatTable({
   onSetActive,
   hasTransactions,
 }: NilaiZakatTableProps) {
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | null) => {
+    if (value === null || value === undefined) return 'Rp 0';
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
@@ -44,7 +45,8 @@ export function NilaiZakatTable({
     }).format(value);
   };
 
-  const formatNumber = (value: number) => {
+  const formatNumber = (value: number | null) => {
+    if (value === null || value === undefined) return '0.00';
     return value.toFixed(2);
   };
 

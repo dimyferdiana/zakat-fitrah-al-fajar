@@ -97,8 +97,8 @@ export const exportPemasukanPDF = (data: any[], summary: any) => {
     item.jumlah_jiwa,
     item.jenis_zakat === 'beras' ? 'Beras' : 'Uang',
     item.jenis_zakat === 'beras'
-      ? `${formatNumber(item.total_kg)} kg`
-      : formatCurrency(item.total_rp),
+      ? `${formatNumber(item.jumlah_beras_kg)} kg`
+      : formatCurrency(item.jumlah_uang_rp),
   ]);
   
   autoTable(pdf, {
@@ -130,8 +130,8 @@ export const exportPemasukanExcel = (data: any[], summary: any) => {
       item.jumlah_jiwa,
       item.jenis_zakat === 'beras' ? 'Beras' : 'Uang',
       item.jenis_zakat === 'beras'
-        ? `${formatNumber(item.total_kg)} kg`
-        : formatCurrency(item.total_rp),
+        ? `${formatNumber(item.jumlah_beras_kg)} kg`
+        : formatCurrency(item.jumlah_uang_rp),
     ]),
   ]);
   

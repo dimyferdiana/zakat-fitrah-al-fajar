@@ -28,8 +28,8 @@ interface PembayaranZakat {
   tanggal_bayar: string;
   jumlah_jiwa: number;
   jenis_zakat: 'beras' | 'uang';
-  total_beras_kg: number | null;
-  total_uang_rp: number | null;
+  jumlah_beras_kg: number | null;
+  jumlah_uang_rp: number | null;
 }
 
 interface BuktiPembayaranProps {
@@ -136,8 +136,8 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
     doc.setFont('helvetica', 'bold');
     const totalText =
       data.jenis_zakat === 'beras'
-        ? `${formatNumber(data.total_beras_kg)} kg`
-        : formatCurrency(data.total_uang_rp);
+        ? `${formatNumber(data.jumlah_beras_kg)} kg`
+        : formatCurrency(data.jumlah_uang_rp);
     doc.text(totalText, 70, yPosition);
     yPosition += 15;
 
@@ -250,8 +250,8 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
                   <span className="w-40 text-muted-foreground">Total:</span>
                   <span className="text-xl font-bold">
                     {data.jenis_zakat === 'beras'
-                      ? `${formatNumber(data.total_beras_kg)} kg`
-                      : formatCurrency(data.total_uang_rp)}
+                      ? `${formatNumber(data.jumlah_beras_kg)} kg`
+                      : formatCurrency(data.jumlah_uang_rp)}
                   </span>
                 </div>
               </div>

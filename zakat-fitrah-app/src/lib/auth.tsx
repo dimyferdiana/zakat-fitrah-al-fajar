@@ -2,7 +2,10 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
+import { mockAuthService } from './mockAuth';
 import type { User, UserRole } from '@/types/database.types';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 interface AuthContextType {
   user: User | null;
@@ -24,34 +27,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessionTimer, setSessionTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        fetchUserData(session.user.id);
-        startSessionTimer();
-      } else {
+    const initAuth = async () => {
+      if (OFFLINE_MODE) {
+        // Offline mode: check mock session
+        const mockSession = await mockAuthService.getSession();
+        if (mockSession) {
+          setUser(mockSession.user);
+          setSession({ user: { id: mockSession.user.id } } as Session);
+          startSessionTimer();
+        }
         setLoading(false);
-      }
-    });
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) {
-        fetchUserData(session.user.id);
-        startSessionTimer();
       } else {
-        setUser(null);
-        clearSessionTimer();
-        setLoading(false);
-      }
-    });
+        // Online mode: use Supabase
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          setSession(session);
+          if (session) {
+            fetchUserData(session.user.id);
+            startSessionTimer();
+          } else {
+            setLoading(false);
+          }
+        });
 
+        // Listen for auth changes
+        const {
+          data: { subscription },
+        } = supabase.auth.onAuthStateChange((_event, session) => {
+          setSession(session);
+          if (session) {
+            fetchUserData(session.user.id);
+            startSessionTimer();
+          } else {
+            setUser(null);
+            clearSessionTimer();
+            setLoading(false);
+          }
+        });
+
+        return () => {
+          subscription.unsubscribe();
+          clearSessionTimer();
+        };
+      }
+    };
+
+    initAuth();
+
+    // Cleanup for offline mode
     return () => {
-      subscription.unsubscribe();
       clearSessionTimer();
     };
   }, []);
@@ -97,15 +120,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      if (OFFLINE_MODE) {
+        // Offline mode: use mock auth
+        const mockSession = await mockAuthService.signInWithPassword(email, password);
+        setUser(mockSession.user);
+        setSession({ user: { id: mockSession.user.id } } as Session);
+        startSessionTimer();
+      } else {
+        // Online mode: use Supabase
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      if (data.user) {
-        await fetchUserData(data.user.id);
+        if (data.user) {
+          await fetchUserData(data.user.id);
+        }
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -116,7 +148,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       clearSessionTimer();
-      await supabase.auth.signOut();
+      if (OFFLINE_MODE) {
+        // Offline mode: clear mock session
+        await mockAuthService.signOut();
+      } else {
+        // Online mode: sign out from Supabase
+        await supabase.auth.signOut();
+      }
       setUser(null);
       setSession(null);
     } catch (error) {

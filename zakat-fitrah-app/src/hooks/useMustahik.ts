@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 export interface KategoriMustahik {
   id: string;
   nama: string;
-  keterangan: string;
+  deskripsi: string;
   created_at: string;
 }
 
@@ -66,7 +66,7 @@ export function useMustahikList(params: MustahikListParams) {
     queryFn: async () => {
       let query = supabase
         .from('mustahik')
-        .select('*, kategori_mustahik(id, nama, keterangan)', { count: 'exact' })
+        .select('*, kategori_mustahik(id, nama, deskripsi)', { count: 'exact' })
         .order('created_at', { ascending: false });
 
       // Search filter
@@ -114,7 +114,7 @@ export function useMustahikDetail(id: string | null) {
 
       const { data, error } = await supabase
         .from('mustahik')
-        .select('*, kategori_mustahik(id, nama, keterangan)')
+        .select('*, kategori_mustahik(id, nama, deskripsi)')
         .eq('id', id)
         .single();
 

@@ -90,7 +90,8 @@ export function LaporanDistribusi({ tahunZakatId }: LaporanDistribusiProps) {
     }).format(value);
   };
 
-  const formatNumber = (value: number) => {
+  const formatNumber = (value: number | null | undefined) => {
+    if (value == null || isNaN(value)) return '0.00';
     return value.toFixed(2);
   };
 

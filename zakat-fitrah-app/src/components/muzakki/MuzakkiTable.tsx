@@ -46,8 +46,8 @@ interface PembayaranZakat {
   tanggal_bayar: string;
   jumlah_jiwa: number;
   jenis_zakat: 'beras' | 'uang';
-  total_beras_kg: number | null;
-  total_uang_rp: number | null;
+  jumlah_beras_kg: number | null;
+  jumlah_uang_rp: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -201,8 +201,8 @@ export function MuzakkiTable({
                   </TableCell>
                   <TableCell className="text-right">
                     {pembayaran.jenis_zakat === 'beras'
-                      ? `${formatNumber(pembayaran.total_beras_kg)} kg`
-                      : formatCurrency(pembayaran.total_uang_rp)}
+                      ? `${formatNumber(pembayaran.jumlah_beras_kg)} kg`
+                      : formatCurrency(pembayaran.jumlah_uang_rp)}
                   </TableCell>
                   <TableCell>
                     {format(new Date(pembayaran.tanggal_bayar), 'dd MMM yyyy', {

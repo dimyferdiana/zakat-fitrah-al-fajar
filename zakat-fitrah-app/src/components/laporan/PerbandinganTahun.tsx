@@ -47,16 +47,16 @@ export function PerbandinganTahun() {
         // Get pemasukan
         const { data: pemasukanData } = await supabase
           .from('pembayaran_zakat')
-          .select('jenis_zakat, total_kg, total_rp')
+          .select('jenis_zakat, jumlah_beras_kg, jumlah_uang_rp')
           .eq('tahun_zakat_id', tahunId);
 
         const pemasukanBeras = (pemasukanData as any)
           ?.filter((p: any) => p.jenis_zakat === 'beras')
-          .reduce((sum: number, p: any) => sum + (p.total_kg || 0), 0) || 0;
+          .reduce((sum: number, p: any) => sum + (p.jumlah_beras_kg || 0), 0) || 0;
 
         const pemasukanUang = (pemasukanData as any)
           ?.filter((p: any) => p.jenis_zakat === 'uang')
-          .reduce((sum: number, p: any) => sum + (p.total_rp || 0), 0) || 0;
+          .reduce((sum: number, p: any) => sum + (p.jumlah_uang_rp || 0), 0) || 0;
 
         // Get distribusi
         const { data: distribusiData } = await supabase
@@ -124,16 +124,38 @@ export function PerbandinganTahun() {
     }).format(value);
   };
 
-  const formatNumber = (value: number) => {
+  const formatNumber = (value: number | null | undefined) => {
+    if (value == null || isNaN(value)) return '0.00';
     return value.toFixed(2);
   };
 
   const calculateGrowth = (current: number, previous: number) => {
-    if (previous === 0) return 0;
+    if (current == null || previous == null || isNaN(current) || isNaN(previous)) return 0;
+    // If previous is 0 and current > 0, return special value to indicate "new data"
+    if (previous === 0 && current > 0) return 999999;
+    // If both are 0, no change
+    if (previous === 0 && current === 0) return 0;
     return ((current - previous) / previous) * 100;
   };
 
   const renderGrowthIndicator = (growth: number) => {
+    if (growth == null || isNaN(growth)) {
+      return (
+        <div className="flex items-center gap-1 text-gray-600">
+          <Minus className="h-4 w-4" />
+          <span className="text-sm font-medium">0%</span>
+        </div>
+      );
+    }
+    // Special case: new data (from 0 to something)
+    if (growth === 999999) {
+      return (
+        <div className="flex items-center gap-1 text-blue-600">
+          <TrendingUp className="h-4 w-4" />
+          <span className="text-sm font-medium">Data Baru</span>
+        </div>
+      );
+    }
     if (growth > 0) {
       return (
         <div className="flex items-center gap-1 text-green-600">

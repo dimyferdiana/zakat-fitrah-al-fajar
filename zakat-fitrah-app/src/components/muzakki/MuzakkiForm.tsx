@@ -62,8 +62,8 @@ interface PembayaranZakat {
   tanggal_bayar: string;
   jumlah_jiwa: number;
   jenis_zakat: 'beras' | 'uang';
-  total_beras_kg: number | null;
-  total_uang_rp: number | null;
+  jumlah_beras_kg: number | null;
+  jumlah_uang_rp: number | null;
 }
 
 interface MuzakkiFormProps {
@@ -250,7 +250,13 @@ export function MuzakkiForm({
                   <FormItem>
                     <FormLabel>Jumlah Jiwa *</FormLabel>
                     <FormControl>
-                      <Input type="number" min={1} placeholder="1" {...field} />
+                      <Input 
+                        type="number" 
+                        min={1} 
+                        placeholder="1" 
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

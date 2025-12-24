@@ -3,8 +3,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, WifiOff } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { MOCK_CREDENTIALS } from '@/lib/mockAuth';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -22,7 +23,9 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 const loginSchema = z.object({
   email: z.string().email('Email tidak valid'),
@@ -76,6 +79,20 @@ export function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {OFFLINE_MODE && (
+            <Alert className="mb-4 border-blue-200 bg-blue-50">
+              <WifiOff className="h-4 w-4 text-blue-600" />
+              <AlertTitle className="text-blue-800">Mode Offline</AlertTitle>
+              <AlertDescription className="text-sm text-blue-700">
+                Aplikasi berjalan dalam mode offline. Gunakan kredensial berikut:
+                <div className="mt-2 space-y-1 font-mono text-xs">
+                  <div>Admin: {MOCK_CREDENTIALS.admin.email} / {MOCK_CREDENTIALS.admin.password}</div>
+                  <div>Bendahara: {MOCK_CREDENTIALS.bendahara.email} / {MOCK_CREDENTIALS.bendahara.password}</div>
+                  <div>Panitia: {MOCK_CREDENTIALS.panitia.email} / {MOCK_CREDENTIALS.panitia.password}</div>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
           {error && (
             <Alert variant="destructive" className="mb-4">
               <AlertDescription>{error}</AlertDescription>

@@ -419,141 +419,200 @@ Update the file after completing each sub-task, not just after completing an ent
 
 ---
 
-- [ ] 10.0 Reporting & Export System
-  - [ ] 10.1 Create `src/pages/Laporan.tsx` with shadcn/ui Tabs
-  - [ ] 10.2 Create tab "Pemasukan" for income reports
-  - [ ] 10.3 Create tab "Distribusi" for distribution reports
-  - [ ] 10.4 Create tab "Mustahik" for beneficiary lists
-  - [ ] 10.5 Create tab "Perbandingan Tahun" for year-over-year comparison
-  - [ ] 10.6 Create `src/components/laporan/LaporanPemasukan.tsx`
-  - [ ] 10.7 Display summary cards: Total Beras (kg), Total Uang (Rp), Total Muzakki
-  - [ ] 10.8 Create detailed table with all pembayaran
-  - [ ] 10.9 Add date range picker for filtering (from - to)
-  - [ ] 10.10 Add filter by jenis_zakat (beras/uang/semua)
-  - [ ] 10.11 Add sort functionality
-  - [ ] 10.12 Create `src/components/laporan/LaporanDistribusi.tsx`
-  - [ ] 10.13 Display summary per kategori mustahik (8 asnaf breakdown)
-  - [ ] 10.14 Show total beras and uang distributed per category
-  - [ ] 10.15 Create detailed table with distribusi per mustahik
-  - [ ] 10.16 Add date range filter
-  - [ ] 10.17 Add filter by kategori_mustahik
-  - [ ] 10.18 Create `src/components/laporan/LaporanMustahik.tsx`
-  - [ ] 10.19 Display complete list of mustahik grouped by kategori
-  - [ ] 10.20 Show aktif vs non-aktif counts
-  - [ ] 10.21 Add subtotal per kategori
-  - [ ] 10.22 Create `src/components/laporan/PerbandinganTahun.tsx`
-  - [ ] 10.23 Add multi-select for choosing years (max 3 years)
-  - [ ] 10.24 Fetch data for selected years
-  - [ ] 10.25 Create comparison table: Pemasukan, Distribusi, Sisa per year
-  - [ ] 10.26 Calculate YoY growth percentage
-  - [ ] 10.27 Show growth indicator (up/down arrows with colors)
-  - [ ] 10.28 Create `src/utils/pdf-export.ts`
-  - [ ] 10.29 Implement exportPemasukanPDF() function with jsPDF
-  - [ ] 10.30 Add header: logo (if available), nama masjid, address
-  - [ ] 10.31 Add table with jspdf-autotable for data rows
-  - [ ] 10.32 Add footer: tanggal cetak, nama petugas
-  - [ ] 10.33 Format currency as Rupiah (Rp 1.234.567)
-  - [ ] 10.34 Format date as dd/MM/yyyy
-  - [ ] 10.35 Implement exportDistribusiPDF() function
-  - [ ] 10.36 Implement exportMustahikPDF() function
-  - [ ] 10.37 Create `src/utils/excel-export.ts`
-  - [ ] 10.38 Implement exportPemasukanExcel() with xlsx library
-  - [ ] 10.39 Create worksheet with headers and data
-  - [ ] 10.40 Apply basic styling (bold headers, borders)
-  - [ ] 10.41 Implement exportDistribusiExcel()
-  - [ ] 10.42 Implement exportMustahikExcel()
-  - [ ] 10.43 Add export buttons in each tab (PDF and Excel)
-  - [ ] 10.44 Add icons from lucide-react (Download, FileText)
-  - [ ] 10.45 Test PDF export with sample data
-  - [ ] 10.46 Test Excel export with sample data
-  - [ ] 10.47 Verify print-friendly layout
-  - [ ] 10.48 Test with large datasets (performance)
+- [x] 10.0 Reporting & Export System
+  - [x] 10.1 Create `src/pages/Laporan.tsx` with shadcn/ui Tabs
+  - [x] 10.2 Create tab "Pemasukan" for income reports
+  - [x] 10.3 Create tab "Distribusi" for distribution reports
+  - [x] 10.4 Create tab "Mustahik" for beneficiary lists
+  - [x] 10.5 Create tab "Perbandingan Tahun" for year-over-year comparison
+  - [x] 10.6 Create `src/components/laporan/LaporanPemasukan.tsx`
+  - [x] 10.7 Display summary cards: Total Beras (kg), Total Uang (Rp), Total Muzakki
+  - [x] 10.8 Create detailed table with all pembayaran
+  - [x] 10.9 Add date range picker for filtering (from - to)
+  - [x] 10.10 Add filter by jenis_zakat (beras/uang/semua)
+  - [x] 10.11 Add sort functionality
+  - [x] 10.12 Create `src/components/laporan/LaporanDistribusi.tsx`
+  - [x] 10.13 Display summary per kategori mustahik (8 asnaf breakdown)
+  - [x] 10.14 Show total beras and uang distributed per category
+  - [x] 10.15 Create detailed table with distribusi per mustahik
+  - [x] 10.16 Add date range filter
+  - [x] 10.17 Add filter by kategori_mustahik
+  - [x] 10.18 Create `src/components/laporan/LaporanMustahik.tsx`
+  - [x] 10.19 Display complete list of mustahik grouped by kategori
+  - [x] 10.20 Show aktif vs non-aktif counts
+  - [x] 10.21 Add subtotal per kategori
+  - [x] 10.22 Create `src/components/laporan/PerbandinganTahun.tsx`
+  - [x] 10.23 Add multi-select for choosing years (max 3 years)
+  - [x] 10.24 Fetch data for selected years
+  - [x] 10.25 Create comparison table: Pemasukan, Distribusi, Sisa per year
+  - [x] 10.26 Calculate YoY growth percentage
+  - [x] 10.27 Show growth indicator (up/down arrows with colors)
+  - [x] 10.28 Create `src/utils/export.ts` (combined pdf and excel exports)
+  - [x] 10.29 Implement exportPemasukanPDF() function with jsPDF
+  - [x] 10.30 Add header: logo (if available), nama masjid, address
+  - [x] 10.31 Add table with jspdf-autotable for data rows
+  - [x] 10.32 Add footer: tanggal cetak, nama petugas
+  - [x] 10.33 Format currency as Rupiah (Rp 1.234.567)
+  - [x] 10.34 Format date as dd/MM/yyyy
+  - [x] 10.35 Implement exportDistribusiPDF() function
+  - [x] 10.36 Implement exportMustahikPDF() function
+  - [x] 10.37 Implement exportPemasukanExcel() with xlsx library
+  - [x] 10.38 Create worksheet with headers and data
+  - [x] 10.39 Apply basic styling (bold headers, borders)
+  - [x] 10.40 Implement exportDistribusiExcel()
+  - [x] 10.41 Implement exportMustahikExcel()
+  - [x] 10.42 Add export buttons in each tab (PDF and Excel)
+  - [x] 10.43 Add icons from lucide-react (Download, FileText)
+  - [x] 10.44 Test PDF export with sample data
+  - [x] 10.45 Test Excel export with sample data
+  - [x] 10.46 Verify print-friendly layout
+  - [x] 10.47 Test with large datasets (performance)
 
 ---
 
-- [ ] 11.0 Deployment & Production Setup
-  - [ ] 11.1 Create `DEPLOYMENT.md` file with detailed instructions
-  - [ ] 11.2 Document production build steps
-  - [ ] 11.3 Run production build: `npm run build`
-  - [ ] 11.4 Test production build locally: `npm run preview`
-  - [ ] 11.5 Verify all routes work in production build
-  - [ ] 11.6 Optimize bundle size with code splitting
-  - [ ] 11.7 Implement lazy loading for routes
-  - [ ] 11.8 Analyze bundle with `vite-bundle-visualizer` (optional)
-  - [ ] 11.9 Create `.env.production` file
-  - [ ] 11.10 Add production Supabase URL and keys
-  - [ ] 11.11 Configure Supabase project for production
-  - [ ] 11.12 Add production domain to Supabase Auth redirect URLs
-  - [ ] 11.13 Create `_redirects` file for SPA routing: `/* /index.html 200`
-  - [ ] 11.14 Document cPanel upload process
-  - [ ] 11.15 Upload `dist/` folder contents to public_html via FTP/File Manager
-  - [ ] 11.16 Upload `_redirects` file to root
-  - [ ] 11.17 Document SSL setup with Let's Encrypt in cPanel
-  - [ ] 11.18 Generate and install SSL certificate
-  - [ ] 11.19 Force HTTPS redirect in .htaccess
-  - [ ] 11.20 Create `robots.txt` (allow all for public site)
-  - [ ] 11.21 Create basic `sitemap.xml` (optional)
-  - [ ] 11.22 Setup Cloudflare CDN (optional)
-  - [ ] 11.23 Add domain to Cloudflare
-  - [ ] 11.24 Configure DNS settings
-  - [ ] 11.25 Enable caching rules for static assets
-  - [ ] 11.26 Enable compression (Brotli/Gzip)
-  - [ ] 11.27 Deploy to staging domain first for testing
-  - [ ] 11.28 Run Lighthouse audit on staging
-  - [ ] 11.29 Fix performance issues (target score > 90)
-  - [ ] 11.30 Fix accessibility issues
-  - [ ] 11.31 Verify HTTPS and SSL certificate
-  - [ ] 11.32 Test all features in production environment
-  - [ ] 11.33 Test on different browsers (Chrome, Firefox, Safari, Edge)
-  - [ ] 11.34 Test on mobile devices (iOS and Android)
-  - [ ] 11.35 Setup error monitoring with Sentry (optional)
-  - [ ] 11.36 Configure Sentry DSN in production env
-  - [ ] 11.37 Test error tracking
-  - [ ] 11.38 Document monitoring and maintenance procedures
+- [ ] 11.0 Build Validation & Optimization (Do BEFORE Testing)
+  
+  **Phase 1: Validate Production Build - Do This First**
+  
+  - [x] 11.1 Create `DEPLOYMENT.md` file with Vercel deployment guide
+  - [x] 11.2 Document production build steps for Vercel
+  - [x] 11.3 Run production build locally: `npm run build`
+  - [x] 11.4 Test production build locally: `npm run preview`
+  - [x] 11.5 Verify all routes work in production build
+  - [x] 11.6 Optimize bundle size with code splitting
+  - [x] 11.7 Implement lazy loading for routes
+  - [x] 11.8 Analyze bundle with `vite-bundle-visualizer` (optional)
+  
+  **⚠️ STOP HERE - Go to Task 12.0 for Testing Phase**
+  
+  **Phase 3: Deploy to Vercel (Do AFTER Testing Phase 12.0)**
+  
+  **⚠️ STOP HERE - Go to Task 12.0 for Testing Phase**
+  
+  **Phase 3: Deploy to Vercel (Do AFTER Testing Phase 12.0)**
+  
+  - [ ] 11.9 Create `vercel.json` configuration file
+  - [ ] 11.10 Add SPA routing config: `{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }`
+  - [ ] 11.11 Verify `vercel.json` includes proper headers for security
+  - [ ] 11.12 Push code to GitHub repository (create repo if needed)
+  - [ ] 11.13 Create Vercel account at vercel.com
+  - [ ] 11.14 Install Vercel CLI: `npm install -g vercel`
+  - [ ] 11.15 Login to Vercel: `vercel login`
+  - [ ] 11.16 Configure production Supabase environment
+  - [ ] 11.17 Get production Supabase URL and anon key
+  - [ ] 11.18 Add environment variables in Vercel dashboard (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY)
+  - [ ] 11.19 Configure Supabase Auth: Add Vercel domain to redirect URLs
+  - [ ] 11.20 Deploy to Vercel: `vercel --prod` or connect GitHub repo in dashboard
+  - [ ] 11.21 Verify automatic deployment from GitHub main branch
+  - [ ] 11.22 Setup preview deployments for pull requests
+  - [ ] 11.23 Test preview deployment with sample PR
+  - [ ] 11.24 Configure custom domain in Vercel (if available)
+  - [ ] 11.25 Update DNS records to point to Vercel
+  - [ ] 11.26 Verify automatic SSL certificate (Vercel handles this)
+  - [ ] 11.27 Force HTTPS (enabled by default in Vercel)
+  - [ ] 11.28 Create `robots.txt` in public folder (allow all for public site)
+  - [ ] 11.29 Create basic `sitemap.xml` in public folder (optional)
+  - [ ] 11.30 Run Lighthouse audit on production URL
+  - [ ] 11.31 Fix performance issues (target score > 90)
+  - [ ] 11.32 Fix accessibility issues identified by Lighthouse
+  - [ ] 11.33 Verify HTTPS and SSL certificate working
+  - [ ] 11.34 Test all features in production environment
+  - [ ] 11.35 Test on different browsers (Chrome, Firefox, Safari, Edge)
+  - [ ] 11.36 Test on mobile devices (iOS and Android)
+  - [ ] 11.37 Setup Vercel Analytics (optional, free tier available)
+  - [ ] 11.38 Enable Vercel Speed Insights (optional)
+  - [ ] 11.39 Setup error monitoring with Sentry (optional)
+  - [ ] 11.40 Configure Sentry DSN in Vercel environment variables
+  - [ ] 11.41 Test error tracking in production
+  - [ ] 11.42 Document Git workflow (main branch → auto-deploy to production)
+  - [ ] 11.43 Document rollback procedure (revert commit or redeploy previous version)
+  - [ ] 11.44 Setup branch protection rules in GitHub
+  - [ ] 11.45 Configure deployment notifications (Slack/Email via Vercel integrations)
+  - [ ] 11.46 Document monitoring and maintenance procedures
+  - [ ] 11.47 Create backup strategy for database (Supabase automatic backups)
+  - [ ] 11.48 Final production checklist: All features tested, SSL verified, monitoring active
 
 ---
 
-- [ ] 12.0 Testing & Quality Assurance
-  - [ ] 12.1 Setup Vitest for unit testing: `npm install -D vitest @testing-library/react @testing-library/jest-dom`
-  - [ ] 12.2 Configure vitest in `vite.config.ts`
-  - [ ] 12.3 Create `src/test/utils.tsx` with test utilities
-  - [ ] 12.4 Create `src/test/setup.ts` for global test setup
-  - [ ] 12.5 Write unit tests for formatter functions (currency, date)
-  - [ ] 12.6 Write unit tests for calculation functions (total zakat, sisa stok)
-  - [ ] 12.7 Write tests for custom hooks (useMuzakki, useMustahik, useDistribusi)
-  - [ ] 12.8 Write integration tests for form submission
-  - [ ] 12.9 Test React Hook Form + Zod validation
-  - [ ] 12.10 Write tests for authentication flow
-  - [ ] 12.11 Test login, logout, session persistence
-  - [ ] 12.12 Test protected routes with different roles
-  - [ ] 12.13 Test RLS policies in Supabase (manual testing)
-  - [ ] 12.14 Query as admin, petugas, viewer roles
-  - [ ] 12.15 Verify data isolation per role
-  - [ ] 12.16 Create UAT test checklist document
-  - [ ] 12.17 Perform end-to-end workflow test: Input muzakki → Distribusi → Laporan
-  - [ ] 12.18 Test edge cases: stok habis, invalid data, concurrent users
-  - [ ] 12.19 Test with petugas non-IT (real user testing)
-  - [ ] 12.20 Gather feedback and iterate
-  - [ ] 12.21 Test browser compatibility (Chrome, Firefox, Safari, Edge latest versions)
-  - [ ] 12.22 Test on older browsers (if required)
-  - [ ] 12.23 Test mobile responsive design on iOS devices
-  - [ ] 12.24 Test mobile responsive design on Android devices
-  - [ ] 12.25 Test print functionality (bukti pembayaran, bukti terima)
-  - [ ] 12.26 Verify PDF generation quality and layout
-  - [ ] 12.27 Test Excel export with various data sizes
-  - [ ] 12.28 Verify data integrity in exports
-  - [ ] 12.29 Perform security audit (XSS, SQL injection via RLS)
-  - [ ] 12.30 Test with malicious input data
-  - [ ] 12.31 Verify all user inputs are sanitized
-  - [ ] 12.32 Test backup and restore functionality
-  - [ ] 12.33 Perform full database backup
-  - [ ] 12.34 Test restore from backup
-  - [ ] 12.35 Verify data integrity after restore
-  - [ ] 12.36 Load testing (simulate 50+ concurrent users) - optional
-  - [ ] 12.37 Monitor performance during load test
-  - [ ] 12.38 Fix critical and high-priority bugs
-  - [ ] 12.39 Document known issues and limitations
-  - [ ] 12.40 Create bug tracking system (GitHub Issues or similar)
+- [ ] 12.0 Testing & Quality Assurance (Do AFTER Build Validation 11.1-11.8)
+
+  **⚠️ Prerequisites: Complete Task 11.1-11.8 first (build validation)**
+  
+  **Phase 2: TestSprite Automated Testing (Test on production build)**
+  
+  - [x] 12.1 Setup TestSprite MCP for automated testing
+  - [x] 12.2 Reload VS Code to activate TestSprite MCP server
+  - [ ] 12.3 Verify TestSprite tools are loaded and accessible
+  - [ ] 12.4 Run TestSprite: Test authentication flow (login/logout)
+  - [ ] 12.5 Run TestSprite: Test role-based access control (admin, petugas, viewer)
+  - [ ] 12.6 Run TestSprite: Test dashboard data display and refresh
+  - [ ] 12.7 Run TestSprite: Test settings - nilai zakat configuration
+  - [ ] 12.8 Run TestSprite: Test muzakki payment entry workflow
+  - [ ] 12.9 Run TestSprite: Validate form inputs (nama, alamat, jumlah jiwa)
+  - [ ] 12.10 Run TestSprite: Test auto-calculation of total zakat
+  - [ ] 12.11 Run TestSprite: Test mustahik management (CRUD operations)
+  - [ ] 12.12 Run TestSprite: Test bulk operations (activate/deactivate mustahik)
+  - [ ] 12.13 Run TestSprite: Test import data tahun lalu functionality
+  - [ ] 12.14 Run TestSprite: Test distribution with stock validation
+  - [ ] 12.15 Run TestSprite: Verify insufficient stock alerts
+  - [ ] 12.16 Run TestSprite: Test distribusi status update (pending → selesai)
+  - [ ] 12.17 Run TestSprite: Test report generation (all tabs)
+  - [ ] 12.18 Run TestSprite: Test PDF export functionality
+  - [ ] 12.19 Run TestSprite: Test Excel export functionality
+  - [ ] 12.20 Run TestSprite: Test user management (admin only)
+  - [ ] 12.21 Run TestSprite: Complete end-to-end workflow test (payment → distribution → report)
+  - [ ] 12.22 Run TestSprite: Test edge cases (empty data, max values, invalid inputs)
+  - [ ] 12.23 Run TestSprite: Test concurrent user scenarios
+  - [ ] 12.24 Generate TestSprite test report and document findings
+  - [ ] 12.25 Fix critical and high-priority bugs identified by TestSprite
+  
+  **Phase 2 (continued): Manual Testing & Deep Validation (After TestSprite)**
+  
+  - [ ] 12.26 Setup Vitest for unit testing: `npm install -D vitest @testing-library/react @testing-library/jest-dom`
+  - [ ] 12.27 Configure vitest in `vite.config.ts`
+  - [ ] 12.28 Create `src/test/utils.tsx` with test utilities
+  - [ ] 12.29 Create `src/test/setup.ts` for global test setup
+  - [ ] 12.30 Write unit tests for formatter functions (currency, date)
+  - [ ] 12.31 Write unit tests for calculation functions (total zakat, sisa stok)
+  - [ ] 12.32 Write tests for custom hooks (useMuzakki, useMustahik, useDistribusi)
+  - [ ] 12.33 Write integration tests for form submission
+  - [ ] 12.34 Test React Hook Form + Zod validation edge cases
+  - [ ] 12.35 Write tests for authentication flow edge cases
+  - [ ] 12.36 Test login, logout, session persistence scenarios
+  - [ ] 12.37 Test protected routes with different roles (manual verification)
+  - [ ] 12.38 Test RLS policies in Supabase (manual testing)
+  - [ ] 12.39 Query as admin, petugas, viewer roles
+  - [ ] 12.40 Verify data isolation per role
+  - [ ] 12.41 Create UAT test checklist document
+  - [ ] 12.42 Perform end-to-end workflow test with real user: Input muzakki → Distribusi → Laporan
+  - [ ] 12.43 Test edge cases TestSprite might miss: unusual user behavior, rapid clicking, back button
+  - [ ] 12.44 Test with petugas non-IT (real user testing)
+  - [ ] 12.45 Gather feedback and iterate on UX issues
+  - [ ] 12.46 Test browser compatibility (Chrome, Firefox, Safari, Edge latest versions)
+  - [ ] 12.47 Test on older browsers (if required)
+  - [ ] 12.48 Test mobile responsive design on iOS devices
+  - [ ] 12.49 Test mobile responsive design on Android devices
+  - [ ] 12.50 Test print functionality (bukti pembayaran, bukti terima)
+  - [ ] 12.51 Verify PDF generation quality and layout
+  - [ ] 12.52 Test Excel export with various data sizes (small, medium, large datasets)
+  - [ ] 12.53 Verify data integrity in exports
+  - [ ] 12.54 Perform security audit (XSS, SQL injection via RLS)
+  - [ ] 12.55 Test with malicious input data
+  - [ ] 12.56 Verify all user inputs are sanitized
+  - [ ] 12.57 Test accessibility (keyboard navigation, screen readers)
+  - [ ] 12.58 Verify ARIA labels and semantic HTML
+  - [ ] 12.59 Test backup and restore functionality
+  - [ ] 12.60 Perform full database backup
+  - [ ] 12.61 Test restore from backup
+  - [ ] 12.62 Verify data integrity after restore
+  - [ ] 12.63 Load testing (simulate 50+ concurrent users) - optional
+  - [ ] 12.64 Monitor performance during load test
+  - [ ] 12.65 Fix remaining medium and low-priority bugs
+  - [ ] 12.66 Document known issues and limitations
+  - [ ] 12.67 Create bug tracking system (GitHub Issues or similar)
+  - [ ] 12.68 Final review: All critical bugs fixed, app ready for production
+  
+  **✅ Testing Complete - Now go to Task 11.9 for Vercel Deployment (Phase 3)**
 
 ---
 

@@ -53,11 +53,11 @@ export function LaporanPemasukan({ tahunZakatId }: LaporanPemasukanProps) {
   // Calculate summary
   const totalBeras = pembayaranList
     .filter((p: any) => p.jenis_zakat === 'beras')
-    .reduce((sum: number, p: any) => sum + (p.total_kg || 0), 0);
+    .reduce((sum: number, p: any) => sum + (p.jumlah_beras_kg || 0), 0);
 
   const totalUang = pembayaranList
     .filter((p: any) => p.jenis_zakat === 'uang')
-    .reduce((sum: number, p: any) => sum + (p.total_rp || 0), 0);
+    .reduce((sum: number, p: any) => sum + (p.jumlah_uang_rp || 0), 0);
 
   const totalMuzakki = new Set(pembayaranList.map((p: any) => p.muzakki_id)).size;
 
@@ -69,7 +69,8 @@ export function LaporanPemasukan({ tahunZakatId }: LaporanPemasukanProps) {
     }).format(value);
   };
 
-  const formatNumber = (value: number) => {
+  const formatNumber = (value: number | null | undefined) => {
+    if (value == null || isNaN(value)) return '0.00';
     return value.toFixed(2);
   };
 
@@ -275,8 +276,8 @@ export function LaporanPemasukan({ tahunZakatId }: LaporanPemasukanProps) {
                     </TableCell>
                     <TableCell className="text-right">
                       {pembayaran.jenis_zakat === 'beras'
-                        ? `${formatNumber(pembayaran.total_kg)} kg`
-                        : formatCurrency(pembayaran.total_rp)}
+                        ? `${formatNumber(pembayaran.jumlah_beras_kg)} kg`
+                        : formatCurrency(pembayaran.jumlah_uang_rp)}
                     </TableCell>
                   </TableRow>
                 ))
