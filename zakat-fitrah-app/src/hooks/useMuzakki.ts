@@ -1,0 +1,314 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+
+interface MuzakkiRecord {
+  id: string;
+  nama_kk: string;
+  alamat: string;
+  no_telp: string | null;
+}
+
+interface TahunZakatRecord {
+  id: string;
+  nilai_beras_kg: number;
+  nilai_uang_rp: number;
+}
+
+interface Muzakki {
+  id: string;
+  nama_kk: string;
+  alamat: string;
+  no_telp: string | null;
+}
+
+interface PembayaranZakat {
+  id: string;
+  muzakki_id: string;
+  muzakki: Muzakki;
+  tahun_zakat_id: string;
+  tanggal_bayar: string;
+  jumlah_jiwa: number;
+  jenis_zakat: 'beras' | 'uang';
+  total_beras_kg: number | null;
+  total_uang_rp: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface PembayaranListParams {
+  search?: string;
+  jenisZakat?: string;
+  tahunZakatId?: string;
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+interface CreatePembayaranInput {
+  nama_kk: string;
+  alamat: string;
+  no_telp?: string;
+  jumlah_jiwa: number;
+  jenis_zakat: 'beras' | 'uang';
+  tanggal_bayar: string;
+  tahun_zakat_id: string;
+}
+
+interface UpdatePembayaranInput extends CreatePembayaranInput {
+  id: string;
+  muzakki_id: string;
+}
+
+// Fetch list pembayaran with filters, search, and pagination
+export function usePembayaranList(params: PembayaranListParams) {
+  return useQuery({
+    queryKey: ['pembayaran-list', params],
+    queryFn: async (): Promise<{ data: PembayaranZakat[]; count: number }> => {
+      let query = supabase
+        .from('pembayaran_zakat')
+        .select(
+          `
+          *,
+          muzakki:muzakki_id (
+            id,
+            nama_kk,
+            alamat,
+            no_telp
+          )
+        `,
+          { count: 'exact' }
+        );
+
+      // Filter by tahun_zakat_id
+      if (params.tahunZakatId) {
+        query = query.eq('tahun_zakat_id', params.tahunZakatId);
+      }
+
+      // Filter by jenis_zakat
+      if (params.jenisZakat && params.jenisZakat !== 'semua') {
+        query = query.eq('jenis_zakat', params.jenisZakat);
+      }
+
+      // Search by nama or alamat
+      if (params.search) {
+        // We need to join with muzakki and search there
+        // This is a simplified version - in production you might want to use a view or RPC
+        query = query.or(`muzakki.nama_kk.ilike.%${params.search}%,muzakki.alamat.ilike.%${params.search}%`);
+      }
+
+      // Sorting
+      const sortBy = params.sortBy || 'tanggal_bayar';
+      const sortOrder = params.sortOrder || 'desc';
+      query = query.order(sortBy, { ascending: sortOrder === 'asc' });
+
+      // Pagination
+      const page = params.page || 1;
+      const pageSize = params.pageSize || 20;
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
+
+      if (error) throw error;
+
+      return {
+        data: (data || []) as unknown as PembayaranZakat[],
+        count: count || 0,
+      };
+    },
+  });
+}
+
+// Create new pembayaran (with muzakki)
+export function useCreatePembayaran() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreatePembayaranInput) => {
+      // First, check if muzakki exists by nama_kk
+      const { data: existingMuzakki } = await supabase
+        .from('muzakki')
+        .select('id')
+        .eq('nama_kk', input.nama_kk)
+        .maybeSingle();
+
+      let muzakkiId: string;
+
+      if (existingMuzakki) {
+        // Use existing muzakki, but update alamat and no_telp
+        muzakkiId = (existingMuzakki as MuzakkiRecord).id;
+        await (supabase.from('muzakki').update as any)({
+          alamat: input.alamat,
+          no_telp: input.no_telp || null,
+          updated_at: new Date().toISOString(),
+        }).eq('id', muzakkiId);
+      } else {
+        // Create new muzakki
+        const { data: newMuzakki, error: muzakkiError } = await (supabase.from('muzakki').insert as any)({
+          nama_kk: input.nama_kk,
+          alamat: input.alamat,
+          no_telp: input.no_telp || null,
+        }).select().single();
+
+        if (muzakkiError) throw muzakkiError;
+        muzakkiId = (newMuzakki as MuzakkiRecord).id;
+      }
+
+      // Get nilai per orang from active tahun_zakat
+      const { data: tahunZakat, error: tahunError } = await supabase
+        .from('tahun_zakat')
+        .select('nilai_beras_kg, nilai_uang_rp')
+        .eq('id', input.tahun_zakat_id)
+        .single();
+
+      if (tahunError) throw tahunError;
+
+      const typedTahunZakat = tahunZakat as TahunZakatRecord;
+
+      // Calculate total
+      const totalBerasKg =
+        input.jenis_zakat === 'beras'
+          ? input.jumlah_jiwa * typedTahunZakat.nilai_beras_kg
+          : null;
+      const totalUangRp =
+        input.jenis_zakat === 'uang'
+          ? input.jumlah_jiwa * typedTahunZakat.nilai_uang_rp
+          : null;
+
+      // Create pembayaran
+      const { data, error } = await (supabase.from('pembayaran_zakat').insert as any)({
+        muzakki_id: muzakkiId,
+        tahun_zakat_id: input.tahun_zakat_id,
+        tanggal_bayar: input.tanggal_bayar,
+        jumlah_jiwa: input.jumlah_jiwa,
+        jenis_zakat: input.jenis_zakat,
+        total_beras_kg: totalBerasKg,
+        total_uang_rp: totalUangRp,
+      }).select().single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pembayaran-list'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      toast.success('Pembayaran zakat berhasil ditambahkan');
+    },
+    onError: (error: Error) => {
+      toast.error(`Gagal menambahkan pembayaran: ${error.message}`);
+    },
+  });
+}
+
+// Update existing pembayaran
+export function useUpdatePembayaran() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: UpdatePembayaranInput) => {
+      // Update muzakki
+      await (supabase.from('muzakki').update as any)({
+        nama_kk: input.nama_kk,
+        alamat: input.alamat,
+        no_telp: input.no_telp || null,
+        updated_at: new Date().toISOString(),
+      }).eq('id', input.muzakki_id);
+
+      // Get nilai per orang from tahun_zakat
+      const { data: tahunZakat, error: tahunError } = await supabase
+        .from('tahun_zakat')
+        .select('nilai_beras_kg, nilai_uang_rp')
+        .eq('id', input.tahun_zakat_id)
+        .single();
+
+      if (tahunError) throw tahunError;
+
+      const typedTahunZakat = tahunZakat as TahunZakatRecord;
+
+      // Recalculate total
+      const totalBerasKg =
+        input.jenis_zakat === 'beras'
+          ? input.jumlah_jiwa * typedTahunZakat.nilai_beras_kg
+          : null;
+      const totalUangRp =
+        input.jenis_zakat === 'uang'
+          ? input.jumlah_jiwa * typedTahunZakat.nilai_uang_rp
+          : null;
+
+      // Update pembayaran
+      const { data, error } = await (supabase.from('pembayaran_zakat').update as any)({
+        tanggal_bayar: input.tanggal_bayar,
+        jumlah_jiwa: input.jumlah_jiwa,
+        jenis_zakat: input.jenis_zakat,
+        total_beras_kg: totalBerasKg,
+        total_uang_rp: totalUangRp,
+        updated_at: new Date().toISOString(),
+      }).eq('id', input.id).select().single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pembayaran-list'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      toast.success('Pembayaran zakat berhasil diperbarui');
+    },
+    onError: (error: Error) => {
+      toast.error(`Gagal memperbarui pembayaran: ${error.message}`);
+    },
+  });
+}
+
+// Delete pembayaran
+export function useDeletePembayaran() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('pembayaran_zakat').delete().eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pembayaran-list'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      toast.success('Pembayaran zakat berhasil dihapus');
+    },
+    onError: (error: Error) => {
+      toast.error(`Gagal menghapus pembayaran: ${error.message}`);
+    },
+  });
+}
+
+// Get single pembayaran for edit
+export function usePembayaranDetail(id: string | null) {
+  return useQuery({
+    queryKey: ['pembayaran-detail', id],
+    queryFn: async (): Promise<PembayaranZakat | null> => {
+      if (!id) return null;
+
+      const { data, error } = await supabase
+        .from('pembayaran_zakat')
+        .select(
+          `
+          *,
+          muzakki:muzakki_id (
+            id,
+            nama_kk,
+            alamat,
+            no_telp
+          )
+        `
+        )
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data as unknown as PembayaranZakat;
+    },
+    enabled: !!id,
+  });
+}
