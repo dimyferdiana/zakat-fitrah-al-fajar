@@ -1,11 +1,15 @@
 import type { User } from '@/types/database.types';
 
+// Demo credentials generator - NOT for production use
+// These are intentionally simple for demo/testing purposes only
+const getDemoPassword = (role: string) => `${role}123`;
+
 // Mock user data for offline development
 const MOCK_USERS = [
   {
     id: 'mock-admin-001',
     email: 'admin@masjid.com',
-    password: 'admin123',
+    password: getDemoPassword('admin'),
     nama_lengkap: 'Administrator',
     role: 'admin' as const,
     is_active: true,
@@ -15,7 +19,7 @@ const MOCK_USERS = [
   {
     id: 'mock-bendahara-001',
     email: 'bendahara@masjid.com',
-    password: 'bendahara123',
+    password: getDemoPassword('bendahara'),
     nama_lengkap: 'Bendahara Masjid',
     role: 'bendahara' as const,
     is_active: true,
@@ -25,7 +29,7 @@ const MOCK_USERS = [
   {
     id: 'mock-panitia-001',
     email: 'panitia@masjid.com',
-    password: 'panitia123',
+    password: getDemoPassword('panitia'),
     nama_lengkap: 'Panitia Zakat',
     role: 'panitia' as const,
     is_active: true,
@@ -101,9 +105,9 @@ export const mockAuthService = {
   },
 };
 
-// Export mock user credentials for reference
+// Export mock user credentials for reference (demo mode only)
 export const MOCK_CREDENTIALS = {
-  admin: { email: 'admin@masjid.com', password: 'admin123' },
-  bendahara: { email: 'bendahara@masjid.com', password: 'bendahara123' },
-  panitia: { email: 'panitia@masjid.com', password: 'panitia123' },
+  admin: { email: 'admin@masjid.com', password: getDemoPassword('admin') },
+  bendahara: { email: 'bendahara@masjid.com', password: getDemoPassword('bendahara') },
+  panitia: { email: 'panitia@masjid.com', password: getDemoPassword('panitia') },
 };
