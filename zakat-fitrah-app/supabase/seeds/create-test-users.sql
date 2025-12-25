@@ -5,7 +5,7 @@
 -- INSTRUCTIONS:
 -- 1. First, create auth users in Supabase Dashboard:
 --    - Go to Authentication → Users → Add User
---    - Create users with emails below (password: password123)
+--    - Create users with emails below (use a secure password)
 --    - Check "Auto Confirm Email"
 -- 2. Then run this SQL to add their profiles
 
