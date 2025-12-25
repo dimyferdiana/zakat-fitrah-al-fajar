@@ -82,7 +82,7 @@ This guide will help you set up your Supabase database with real users and data.
 2. Click **Add User** → **Create New User**
 3. Fill in:
    - **Email:** `admin@masjid.com`
-   - **Password:** `Admin123!` (or your preferred password)
+   - **Password:** (use a strong password)
    - **Auto Confirm User:** ✅ **Check this box**
 4. Click **Create User**
 5. **Copy the User ID** (you'll need it in next step)
@@ -106,12 +106,12 @@ Repeat the process for:
 
 **Bendahara Account:**
 - Email: `bendahara@masjid.com`
-- Password: `Bendahara123!`
+- Password: (use a strong password)
 - Role: `admin` or `petugas`
 
 **Panitia Account:**
 - Email: `panitia@masjid.com`
-- Password: `Panitia123!`
+- Password: (use a strong password)
 - Role: `petugas`
 
 After creating each auth user, add their profile:
@@ -189,7 +189,7 @@ VITE_OFFLINE_MODE=false
 
 3. **Login with your admin credentials:**
    - Email: `admin@masjid.com`
-   - Password: `Admin123!` (or whatever you set)
+   - Password: (the password you set earlier)
 
 4. You should now be logged in and see the dashboard!
 
@@ -225,7 +225,7 @@ VITE_OFFLINE_MODE=false
 ### Admin Credentials Template
 ```
 Email: admin@masjid.com
-Password: Admin123!
+Password: (your secure password)
 Role: admin
 ```
 

@@ -89,9 +89,9 @@ Expected results:
 
 | Email | Password | Auto Confirm |
 |-------|----------|--------------|
-| admin@example.com | password123 | ✓ Yes |
-| petugas@example.com | password123 | ✓ Yes |
-| viewer@example.com | password123 | ✓ Yes |
+| admin@example.com | (set secure password) | ✓ Yes |
+| petugas@example.com | (set secure password) | ✓ Yes |
+| viewer@example.com | (set secure password) | ✓ Yes |
 
 ### 6.2 Add User Profiles
 
@@ -116,9 +116,9 @@ Now you can login to your application at http://localhost:5173/login
 
 | Role | Email | Password | Access Level |
 |------|-------|----------|-------------|
-| **Admin** | admin@example.com | password123 | Full access to all features |
-| **Petugas** | petugas@example.com | password123 | Can create/edit data, limited delete |
-| **Viewer** | viewer@example.com | password123 | Read-only access |
+| **Admin** | admin@example.com | (your password) | Full access to all features |
+| **Petugas** | petugas@example.com | (your password) | Can create/edit data, limited delete |
+| **Viewer** | viewer@example.com | (your password) | Read-only access |
 
 ## Troubleshooting
 

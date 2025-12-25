@@ -63,9 +63,9 @@ Run these in order:
 
 #### Test Credentials
 After running `create-test-users.sql`:
-- **Admin:** admin@example.com / password123
-- **Petugas:** petugas@example.com / password123
-- **Viewer:** viewer@example.com / password123
+- **Admin:** admin@example.com (set your own password)
+- **Petugas:** petugas@example.com (set your own password)
+- **Viewer:** viewer@example.com (set your own password)
 
 #### Seed Data
 The `seed.sql` includes:
