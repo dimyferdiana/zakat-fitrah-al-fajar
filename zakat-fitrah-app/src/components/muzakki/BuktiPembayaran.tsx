@@ -56,7 +56,10 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
   };
 
   const handlePrint = () => {
-    window.print();
+    // Wait for dialog content to render before printing
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
 
   const handleDownloadPDF = () => {

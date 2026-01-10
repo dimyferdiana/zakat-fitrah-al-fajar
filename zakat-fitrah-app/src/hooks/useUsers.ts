@@ -36,18 +36,36 @@ export function useUsersList() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // If 403, user doesn't have permission - return empty array
+        if (error.code === 'PGRST301' || error.message.includes('403')) {
+          console.warn('User management requires service role access');
+          return [];
+        }
+        throw error;
+      }
       return (data || []) as User[];
     },
+    retry: false, // Don't retry on permission errors
   });
 }
 
-// Create user (Note: In production, this should use Supabase Admin API)
+// Create user (Note: This requires proper backend implementation with Edge Functions)
 export function useCreateUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: CreateUserInput) => {
+    mutationFn: async (_input: CreateUserInput) => {
+      // Note: Direct user creation from client is not secure
+      // This should be done via Supabase Edge Function with service role
+      
+      // For now, show error message that this requires backend setup
+      throw new Error(
+        'User management requires backend Edge Function setup. ' +
+        'Please create users via Supabase Dashboard: Authentication > Users > Add User'
+      );
+      
+      /* Original code kept for reference:
       // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: input.email,
@@ -76,13 +94,14 @@ export function useCreateUser() {
       }
 
       return authData.user;
+      */
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users-list'] });
       toast.success('User berhasil ditambahkan. Email konfirmasi telah dikirim.');
     },
     onError: (error: Error) => {
-      toast.error(`Gagal menambahkan user: ${error.message}`);
+      toast.error(error.message);
     },
   });
 }

@@ -27,7 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Search, Edit, Trash2, Printer, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Edit, Trash2, Printer, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 
@@ -59,7 +59,9 @@ interface MuzakkiTableProps {
   onEdit: (pembayaran: PembayaranZakat) => void;
   onDelete: (id: string) => void;
   onPrint: (pembayaran: PembayaranZakat) => void;
+  searchValue: string;
   onSearchChange: (search: string) => void;
+  jenisZakatValue: string;
   onJenisZakatChange: (jenis: string) => void;
   onSortChange: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
   currentPage: number;
@@ -74,32 +76,20 @@ export function MuzakkiTable({
   onEdit,
   onDelete,
   onPrint,
+  searchValue,
   onSearchChange,
+  jenisZakatValue,
   onJenisZakatChange,
   onSortChange,
   currentPage,
   pageSize,
   onPageChange,
 }: MuzakkiTableProps) {
-  const [search, setSearch] = useState('');
-  const [jenisZakat, setJenisZakat] = useState('semua');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('tanggal_bayar');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  const handleSearchChange = (value: string) => {
-    setSearch(value);
-    // Debounce search
-    const timeout = setTimeout(() => {
-      onSearchChange(value);
-    }, 500);
-    return () => clearTimeout(timeout);
-  };
 
-  const handleJenisZakatChange = (value: string) => {
-    setJenisZakat(value);
-    onJenisZakatChange(value);
-  };
 
   const handleSort = (column: string) => {
     const newSortOrder = sortBy === column && sortOrder === 'asc' ? 'desc' : 'asc';
@@ -132,12 +122,23 @@ export function MuzakkiTable({
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Cari nama KK atau alamat..."
-            value={search}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            className="pl-9"
+            value={searchValue}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-9 pr-9"
           />
+          {searchValue && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onSearchChange('')}
+              className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2"
+              title="Hapus pencarian"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
-        <Select value={jenisZakat} onValueChange={handleJenisZakatChange}>
+        <Select value={jenisZakatValue} onValueChange={onJenisZakatChange}>
           <SelectTrigger className="w-full md:w-[180px]">
             <SelectValue placeholder="Jenis Zakat" />
           </SelectTrigger>

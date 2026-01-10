@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '@/components/common/PageHeader';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -57,6 +57,7 @@ interface FormData {
 
 export function Muzakki() {
   const [selectedTahun, setSelectedTahun] = useState<string | undefined>();
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [jenisZakat, setJenisZakat] = useState('semua');
   const [currentPage, setCurrentPage] = useState(1);
@@ -67,6 +68,20 @@ export function Muzakki() {
   const [printData, setPrintData] = useState<PembayaranZakat | null>(null);
 
   const pageSize = 20;
+
+  // Debounce search input
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setSearch(searchInput);
+      setCurrentPage(1);
+    }, 500);
+    
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchInput(value);
+  }, []);
 
   const { data: tahunList } = useTahunZakatList();
   const activeTahun = tahunList?.find((t) => t.is_active);
@@ -199,10 +214,9 @@ export function Muzakki() {
           onEdit={handleOpenForm}
           onDelete={handleDelete}
           onPrint={handlePrint}
-          onSearchChange={(value) => {
-            setSearch(value);
-            setCurrentPage(1);
-          }}
+          searchValue={searchInput}
+          onSearchChange={handleSearchChange}
+          jenisZakatValue={jenisZakat}
           onJenisZakatChange={(value) => {
             setJenisZakat(value);
             setCurrentPage(1);

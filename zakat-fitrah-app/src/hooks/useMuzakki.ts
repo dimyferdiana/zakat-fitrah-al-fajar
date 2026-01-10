@@ -93,9 +93,19 @@ export function usePembayaranList(params: PembayaranListParams) {
 
       // Search by nama or alamat
       if (params.search) {
-        // We need to join with muzakki and search there
-        // This is a simplified version - in production you might want to use a view or RPC
-        query = query.or(`muzakki.nama_kk.ilike.%${params.search}%,muzakki.alamat.ilike.%${params.search}%`);
+        // First, get matching muzakki IDs
+        const { data: matchingMuzakki } = await supabase
+          .from('muzakki')
+          .select('id')
+          .or(`nama_kk.ilike.%${params.search}%,alamat.ilike.%${params.search}%`);
+
+        if (matchingMuzakki && matchingMuzakki.length > 0) {
+          const muzakkiIds = matchingMuzakki.map((m: any) => m.id);
+          query = query.in('muzakki_id', muzakkiIds);
+        } else {
+          // No matching muzakki found, return empty result
+          query = query.eq('id', '00000000-0000-0000-0000-000000000000'); // Non-existent ID
+        }
       }
 
       // Sorting

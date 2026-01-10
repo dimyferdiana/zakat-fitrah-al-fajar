@@ -174,22 +174,30 @@ export default function Settings() {
                   <div>
                     <CardTitle>Manajemen User</CardTitle>
                     <CardDescription>
-                      Kelola akses pengguna sistem
+                      Untuk menambah user baru, gunakan Supabase Dashboard: Authentication → Users → Add User
                     </CardDescription>
                   </div>
-                  <Button onClick={() => handleOpenUserForm()}>
+                  <Button onClick={() => handleOpenUserForm()} disabled>
                     <Plus className="mr-2 h-4 w-4" />
-                    Tambah User
+                    Tambah User (Coming Soon)
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
-                <UserTable
-                  data={usersList}
-                  isLoading={loadingUsers}
-                  onEdit={handleOpenUserForm}
-                  onToggleActive={handleToggleUserActive}
-                />
+                {usersList.length === 0 && !loadingUsers && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p className="mb-2">User management requires service role access.</p>
+                    <p className="text-sm">Please use Supabase Dashboard to manage users.</p>
+                  </div>
+                )}
+                {usersList.length > 0 && (
+                  <UserTable
+                    data={usersList}
+                    isLoading={loadingUsers}
+                    onEdit={handleOpenUserForm}
+                    onToggleActive={handleToggleUserActive}
+                  />
+                )}
               </CardContent>
             </Card>
           </TabsContent>
