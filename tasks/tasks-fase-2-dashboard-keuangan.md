@@ -4,6 +4,8 @@
 - zakat-fitrah-app/src/hooks/useDashboard.ts - Menambah query agregasi untuk fidyah/infak/maal uang dan komponen Hak Amil.
 - zakat-fitrah-app/src/components/dashboard/DistribusiProgress.tsx - Memperluas agar mendukung komponen Hak Amil (atau buat komponen baru).
 - zakat-fitrah-app/src/pages/Muzakki.tsx - (Opsional) Entry transaksi uang yang terkait muzakki.
+- zakat-fitrah-app/src/components/muzakki/MuzakkiForm.tsx - Tambah field akun uang & nominal diterima untuk deteksi overpayment.
+- zakat-fitrah-app/src/hooks/useMuzakki.ts - Update create/update pembayaran agar menyimpan akun uang & nominal diterima.
 - zakat-fitrah-app/src/pages/Settings.tsx - (Opsional) Admin input Hak Amil manual per tahun zakat.
 - zakat-fitrah-app/src/lib/auth.tsx - Role gating untuk admin-only pages/controls.
 - zakat-fitrah-app/src/types/database.types.ts - Update type definitions untuk tabel/kolom baru.
@@ -40,9 +42,12 @@
 		- Tersalurkan Uang (existing)
 		- Sisa Uang
 	- [ ] 1.5 Define overpayment flow for Zakat Fitrah (uang): confirm dialog + pencatatan selisih ke infak
-	- [ ] 1.6 Define rekonsiliasi rules (admin-only): what counts into totals (adjustment included vs displayed separately)
+	- [ ] 1.6 Confirm rekonsiliasi rules (admin-only): penyesuaian ikut masuk total pemasukan + tampil sebagai info
 
 - [ ] 2.0 Database migrations (pemasukan uang + hak amil manual + rekonsiliasi)
+	- [ ] 2.0.1 Create migration: update `pembayaran_zakat` (fitrah uang)
+		- [ ] 2.0.1.1 Add `akun_uang` (kas/bank) (required when jenis_zakat=uang)
+		- [ ] 2.0.1.2 Add `jumlah_uang_dibayar_rp` (nullable, for overpayment detection)
 	- [ ] 2.1 Create migration: `pemasukan_uang` table
 		- [ ] 2.1.1 Columns (suggested): id, tahun_zakat_id, muzakki_id (nullable), kategori, akun, jumlah_uang_rp, tanggal, catatan, created_by, created_at, updated_at
 		- [ ] 2.1.2 Indexes: tahun_zakat_id, kategori, tanggal, akun
@@ -75,9 +80,11 @@
 		- [ ] 3.5.1 Show last N records + filter by kategori + akun
 		- [ ] 3.5.2 Role-based actions (edit/delete optional; can be Phase 3)
 	- [ ] 3.6 Overpayment integration for Zakat Fitrah (uang)
-		- [ ] 3.6.1 On pembayaran fitrah uang form: compute kewajiban (jiwa × nilai_uang_rp)
-		- [ ] 3.6.2 If paid > wajib: confirmation modal to create `infak_sedekah_uang` for selisih
-		- [ ] 3.6.3 Store reference info (catatan: "Overpayment dari pembayaran_zakat {id}")
+		- [ ] 3.6.1 Update form di `MuzakkiForm.tsx`: tambah input akun uang (Kas/Bank) untuk jenis_zakat=uang
+		- [ ] 3.6.2 Update form di `MuzakkiForm.tsx`: tambah input "Nominal Diterima" (default = kewajiban)
+		- [ ] 3.6.3 If diterima > wajib: confirmation modal to create `infak_sedekah_uang` for selisih
+		- [ ] 3.6.4 Persist: simpan `akun_uang` + `jumlah_uang_dibayar_rp` ke `pembayaran_zakat`
+		- [ ] 3.6.5 Store reference info (catatan pemasukan_uang: "Overpayment dari pembayaran_zakat {id}")
 
 - [ ] 4.0 UI: Dashboard update (Infak/Fidyah/Uang terkumpul + Hak Amil + rumus progress)
 	- [ ] 4.1 Update `useDashboardStats` to include:
@@ -95,7 +102,7 @@
 		- [ ] 4.3.2 Display: Total Pemasukan, Hak Amil (manual), Tersalurkan, Sisa
 		- [ ] 4.3.3 Add warning when sisa < 0
 	- [ ] 4.4 Update monthly chart (optional Phase 2)
-		- [ ] 4.4.1 Include fidyah/infak/maal in monthly chart, or keep chart for zakat fitrah only (define clearly)
+		- [ ] 4.4.1 Keep monthly chart for zakat fitrah only (Phase 2 decision)
 
 - [ ] 5.0 Admin-only: Rekonsiliasi manual (Kas/Bank + Beras)
 	- [ ] 5.1 Add admin-only route/page
@@ -111,8 +118,8 @@
 		- [ ] 5.4.1 `useRekonsiliasiList`
 		- [ ] 5.4.2 `useCreateRekonsiliasi`
 	- [ ] 5.5 Wire rekonsiliasi into dashboard totals
-		- [ ] 5.5.1 Decide: adjustment included in totals or displayed separately
-		- [ ] 5.5.2 Implement chosen approach consistently
+		- [ ] 5.5.1 Implement: adjustment included in totals (per PRD)
+		- [ ] 5.5.2 Also display adjustment totals for transparency
 	- [ ] 5.6 Admin-only: Hak Amil manual input
 		- [ ] 5.6.1 Add admin-only input (Settings or Dashboard)
 		- [ ] 5.6.2 Persist to `hak_amil` and reflect in dashboard calculations
