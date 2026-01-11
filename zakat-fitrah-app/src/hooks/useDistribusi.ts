@@ -243,6 +243,7 @@ export function useCreateDistribusi() {
           mustahik_id: input.mustahik_id,
           tahun_zakat_id: input.tahun_zakat_id,
           jenis_distribusi: input.jenis_distribusi,
+          jumlah: input.jumlah, // Legacy column (NOT NULL in prod)
           jumlah_beras_kg: input.jenis_distribusi === 'beras' ? input.jumlah : null,
           jumlah_uang_rp: input.jenis_distribusi === 'uang' ? input.jumlah : null,
           tanggal_distribusi: input.tanggal_distribusi,
