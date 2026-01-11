@@ -32,6 +32,8 @@ interface PembayaranZakat {
   jenis_zakat: 'beras' | 'uang';
   jumlah_beras_kg: number | null;
   jumlah_uang_rp: number | null;
+  akun_uang?: 'kas' | 'bank' | null;
+  jumlah_uang_dibayar_rp?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -54,6 +56,8 @@ interface CreatePembayaranInput {
   jenis_zakat: 'beras' | 'uang';
   tanggal_bayar: string;
   tahun_zakat_id: string;
+  akun_uang?: 'kas' | 'bank';
+  jumlah_uang_dibayar_rp?: number;
 }
 
 interface UpdatePembayaranInput extends CreatePembayaranInput {
@@ -188,6 +192,16 @@ export function useCreatePembayaran() {
           ? input.jumlah_jiwa * typedTahunZakat.nilai_uang_rp
           : null;
 
+      const akunUang = input.jenis_zakat === 'uang' ? input.akun_uang || null : null;
+      const jumlahUangDibayar =
+        input.jenis_zakat === 'uang'
+          ? input.jumlah_uang_dibayar_rp ?? totalUangRp ?? 0
+          : null;
+      const overpay =
+        input.jenis_zakat === 'uang' && totalUangRp !== null && jumlahUangDibayar !== null
+          ? jumlahUangDibayar - totalUangRp
+          : 0;
+
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -205,10 +219,29 @@ export function useCreatePembayaran() {
         total_zakat: totalBerasKg || totalUangRp,
         jumlah_beras_kg: totalBerasKg,
         jumlah_uang_rp: totalUangRp,
+        akun_uang: akunUang,
+        jumlah_uang_dibayar_rp: jumlahUangDibayar,
+        created_by: user.id,
         petugas_penerima: user.id,
       }).select().single();
 
       if (error) throw error;
+
+      if (overpay > 0 && akunUang) {
+        const { error: overpayError } = await (supabase.from('pemasukan_uang').insert as any)({
+          tahun_zakat_id: input.tahun_zakat_id,
+          muzakki_id: muzakkiId,
+          kategori: 'infak_sedekah_uang',
+          akun: akunUang,
+          jumlah_uang_rp: overpay,
+          tanggal: input.tanggal_bayar,
+          catatan: `Overpayment dari pembayaran_zakat ${data.id}`,
+          created_by: user.id,
+        });
+
+        if (overpayError) throw overpayError;
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -257,6 +290,12 @@ export function useUpdatePembayaran() {
           ? input.jumlah_jiwa * typedTahunZakat.nilai_uang_rp
           : null;
 
+      const akunUang = input.jenis_zakat === 'uang' ? input.akun_uang || null : null;
+      const jumlahUangDibayar =
+        input.jenis_zakat === 'uang'
+          ? input.jumlah_uang_dibayar_rp ?? totalUangRp ?? 0
+          : null;
+
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -272,6 +311,8 @@ export function useUpdatePembayaran() {
         total_zakat: totalBerasKg || totalUangRp,
         jumlah_beras_kg: totalBerasKg,
         jumlah_uang_rp: totalUangRp,
+        akun_uang: akunUang,
+        jumlah_uang_dibayar_rp: jumlahUangDibayar,
         petugas_penerima: user.id,
         updated_at: new Date().toISOString(),
       }).eq('id', input.id).select().single();

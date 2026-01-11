@@ -22,6 +22,7 @@ import {
   Menu,
   LogOut,
   User,
+  Wallet,
 } from 'lucide-react';
 
 interface MainLayoutProps {
@@ -45,6 +46,12 @@ const navItems: NavItem[] = [
     label: 'Data Muzakki',
     path: '/muzakki',
     icon: Users,
+    roles: ['admin', 'petugas'],
+  },
+  {
+    label: 'Pemasukan Uang',
+    path: '/pemasukan',
+    icon: Wallet,
     roles: ['admin', 'petugas'],
   },
   {

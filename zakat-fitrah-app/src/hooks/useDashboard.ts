@@ -11,6 +11,13 @@ interface DashboardStats {
   totalDistribusiUangRp: number;
   sisaBerasKg: number;
   sisaUangRp: number;
+  // Phase 2: Pemasukan Uang breakdown
+  fidyahUangRp: number;
+  infakSedekahUangRp: number;
+  maalPenghasilanUangRp: number;
+  totalPemasukanUangRp: number; // Including fitrah + fidyah + infak + maal + rekonsiliasi
+  hakAmilUangRp: number;
+  sisaUangAfterAmilRp: number;
 }
 
 interface PembayaranData {
@@ -51,6 +58,12 @@ export function useDashboardStats(tahunZakatId?: string) {
           totalDistribusiUangRp: 0,
           sisaBerasKg: 0,
           sisaUangRp: 0,
+          fidyahUangRp: 0,
+          infakSedekahUangRp: 0,
+          maalPenghasilanUangRp: 0,
+          totalPemasukanUangRp: 0,
+          hakAmilUangRp: 0,
+          sisaUangAfterAmilRp: 0,
         };
       }
 
@@ -110,6 +123,49 @@ export function useDashboardStats(tahunZakatId?: string) {
 
       const totalDistribusiUangRp = (distribusiUang as DistribusiData[] | null)?.reduce((sum, d) => sum + (Number(d.jumlah_uang_rp) || 0), 0) || 0;
 
+      // Phase 2: Get pemasukan_uang breakdown
+      const { data: pemasukanUangData } = await supabase
+        .from('pemasukan_uang')
+        .select('kategori, jumlah_uang_rp')
+        .eq('tahun_zakat_id', activeTahunId);
+
+      const fidyahUangRp = (pemasukanUangData || [])
+        .filter((p: any) => p.kategori === 'fidyah_uang')
+        .reduce((sum: number, p: any) => sum + (Number(p.jumlah_uang_rp) || 0), 0);
+
+      const infakSedekahUangRp = (pemasukanUangData || [])
+        .filter((p: any) => p.kategori === 'infak_sedekah_uang')
+        .reduce((sum: number, p: any) => sum + (Number(p.jumlah_uang_rp) || 0), 0);
+
+      const maalPenghasilanUangRp = (pemasukanUangData || [])
+        .filter((p: any) => p.kategori === 'maal_penghasilan_uang')
+        .reduce((sum: number, p: any) => sum + (Number(p.jumlah_uang_rp) || 0), 0);
+
+      // Phase 2: Get rekonsiliasi adjustments
+      const { data: rekonsiliasiData } = await supabase
+        .from('rekonsiliasi')
+        .select('jumlah_uang_rp')
+        .eq('tahun_zakat_id', activeTahunId)
+        .eq('jenis', 'uang');
+
+      const rekonsiliasiUangRp = (rekonsiliasiData || [])
+        .reduce((sum: number, r: any) => sum + (Number(r.jumlah_uang_rp) || 0), 0);
+
+      // Phase 2: Get Hak Amil manual
+      const { data: hakAmilData } = await supabase
+        .from('hak_amil')
+        .select('jumlah_uang_rp')
+        .eq('tahun_zakat_id', activeTahunId)
+        .maybeSingle();
+
+      const hakAmilUangRp = Number(hakAmilData?.jumlah_uang_rp) || 0;
+
+      // Total pemasukan uang = fitrah uang + fidyah + infak + maal + rekonsiliasi
+      const totalPemasukanUangRp = totalUangRp + fidyahUangRp + infakSedekahUangRp + maalPenghasilanUangRp + rekonsiliasiUangRp;
+
+      // Sisa uang after amil = total pemasukan - hak amil - tersalurkan
+      const sisaUangAfterAmilRp = totalPemasukanUangRp - hakAmilUangRp - totalDistribusiUangRp;
+
       // Calculate sisa
       const sisaBerasKg = totalBerasKg - totalDistribusiBerasKg;
       const sisaUangRp = totalUangRp - totalDistribusiUangRp;
@@ -124,6 +180,12 @@ export function useDashboardStats(tahunZakatId?: string) {
         totalDistribusiUangRp,
         sisaBerasKg,
         sisaUangRp,
+        fidyahUangRp,
+        infakSedekahUangRp,
+        maalPenghasilanUangRp,
+        totalPemasukanUangRp,
+        hakAmilUangRp,
+        sisaUangAfterAmilRp,
       };
     },
     refetchInterval: 30000, // Auto-refresh every 30 seconds

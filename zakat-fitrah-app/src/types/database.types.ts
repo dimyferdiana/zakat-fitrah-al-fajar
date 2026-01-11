@@ -10,6 +10,14 @@ export type UserRole = 'admin' | 'petugas' | 'viewer';
 
 export type JenisZakat = 'beras' | 'uang';
 
+export type AkunUang = 'kas' | 'bank';
+
+export type PemasukanUangKategori =
+  | 'zakat_fitrah_uang'
+  | 'fidyah_uang'
+  | 'maal_penghasilan_uang'
+  | 'infak_sedekah_uang';
+
 export type StatusDistribusi = 'pending' | 'selesai';
 
 export interface Database {
@@ -131,6 +139,8 @@ export interface Database {
           jenis_zakat: JenisZakat;
           jumlah_beras_kg: number | null;
           jumlah_uang_rp: number | null;
+          akun_uang: AkunUang | null;
+          jumlah_uang_dibayar_rp: number | null;
           tanggal_bayar: string;
           created_by: string;
           created_at: string;
@@ -144,6 +154,8 @@ export interface Database {
           jenis_zakat: JenisZakat;
           jumlah_beras_kg?: number | null;
           jumlah_uang_rp?: number | null;
+          akun_uang?: AkunUang | null;
+          jumlah_uang_dibayar_rp?: number | null;
           tanggal_bayar?: string;
           created_by: string;
           created_at?: string;
@@ -157,10 +169,114 @@ export interface Database {
           jenis_zakat?: JenisZakat;
           jumlah_beras_kg?: number | null;
           jumlah_uang_rp?: number | null;
+          akun_uang?: AkunUang | null;
+          jumlah_uang_dibayar_rp?: number | null;
           tanggal_bayar?: string;
           created_by?: string;
           created_at?: string;
           updated_at?: string;
+        };
+      };
+      pemasukan_uang: {
+        Row: {
+          id: string;
+          tahun_zakat_id: string;
+          muzakki_id: string | null;
+          kategori: PemasukanUangKategori;
+          akun: AkunUang;
+          jumlah_uang_rp: number;
+          tanggal: string;
+          catatan: string | null;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tahun_zakat_id: string;
+          muzakki_id?: string | null;
+          kategori: PemasukanUangKategori;
+          akun: AkunUang;
+          jumlah_uang_rp: number;
+          tanggal?: string;
+          catatan?: string | null;
+          created_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tahun_zakat_id?: string;
+          muzakki_id?: string | null;
+          kategori?: PemasukanUangKategori;
+          akun?: AkunUang;
+          jumlah_uang_rp?: number;
+          tanggal?: string;
+          catatan?: string | null;
+          created_by?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      hak_amil: {
+        Row: {
+          tahun_zakat_id: string;
+          jumlah_uang_rp: number;
+          updated_by: string | null;
+          updated_at: string;
+          created_at: string;
+        };
+        Insert: {
+          tahun_zakat_id: string;
+          jumlah_uang_rp?: number;
+          updated_by?: string | null;
+          updated_at?: string;
+          created_at?: string;
+        };
+        Update: {
+          tahun_zakat_id?: string;
+          jumlah_uang_rp?: number;
+          updated_by?: string | null;
+          updated_at?: string;
+          created_at?: string;
+        };
+      };
+      rekonsiliasi: {
+        Row: {
+          id: string;
+          tahun_zakat_id: string;
+          jenis: JenisZakat;
+          akun: AkunUang | null;
+          jumlah_uang_rp: number | null;
+          jumlah_beras_kg: number | null;
+          tanggal: string;
+          catatan: string;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tahun_zakat_id: string;
+          jenis: JenisZakat;
+          akun?: AkunUang | null;
+          jumlah_uang_rp?: number | null;
+          jumlah_beras_kg?: number | null;
+          tanggal?: string;
+          catatan: string;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tahun_zakat_id?: string;
+          jenis?: JenisZakat;
+          akun?: AkunUang | null;
+          jumlah_uang_rp?: number | null;
+          jumlah_beras_kg?: number | null;
+          tanggal?: string;
+          catatan?: string;
+          created_by?: string;
+          created_at?: string;
         };
       };
       mustahik: {
@@ -288,6 +404,8 @@ export interface Database {
       user_role: UserRole;
       jenis_zakat: JenisZakat;
       status_distribusi: StatusDistribusi;
+      akun_uang: AkunUang;
+      pemasukan_uang_kategori: PemasukanUangKategori;
     };
   };
 }
@@ -297,6 +415,9 @@ export type TahunZakat = Database['public']['Tables']['tahun_zakat']['Row'];
 export type KategoriMustahik = Database['public']['Tables']['kategori_mustahik']['Row'];
 export type Muzakki = Database['public']['Tables']['muzakki']['Row'];
 export type PembayaranZakat = Database['public']['Tables']['pembayaran_zakat']['Row'];
+export type PemasukanUang = Database['public']['Tables']['pemasukan_uang']['Row'];
+export type HakAmil = Database['public']['Tables']['hak_amil']['Row'];
+export type Rekonsiliasi = Database['public']['Tables']['rekonsiliasi']['Row'];
 export type Mustahik = Database['public']['Tables']['mustahik']['Row'];
 export type DistribusiZakat = Database['public']['Tables']['distribusi_zakat']['Row'];
 export type AuditLog = Database['public']['Tables']['audit_logs']['Row'];

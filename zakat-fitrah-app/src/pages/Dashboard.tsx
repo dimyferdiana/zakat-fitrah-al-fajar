@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Users, Heart, Send, TrendingUp, Package, Coins, RefreshCw } from 'lucide-react';
+import { Users, Heart, Send, TrendingUp, Package, Coins, RefreshCw, HandHeart, Gift, Banknote } from 'lucide-react';
 
 export function Dashboard() {
   const { user } = useAuth();
@@ -127,6 +127,24 @@ export function Dashboard() {
           description="Total distribusi uang"
           icon={TrendingUp}
         />
+        <StatCard
+          title="Fidyah Uang"
+          value={formatCurrency(stats?.fidyahUangRp || 0)}
+          description="Pemasukan fidyah"
+          icon={HandHeart}
+        />
+        <StatCard
+          title="Infak/Sedekah Uang"
+          value={formatCurrency(stats?.infakSedekahUangRp || 0)}
+          description="Termasuk overpayment"
+          icon={Gift}
+        />
+        <StatCard
+          title="Total Pemasukan Uang"
+          value={formatCurrency(stats?.totalPemasukanUangRp || 0)}
+          description="Fitrah + Fidyah + Infak + Maal"
+          icon={Banknote}
+        />
       </div>
 
       {/* Charts and Progress */}
@@ -138,10 +156,11 @@ export function Dashboard() {
           jenis="beras"
         />
         <DistribusiProgress
-          totalPemasukan={stats?.totalUangRp || 0}
+          totalPemasukan={stats?.totalPemasukanUangRp || 0}
           totalDistribusi={stats?.totalDistribusiUangRp || 0}
-          sisa={stats?.sisaUangRp || 0}
+          sisa={stats?.sisaUangAfterAmilRp || 0}
           jenis="uang"
+          hakAmil={stats?.hakAmilUangRp || 0}
         />
       </div>
 

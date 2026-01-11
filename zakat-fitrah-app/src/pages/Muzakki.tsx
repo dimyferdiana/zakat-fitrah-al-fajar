@@ -39,6 +39,8 @@ interface PembayaranZakat {
   jenis_zakat: 'beras' | 'uang';
   jumlah_beras_kg: number | null;
   jumlah_uang_rp: number | null;
+  akun_uang?: 'kas' | 'bank' | null;
+  jumlah_uang_dibayar_rp?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -51,6 +53,9 @@ interface FormData {
   jenis_zakat: 'beras' | 'uang';
   tanggal_bayar: Date;
   tahun_zakat_id: string;
+  akun_uang?: 'kas' | 'bank';
+  jumlah_uang_dibayar_rp?: number;
+  kewajiban_uang?: number;
   id?: string;
   muzakki_id?: string;
 }
@@ -119,6 +124,18 @@ export function Muzakki() {
   };
 
   const handleSubmit = async (data: FormData) => {
+    if (
+      data.jenis_zakat === 'uang' &&
+      data.kewajiban_uang &&
+      data.jumlah_uang_dibayar_rp &&
+      data.jumlah_uang_dibayar_rp > data.kewajiban_uang
+    ) {
+      const confirmOverpay = window.confirm(
+        'Nominal diterima lebih besar dari kewajiban. Selisih akan dicatat sebagai infak/sedekah uang. Lanjutkan?'
+      );
+      if (!confirmOverpay) return;
+    }
+
     const submitData = {
       nama_kk: data.nama_kk,
       alamat: data.alamat,
@@ -127,6 +144,8 @@ export function Muzakki() {
       jenis_zakat: data.jenis_zakat,
       tanggal_bayar: data.tanggal_bayar.toISOString().split('T')[0],
       tahun_zakat_id: data.tahun_zakat_id,
+      akun_uang: data.akun_uang,
+      jumlah_uang_dibayar_rp: data.jumlah_uang_dibayar_rp,
     };
 
     if (data.id && data.muzakki_id) {

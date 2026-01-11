@@ -43,6 +43,24 @@ const formSchema = z.object({
   jumlah_jiwa: z.number().min(1, { message: 'Minimal 1 jiwa' }).max(50),
   jenis_zakat: z.enum(['beras', 'uang'], { message: 'Pilih jenis zakat' }),
   tanggal_bayar: z.date({ message: 'Pilih tanggal pembayaran' }),
+  akun_uang: z.enum(['kas', 'bank']).optional(),
+  jumlah_uang_dibayar_rp: z.number().positive({ message: 'Nominal harus lebih dari 0' }).optional(),
+}).refine((val) => {
+  if (val.jenis_zakat === 'uang') {
+    return !!val.akun_uang;
+  }
+  return true;
+}, {
+  path: ['akun_uang'],
+  message: 'Pilih akun uang',
+}).refine((val) => {
+  if (val.jenis_zakat === 'uang') {
+    return !!val.jumlah_uang_dibayar_rp && val.jumlah_uang_dibayar_rp > 0;
+  }
+  return true;
+}, {
+  path: ['jumlah_uang_dibayar_rp'],
+  message: 'Nominal diterima wajib diisi',
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -64,12 +82,14 @@ interface PembayaranZakat {
   jenis_zakat: 'beras' | 'uang';
   jumlah_beras_kg: number | null;
   jumlah_uang_rp: number | null;
+  akun_uang?: 'kas' | 'bank' | null;
+  jumlah_uang_dibayar_rp?: number | null;
 }
 
 interface MuzakkiFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: FormValues & { id?: string; muzakki_id?: string; tahun_zakat_id: string }) => void;
+  onSubmit: (data: FormValues & { id?: string; muzakki_id?: string; tahun_zakat_id: string; kewajiban_uang?: number }) => void;
   editData?: PembayaranZakat | null;
   isSubmitting: boolean;
 }
@@ -96,6 +116,8 @@ export function MuzakkiForm({
       jumlah_jiwa: 1,
       jenis_zakat: 'beras',
       tanggal_bayar: new Date(),
+      akun_uang: undefined,
+      jumlah_uang_dibayar_rp: undefined,
     },
   });
 
@@ -134,6 +156,8 @@ export function MuzakkiForm({
         jumlah_jiwa: editData.jumlah_jiwa,
         jenis_zakat: editData.jenis_zakat,
         tanggal_bayar: new Date(editData.tanggal_bayar),
+        akun_uang: editData.akun_uang || undefined,
+        jumlah_uang_dibayar_rp: editData.jumlah_uang_dibayar_rp || undefined,
       });
     } else {
       form.reset({
@@ -143,6 +167,8 @@ export function MuzakkiForm({
         jumlah_jiwa: 1,
         jenis_zakat: 'beras',
         tanggal_bayar: new Date(),
+        akun_uang: undefined,
+        jumlah_uang_dibayar_rp: undefined,
       });
     }
   }, [editData, form, open]);
@@ -174,6 +200,10 @@ export function MuzakkiForm({
         id: editData.id,
         muzakki_id: editData.muzakki_id,
       }),
+      kewajiban_uang:
+        values.jenis_zakat === 'uang' && nilaiPerOrang
+          ? values.jumlah_jiwa * nilaiPerOrang.uang
+          : undefined,
     };
     onSubmit(submitData);
   };
@@ -286,6 +316,53 @@ export function MuzakkiForm({
                 )}
               />
             </div>
+
+            {jenisZakat === 'uang' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="akun_uang"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Akun Uang *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih akun" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="kas">Kas</SelectItem>
+                          <SelectItem value="bank">Bank</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="jumlah_uang_dibayar_rp"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nominal Diterima (Rp) *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          step="100"
+                          placeholder="Masukkan nominal diterima"
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
 
             {/* Tanggal Bayar */}
             <FormField

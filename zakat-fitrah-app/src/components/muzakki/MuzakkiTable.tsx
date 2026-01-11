@@ -48,6 +48,8 @@ interface PembayaranZakat {
   jenis_zakat: 'beras' | 'uang';
   jumlah_beras_kg: number | null;
   jumlah_uang_rp: number | null;
+  akun_uang?: 'kas' | 'bank' | null;
+  jumlah_uang_dibayar_rp?: number | null;
   created_at: string;
   updated_at: string;
 }
