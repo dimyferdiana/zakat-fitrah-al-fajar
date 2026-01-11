@@ -300,7 +300,7 @@ export function MuzakkiForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Jenis Zakat *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Pilih jenis" />
@@ -325,7 +325,7 @@ export function MuzakkiForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Akun Uang *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || ''}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Pilih akun" />
@@ -354,6 +354,7 @@ export function MuzakkiForm({
                           step="100"
                           placeholder="Masukkan nominal diterima"
                           {...field}
+                          value={field.value ?? ''}
                           onChange={(e) => field.onChange(Number(e.target.value) || 0)}
                         />
                       </FormControl>

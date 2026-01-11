@@ -13,6 +13,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Plus, Users } from 'lucide-react';
 import {
   usePembayaranList,
@@ -124,16 +134,32 @@ export function Muzakki() {
   };
 
   const handleSubmit = async (data: FormData) => {
+    const showOverpayWarning =
+      data.jenis_zakat === 'uang' &&
+      data.kewajiban_uang &&
+      data.jumlah_uang_dibayar_rp &&
+      data.jumlah_uang_dibayar_rp > data.kewajiban_uang;
+
+    if (showOverpayWarning) {
+      setOverpayDialog({
+        open: true,
+        payload: data,
+        selisih: (data.jumlah_uang_dibayar_rp ?? 0) - (data.kewajiban_uang ?? 0),
+      });
+      return;
+    }
+
+    await handleSubmitInternal(data);
+  };
+
+  const handleSubmitInternal = async (data: FormData) => {
     if (
       data.jenis_zakat === 'uang' &&
       data.kewajiban_uang &&
       data.jumlah_uang_dibayar_rp &&
       data.jumlah_uang_dibayar_rp > data.kewajiban_uang
     ) {
-      const confirmOverpay = window.confirm(
-        'Nominal diterima lebih besar dari kewajiban. Selisih akan dicatat sebagai infak/sedekah uang. Lanjutkan?'
-      );
-      if (!confirmOverpay) return;
+      // Overpay already confirmed via dialog; continue
     }
 
     const submitData = {
@@ -168,6 +194,20 @@ export function Muzakki() {
     await deleteMutation.mutateAsync(id);
     refetch();
   };
+
+  const [overpayDialog, setOverpayDialog] = useState<{
+    open: boolean;
+    payload: FormData | null;
+    selisih: number;
+  }>({ open: false, payload: null, selisih: 0 });
+
+  const confirmOverpayAndSubmit = async () => {
+    if (!overpayDialog.payload) return;
+    await handleSubmitInternal(overpayDialog.payload);
+    setOverpayDialog({ open: false, payload: null, selisih: 0 });
+  };
+
+  const cancelOverpay = () => setOverpayDialog({ open: false, payload: null, selisih: 0 });
 
   const handlePrint = (data: PembayaranZakat) => {
     setPrintData(data);
@@ -267,6 +307,22 @@ export function Muzakki() {
           data={printData}
         />
       )}
+
+      <AlertDialog open={overpayDialog.open} onOpenChange={(open) => !open && cancelOverpay()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Nominal melebihi kewajiban</AlertDialogTitle>
+            <AlertDialogDescription>
+              Selisih Rp {overpayDialog.selisih.toLocaleString('id-ID')} akan dicatat sebagai
+              infak/sedekah uang. Lanjutkan?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelOverpay}>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmOverpayAndSubmit}>Lanjutkan</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

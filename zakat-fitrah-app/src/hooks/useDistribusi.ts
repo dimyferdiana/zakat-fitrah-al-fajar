@@ -191,6 +191,20 @@ export function useCreateDistribusi() {
 
   return useMutation({
     mutationFn: async (input: CreateDistribusiInput) => {
+      // Prevent double distribution to the same mustahik in the same year
+      const { data: existingDistribusi, error: existingError } = await supabase
+        .from('distribusi_zakat')
+        .select('id')
+        .eq('mustahik_id', input.mustahik_id)
+        .eq('tahun_zakat_id', input.tahun_zakat_id)
+        .in('status', ['pending', 'selesai'])
+        .limit(1);
+
+      if (existingError) throw existingError;
+      if (existingDistribusi && existingDistribusi.length > 0) {
+        throw new Error('Mustahik ini sudah menerima zakat fitrah di tahun ini.');
+      }
+
       // Check stock first
       const { data: stokData } = await supabase
         .from('pembayaran_zakat')

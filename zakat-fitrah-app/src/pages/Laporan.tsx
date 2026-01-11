@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -17,6 +17,8 @@ import { PerbandinganTahun } from '@/components/laporan/PerbandinganTahun';
 
 export default function Laporan() {
   const [selectedTahun, setSelectedTahun] = useState<string>('');
+  const [activeTab, setActiveTab] = useState('pemasukan');
+  const [isMobile, setIsMobile] = useState(false);
 
   const { data: tahunZakatData, isLoading: loadingTahunZakat } = useTahunZakatList();
   const tahunZakatList = tahunZakatData || [];
@@ -26,6 +28,14 @@ export default function Laporan() {
   if (selectedTahun === '' && activeTahun) {
     setSelectedTahun(activeTahun.id);
   }
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)');
+    const handler = (e: MediaQueryListEvent | MediaQueryList) => setIsMobile(e.matches);
+    handler(mq);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -67,16 +77,30 @@ export default function Laporan() {
       </Card>
 
       {/* Tabs for Different Reports */}
-      <Tabs defaultValue="pemasukan" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="pemasukan">Pemasukan</TabsTrigger>
-          <TabsTrigger value="distribusi">Distribusi</TabsTrigger>
-          <TabsTrigger value="mustahik">Mustahik</TabsTrigger>
-          <TabsTrigger value="perbandingan">
-            <TrendingUp className="mr-2 h-4 w-4" />
-            Perbandingan Tahun
-          </TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        {isMobile ? (
+          <Select value={activeTab} onValueChange={setActiveTab}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Pilih laporan" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pemasukan">Pemasukan</SelectItem>
+              <SelectItem value="distribusi">Distribusi</SelectItem>
+              <SelectItem value="mustahik">Mustahik</SelectItem>
+              <SelectItem value="perbandingan">Perbandingan Tahun</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : (
+          <TabsList>
+            <TabsTrigger value="pemasukan">Pemasukan</TabsTrigger>
+            <TabsTrigger value="distribusi">Distribusi</TabsTrigger>
+            <TabsTrigger value="mustahik">Mustahik</TabsTrigger>
+            <TabsTrigger value="perbandingan">
+              <TrendingUp className="mr-2 h-4 w-4" />
+              Perbandingan Tahun
+            </TabsTrigger>
+          </TabsList>
+        )}
 
         <TabsContent value="pemasukan">
           <LaporanPemasukan tahunZakatId={selectedTahun} />

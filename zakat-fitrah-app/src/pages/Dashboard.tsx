@@ -140,9 +140,15 @@ export function Dashboard() {
           icon={Gift}
         />
         <StatCard
+          title="Maal/Penghasilan Uang"
+          value={formatCurrency(stats?.maalPenghasilanUangRp || 0)}
+          description="Pemasukan maal/penghasilan"
+          icon={Coins}
+        />
+        <StatCard
           title="Total Pemasukan Uang"
           value={formatCurrency(stats?.totalPemasukanUangRp || 0)}
-          description="Fitrah + Fidyah + Infak + Maal"
+          description="Fidyah + Infak + Maal + Rekonsiliasi"
           icon={Banknote}
         />
       </div>

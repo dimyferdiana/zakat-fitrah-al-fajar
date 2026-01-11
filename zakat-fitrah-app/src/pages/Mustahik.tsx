@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, CheckCircle2, XCircle, Download } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,8 @@ import {
   useMustahikHistory,
   type Mustahik,
 } from '@/hooks/useMustahik';
+import { useTahunZakatList } from '@/hooks/useDashboard';
+import { supabase } from '@/lib/supabase';
 
 export default function MustahikPage() {
   // State for filters and pagination
@@ -68,6 +70,34 @@ export default function MustahikPage() {
   const { data: historyData = [], isLoading: loadingHistory } = useMustahikHistory(
     selectedMustahik?.id || null
   );
+  const { data: tahunList = [] } = useTahunZakatList();
+  const activeTahun = tahunList.find((t: any) => t.is_active);
+  const [receivedIds, setReceivedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const fetchReceived = async () => {
+      if (!activeTahun) {
+        setReceivedIds(new Set());
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('distribusi_zakat')
+        .select('mustahik_id')
+        .eq('tahun_zakat_id', activeTahun.id)
+        .in('status', ['pending', 'selesai']);
+
+      if (error) {
+        console.error('Gagal memuat distribusi mustahik:', error.message);
+        setReceivedIds(new Set());
+        return;
+      }
+
+      setReceivedIds(new Set((data || []).map((d: any) => d.mustahik_id)));
+    };
+
+    fetchReceived();
+  }, [activeTahun]);
 
   // Mutations
   const createMutation = useCreateMustahik();
@@ -120,11 +150,14 @@ export default function MustahikPage() {
     }
   };
 
-  const mustahikList = mustahikData?.data || [];
+  const mustahikList = (mustahikData?.data || []).map((m: any) => ({
+    ...m,
+    has_received: receivedIds.has(m.id),
+  }));
   const totalCount = mustahikData?.totalCount || 0;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <PageHeader
         title="Manajemen Mustahik"
         description="Kelola data penerima zakat (8 asnaf)"

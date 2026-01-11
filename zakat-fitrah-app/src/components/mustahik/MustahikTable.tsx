@@ -159,6 +159,7 @@ export function MustahikTable({
               <TableHead>Alamat</TableHead>
               <TableHead>Kategori</TableHead>
               <TableHead className="text-center">Anggota</TableHead>
+              <TableHead>Sudah Terima?</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-center">Actions</TableHead>
             </TableRow>
@@ -166,13 +167,13 @@ export function MustahikTable({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={8} className="h-24 text-center">
                   Memuat data...
                 </TableCell>
               </TableRow>
             ) : data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={8} className="h-24 text-center">
                   Belum ada data mustahik.
                 </TableCell>
               </TableRow>
@@ -210,6 +211,15 @@ export function MustahikTable({
                     </Badge>
                   </TableCell>
                   <TableCell className="text-center">{mustahik.jumlah_anggota}</TableCell>
+                  <TableCell>
+                    {mustahik.has_received ? (
+                      <Badge variant="secondary" className="bg-blue-600 text-white">
+                        Sudah Terima
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline">Belum</Badge>
+                    )}
+                  </TableCell>
                   <TableCell>
                     {mustahik.is_active ? (
                       <Badge className="bg-green-600">Aktif</Badge>

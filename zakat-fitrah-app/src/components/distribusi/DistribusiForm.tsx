@@ -40,9 +40,11 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar as CalendarIcon, AlertTriangle, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
+
 import { cn } from '@/lib/utils';
 import { useMustahikList } from '@/hooks/useMustahik';
 import { useStokCheck, type StokSummary } from '@/hooks/useDistribusi';
+import { supabase } from '@/lib/supabase';
 
 const formSchema = z.object({
   mustahik_id: z.string().min(1, { message: 'Pilih mustahik penerima' }),
@@ -71,6 +73,7 @@ export function DistribusiForm({
   tahunZakatId,
 }: DistribusiFormProps) {
   const [selectedMustahik, setSelectedMustahik] = useState<any>(null);
+  const [eligibleMustahik, setEligibleMustahik] = useState<any[]>([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -91,6 +94,43 @@ export function DistribusiForm({
   const { data: stokData, isLoading: loadingStok } = useStokCheck(tahunZakatId);
 
   const mustahikList = mustahikData?.data || [];
+  const jenisDistribusi = form.watch('jenis_distribusi');
+  const jumlah = form.watch('jumlah');
+  const mustahikId = form.watch('mustahik_id');
+
+    // Filter out mustahik who already received distribusi in this tahun
+    useEffect(() => {
+      const fetchEligible = async () => {
+        if (!tahunZakatId) {
+          setEligibleMustahik([]);
+          return;
+        }
+
+        const { data: alreadyReceived, error } = await supabase
+          .from('distribusi_zakat')
+          .select('mustahik_id')
+          .eq('tahun_zakat_id', tahunZakatId)
+          .in('status', ['pending', 'selesai']);
+
+        if (error) {
+          console.error('Gagal memuat data distribusi:', error.message);
+          setEligibleMustahik(mustahikList);
+          return;
+        }
+
+        const takenIds = new Set((alreadyReceived || []).map((d: any) => d.mustahik_id));
+        const filtered = (mustahikList as any).filter((m: any) => !takenIds.has(m.id));
+        setEligibleMustahik(filtered);
+
+        // If the currently selected mustahik is no longer eligible, clear selection
+        if (mustahikId && takenIds.has(mustahikId)) {
+          form.setValue('mustahik_id', '');
+        }
+      };
+
+      fetchEligible();
+    }, [tahunZakatId, mustahikList, mustahikId, form]);
+
   const stok: StokSummary = stokData || {
     total_pemasukan_beras: 0,
     total_pemasukan_uang: 0,
@@ -99,10 +139,6 @@ export function DistribusiForm({
     sisa_beras: 0,
     sisa_uang: 0,
   };
-
-  const jenisDistribusi = form.watch('jenis_distribusi');
-  const jumlah = form.watch('jumlah');
-  const mustahikId = form.watch('mustahik_id');
 
   // Update selected mustahik info
   useEffect(() => {
@@ -176,14 +212,16 @@ export function DistribusiForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {(mustahikList as any).map((mustahik: any) => (
+                      {(eligibleMustahik as any).map((mustahik: any) => (
                         <SelectItem key={mustahik.id} value={mustahik.id}>
                           {mustahik.nama} - {mustahik.kategori_mustahik?.nama}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>Hanya mustahik aktif yang ditampilkan</FormDescription>
+                  <FormDescription>
+                    Mustahik yang belum menerima zakat fitrah di tahun ini
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

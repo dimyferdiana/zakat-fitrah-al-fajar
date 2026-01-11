@@ -18,7 +18,6 @@ export function DistribusiProgress({
   hakAmil = 0,
 }: DistribusiProgressProps) {
   const percentageDistributed = totalPemasukan > 0 ? (totalDistribusi / totalPemasukan) * 100 : 0;
-  const percentageHakAmil = totalPemasukan > 0 ? (hakAmil / totalPemasukan) * 100 : 0;
   const percentageSisa = totalPemasukan > 0 ? (sisa / totalPemasukan) * 100 : 0;
   const isLowStock = percentageSisa < 10 && totalPemasukan > 0;
   const isNegative = sisa < 0;

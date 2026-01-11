@@ -23,6 +23,7 @@ export interface Mustahik {
   created_at: string;
   updated_at: string;
   kategori_mustahik?: KategoriMustahik;
+  has_received?: boolean;
 }
 
 export interface MustahikListParams {

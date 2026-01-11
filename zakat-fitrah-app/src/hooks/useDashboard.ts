@@ -76,7 +76,7 @@ export function useDashboardStats(tahunZakatId?: string) {
 
       const totalBerasKg = (pemasukanBeras as PembayaranData[] | null)?.reduce((sum, p) => sum + (Number(p.jumlah_beras_kg) || 0), 0) || 0;
 
-      // Total pemasukan uang
+      // Total pemasukan uang (zakat fitrah uang)
       const { data: pemasukanUang } = await supabase
         .from('pembayaran_zakat')
         .select('jumlah_uang_rp')
@@ -123,7 +123,7 @@ export function useDashboardStats(tahunZakatId?: string) {
 
       const totalDistribusiUangRp = (distribusiUang as DistribusiData[] | null)?.reduce((sum, d) => sum + (Number(d.jumlah_uang_rp) || 0), 0) || 0;
 
-      // Phase 2: Get pemasukan_uang breakdown
+      // Phase 2: Get pemasukan_uang breakdown (non-zakat categories)
       const { data: pemasukanUangData } = await supabase
         .from('pemasukan_uang')
         .select('kategori, jumlah_uang_rp')
@@ -158,10 +158,10 @@ export function useDashboardStats(tahunZakatId?: string) {
         .eq('tahun_zakat_id', activeTahunId)
         .maybeSingle();
 
-      const hakAmilUangRp = Number(hakAmilData?.jumlah_uang_rp) || 0;
+      const hakAmilUangRp = Number((hakAmilData as { jumlah_uang_rp?: number } | null)?.jumlah_uang_rp) || 0;
 
-      // Total pemasukan uang = fitrah uang + fidyah + infak + maal + rekonsiliasi
-      const totalPemasukanUangRp = totalUangRp + fidyahUangRp + infakSedekahUangRp + maalPenghasilanUangRp + rekonsiliasiUangRp;
+      // Total pemasukan uang (dashboard card) = fidyah + infak + maal + rekonsiliasi (zakat uang ditampilkan terpisah)
+      const totalPemasukanUangRp = fidyahUangRp + infakSedekahUangRp + maalPenghasilanUangRp + rekonsiliasiUangRp;
 
       // Sisa uang after amil = total pemasukan - hak amil - tersalurkan
       const sisaUangAfterAmilRp = totalPemasukanUangRp - hakAmilUangRp - totalDistribusiUangRp;

@@ -15,16 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { useState } from 'react';
 import { Printer, CheckCircle2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Distribusi } from '@/hooks/useDistribusi';
@@ -58,8 +48,6 @@ export function DistribusiTable({
 }: DistribusiTableProps) {
   const [jenisFilter, setJenisFilter] = useState('semua');
   const [statusFilter, setStatusFilter] = useState('semua');
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [selesaiId, setSelesaiId] = useState<string | null>(null);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -190,7 +178,7 @@ export function DistribusiTable({
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setSelesaiId(distribusi.id)}
+                          onClick={() => onMarkSelesai(distribusi.id)}
                           title="Tandai Selesai"
                           className="text-green-600 hover:text-green-700"
                         >
@@ -201,7 +189,7 @@ export function DistribusiTable({
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setDeleteId(distribusi.id)}
+                          onClick={() => onDelete(distribusi.id)}
                           title="Hapus"
                           className="text-red-600 hover:text-red-700"
                         >
@@ -247,55 +235,6 @@ export function DistribusiTable({
       )}
 
       {/* Mark Selesai Confirmation */}
-      <AlertDialog open={!!selesaiId} onOpenChange={() => setSelesaiId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Tandai Selesai</AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah Anda yakin distribusi ini sudah selesai diberikan?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (selesaiId) {
-                  onMarkSelesai(selesaiId);
-                  setSelesaiId(null);
-                }
-              }}
-            >
-              Ya, Tandai Selesai
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Distribusi</AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah Anda yakin ingin menghapus distribusi ini? Tindakan ini tidak dapat dibatalkan.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (deleteId) {
-                  onDelete(deleteId);
-                  setDeleteId(null);
-                }
-              }}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Hapus
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

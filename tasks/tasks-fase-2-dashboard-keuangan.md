@@ -104,36 +104,36 @@
 	- [x] 4.4 Update monthly chart (optional Phase 2)
 		- [x] 4.4.1 Keep monthly chart for zakat fitrah only (Phase 2 decision)
 
-- [ ] 5.0 Admin-only: Rekonsiliasi manual (Kas/Bank + Beras)
-	- [ ] 5.1 Add admin-only route/page
-		- [ ] 5.1.1 Add menu entry visible only for admin
-	- [ ] 5.2 Build Rekonsiliasi form
-		- [ ] 5.2.1 Choose jenis: Uang / Beras
-		- [ ] 5.2.2 If Uang: pilih akun Kas/Bank + nominal penyesuaian (+/-)
-		- [ ] 5.2.3 If Beras: input kg penyesuaian (+/-)
-		- [ ] 5.2.4 Catatan wajib (untuk audit)
-	- [ ] 5.3 Build Rekonsiliasi history table
-		- [ ] 5.3.1 Filter by tahun + jenis + akun
-	- [ ] 5.4 Implement hooks
-		- [ ] 5.4.1 `useRekonsiliasiList`
-		- [ ] 5.4.2 `useCreateRekonsiliasi`
-	- [ ] 5.5 Wire rekonsiliasi into dashboard totals
-		- [ ] 5.5.1 Implement: adjustment included in totals (per PRD)
-		- [ ] 5.5.2 Also display adjustment totals for transparency
-	- [ ] 5.6 Admin-only: Hak Amil manual input
-		- [ ] 5.6.1 Add admin-only input (Settings or Dashboard)
-		- [ ] 5.6.2 Persist to `hak_amil` and reflect in dashboard calculations
+- [x] 5.0 Admin-only: Rekonsiliasi manual (Kas/Bank + Beras)
+	- [x] 5.1 Add admin-only route/page
+		- [x] 5.1.1 Add menu entry visible only for admin
+	- [x] 5.2 Build Rekonsiliasi form
+		- [x] 5.2.1 Choose jenis: Uang / Beras
+		- [x] 5.2.2 If Uang: pilih akun Kas/Bank + nominal penyesuaian (+/-)
+		- [x] 5.2.3 If Beras: input kg penyesuaian (+/-)
+		- [x] 5.2.4 Catatan wajib (untuk audit)
+	- [x] 5.3 Build Rekonsiliasi history table
+		- [x] 5.3.1 Filter by tahun + jenis + akun
+	- [x] 5.4 Implement hooks
+		- [x] 5.4.1 `useRekonsiliasiList`
+		- [x] 5.4.2 `useCreateRekonsiliasi`
+	- [x] 5.5 Wire rekonsiliasi into dashboard totals
+		- [x] 5.5.1 Implement: adjustment included in totals (per PRD)
+		- [x] 5.5.2 Also display adjustment totals for transparency
+	- [x] 5.6 Admin-only: Hak Amil manual input
+		- [x] 5.6.1 Add admin-only input (Settings or Dashboard)
+		- [x] 5.6.2 Persist to `hak_amil` and reflect in dashboard calculations
 
-- [ ] 6.0 QA & regression checks (dashboard, input, permissions)
-	- [ ] 6.1 Verify role restrictions
-		- [ ] 6.1.1 Petugas cannot access rekonsiliasi/hak amil input
-		- [ ] 6.1.2 Viewer is read-only
-	- [ ] 6.2 Verify dashboard totals
-		- [ ] 6.2.1 Totals match manual sums for a sample tahun
-		- [ ] 6.2.2 Sisa formula works and warnings appear when invalid
-	- [ ] 6.3 Verify overpayment flow
-		- [ ] 6.3.1 Confirming overpayment creates infak record
-		- [ ] 6.3.2 Cancelling overpayment does not create record
-	- [ ] 6.4 Regression: existing fitrah pembayaran/distribusi still work
-	- [ ] 6.5 Update documentation (optional)
-		- [ ] 6.5.1 Note new flows in `zakat-fitrah-app/README.md` or a Phase 2 notes doc
+- [x] 6.0 QA & regression checks (dashboard, input, permissions)
+	- [x] 6.1 Verify role restrictions
+		- [x] 6.1.1 Petugas cannot access rekonsiliasi/hak amil input
+		- [x] 6.1.2 Viewer is read-only
+	- [x] 6.2 Verify dashboard totals
+		- [x] 6.2.1 Totals match manual sums for a sample tahun
+		- [x] 6.2.2 Sisa formula works and warnings appear when invalid
+	- [x] 6.3 Verify overpayment flow
+		- [x] 6.3.1 Confirming overpayment creates infak record
+		- [x] 6.3.2 Cancelling overpayment does not create record
+	- [x] 6.4 Regression: existing fitrah pembayaran/distribusi still work
+	- [x] 6.5 Update documentation (optional)
+		- [x] 6.5.1 Note new flows in `zakat-fitrah-app/README.md` or a Phase 2 notes doc

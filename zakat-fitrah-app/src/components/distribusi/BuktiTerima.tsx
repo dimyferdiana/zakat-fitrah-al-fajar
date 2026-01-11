@@ -199,15 +199,15 @@ export function BuktiTerima({ open, onOpenChange, distribusi }: BuktiTerimaProps
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto print:shadow-none print:max-h-none print:overflow-visible">
+          <DialogHeader className="print:hidden">
             <DialogTitle>Bukti Penerimaan Zakat</DialogTitle>
             <DialogDescription>
               Ringkasan penerimaan zakat untuk dicetak atau disimpan oleh mustahik.
             </DialogDescription>
           </DialogHeader>
 
-          <div ref={contentRef} className="p-8 bg-white">
+          <div ref={contentRef} id="print-content" className="p-8 bg-white space-y-6">
             {/* Header */}
             <div className="text-center mb-8">
               <h1 className="text-2xl font-bold mb-2">BUKTI PENERIMAAN ZAKAT FITRAH</h1>
@@ -342,6 +342,11 @@ export function BuktiTerima({ open, onOpenChange, distribusi }: BuktiTerimaProps
       <style>
         {`
           @media print {
+            @page {
+              size: A4;
+              margin: 1cm;
+            }
+
             body * {
               visibility: hidden;
             }
@@ -354,6 +359,8 @@ export function BuktiTerima({ open, onOpenChange, distribusi }: BuktiTerimaProps
               left: 0;
               top: 0;
               width: 100%;
+              padding: 20px;
+              background: white;
             }
           }
         `}
