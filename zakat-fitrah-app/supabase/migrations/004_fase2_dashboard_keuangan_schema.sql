@@ -7,6 +7,7 @@
 -- =========================================
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- =========================================
 -- ENUMS
@@ -61,7 +62,7 @@ END $$;
 -- =========================================
 
 CREATE TABLE IF NOT EXISTS pemasukan_uang (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tahun_zakat_id UUID NOT NULL REFERENCES tahun_zakat(id) ON DELETE RESTRICT,
     muzakki_id UUID REFERENCES muzakki(id) ON DELETE SET NULL,
     kategori pemasukan_uang_kategori NOT NULL,
@@ -90,7 +91,7 @@ CREATE TABLE IF NOT EXISTS hak_amil (
 COMMENT ON TABLE hak_amil IS 'Hak amil manual per tahun zakat (Phase 2: manual input, bukan auto persentase).';
 
 CREATE TABLE IF NOT EXISTS rekonsiliasi (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tahun_zakat_id UUID NOT NULL REFERENCES tahun_zakat(id) ON DELETE RESTRICT,
     jenis jenis_zakat NOT NULL,
     akun akun_uang,

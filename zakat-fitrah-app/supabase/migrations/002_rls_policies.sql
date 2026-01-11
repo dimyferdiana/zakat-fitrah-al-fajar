@@ -32,6 +32,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ============================================================================
 
 -- Admin: Full access
+DROP POLICY IF EXISTS "Admin full access to users" ON public.users;
 CREATE POLICY "Admin full access to users"
     ON public.users
     FOR ALL
@@ -40,6 +41,7 @@ CREATE POLICY "Admin full access to users"
     WITH CHECK (public.get_user_role() = 'admin');
 
 -- All: View own profile
+DROP POLICY IF EXISTS "Users can view own profile" ON public.users;
 CREATE POLICY "Users can view own profile"
     ON public.users
     FOR SELECT
@@ -47,6 +49,7 @@ CREATE POLICY "Users can view own profile"
     USING (id = auth.uid());
 
 -- All: Update own profile (except role)
+DROP POLICY IF EXISTS "Users can update own profile" ON public.users;
 CREATE POLICY "Users can update own profile"
     ON public.users
     FOR UPDATE
@@ -59,6 +62,7 @@ CREATE POLICY "Users can update own profile"
 -- ============================================================================
 
 -- All authenticated: Read
+DROP POLICY IF EXISTS "All can view tahun_zakat" ON public.tahun_zakat;
 CREATE POLICY "All can view tahun_zakat"
     ON public.tahun_zakat
     FOR SELECT
@@ -66,6 +70,7 @@ CREATE POLICY "All can view tahun_zakat"
     USING (true);
 
 -- Admin: Full access
+DROP POLICY IF EXISTS "Admin full access to tahun_zakat" ON public.tahun_zakat;
 CREATE POLICY "Admin full access to tahun_zakat"
     ON public.tahun_zakat
     FOR ALL
@@ -74,12 +79,14 @@ CREATE POLICY "Admin full access to tahun_zakat"
     WITH CHECK (public.get_user_role() = 'admin');
 
 -- Petugas: Create and update only
+DROP POLICY IF EXISTS "Petugas can create/update tahun_zakat" ON public.tahun_zakat;
 CREATE POLICY "Petugas can create/update tahun_zakat"
     ON public.tahun_zakat
     FOR INSERT
     TO authenticated
     WITH CHECK (public.get_user_role() IN ('admin', 'petugas'));
 
+DROP POLICY IF EXISTS "Petugas can update tahun_zakat" ON public.tahun_zakat;
 CREATE POLICY "Petugas can update tahun_zakat"
     ON public.tahun_zakat
     FOR UPDATE
@@ -92,6 +99,7 @@ CREATE POLICY "Petugas can update tahun_zakat"
 -- ============================================================================
 
 -- All authenticated: Read
+DROP POLICY IF EXISTS "All can view kategori_mustahik" ON public.kategori_mustahik;
 CREATE POLICY "All can view kategori_mustahik"
     ON public.kategori_mustahik
     FOR SELECT
@@ -99,6 +107,7 @@ CREATE POLICY "All can view kategori_mustahik"
     USING (true);
 
 -- Admin only: Write
+DROP POLICY IF EXISTS "Admin full access to kategori_mustahik" ON public.kategori_mustahik;
 CREATE POLICY "Admin full access to kategori_mustahik"
     ON public.kategori_mustahik
     FOR ALL
@@ -111,6 +120,7 @@ CREATE POLICY "Admin full access to kategori_mustahik"
 -- ============================================================================
 
 -- All authenticated: Read
+DROP POLICY IF EXISTS "All can view muzakki" ON public.muzakki;
 CREATE POLICY "All can view muzakki"
     ON public.muzakki
     FOR SELECT
@@ -118,6 +128,7 @@ CREATE POLICY "All can view muzakki"
     USING (true);
 
 -- Admin & Petugas: Full access
+DROP POLICY IF EXISTS "Admin and Petugas full access to muzakki" ON public.muzakki;
 CREATE POLICY "Admin and Petugas full access to muzakki"
     ON public.muzakki
     FOR ALL
@@ -130,6 +141,7 @@ CREATE POLICY "Admin and Petugas full access to muzakki"
 -- ============================================================================
 
 -- All authenticated: Read
+DROP POLICY IF EXISTS "All can view pembayaran_zakat" ON public.pembayaran_zakat;
 CREATE POLICY "All can view pembayaran_zakat"
     ON public.pembayaran_zakat
     FOR SELECT
@@ -137,6 +149,7 @@ CREATE POLICY "All can view pembayaran_zakat"
     USING (true);
 
 -- Admin & Petugas: Create
+DROP POLICY IF EXISTS "Admin and Petugas can create pembayaran_zakat" ON public.pembayaran_zakat;
 CREATE POLICY "Admin and Petugas can create pembayaran_zakat"
     ON public.pembayaran_zakat
     FOR INSERT
@@ -144,6 +157,7 @@ CREATE POLICY "Admin and Petugas can create pembayaran_zakat"
     WITH CHECK (public.get_user_role() IN ('admin', 'petugas'));
 
 -- Admin & Petugas: Update own records
+DROP POLICY IF EXISTS "Admin and Petugas can update pembayaran_zakat" ON public.pembayaran_zakat;
 CREATE POLICY "Admin and Petugas can update pembayaran_zakat"
     ON public.pembayaran_zakat
     FOR UPDATE
@@ -155,6 +169,7 @@ CREATE POLICY "Admin and Petugas can update pembayaran_zakat"
     WITH CHECK (public.get_user_role() IN ('admin', 'petugas'));
 
 -- Admin only: Delete
+DROP POLICY IF EXISTS "Admin can delete pembayaran_zakat" ON public.pembayaran_zakat;
 CREATE POLICY "Admin can delete pembayaran_zakat"
     ON public.pembayaran_zakat
     FOR DELETE
@@ -166,6 +181,7 @@ CREATE POLICY "Admin can delete pembayaran_zakat"
 -- ============================================================================
 
 -- All authenticated: Read
+DROP POLICY IF EXISTS "All can view mustahik" ON public.mustahik;
 CREATE POLICY "All can view mustahik"
     ON public.mustahik
     FOR SELECT
@@ -173,6 +189,7 @@ CREATE POLICY "All can view mustahik"
     USING (true);
 
 -- Admin & Petugas: Full access
+DROP POLICY IF EXISTS "Admin and Petugas full access to mustahik" ON public.mustahik;
 CREATE POLICY "Admin and Petugas full access to mustahik"
     ON public.mustahik
     FOR ALL
@@ -185,6 +202,7 @@ CREATE POLICY "Admin and Petugas full access to mustahik"
 -- ============================================================================
 
 -- All authenticated: Read
+DROP POLICY IF EXISTS "All can view distribusi_zakat" ON public.distribusi_zakat;
 CREATE POLICY "All can view distribusi_zakat"
     ON public.distribusi_zakat
     FOR SELECT
@@ -192,6 +210,7 @@ CREATE POLICY "All can view distribusi_zakat"
     USING (true);
 
 -- Admin & Petugas: Create
+DROP POLICY IF EXISTS "Admin and Petugas can create distribusi_zakat" ON public.distribusi_zakat;
 CREATE POLICY "Admin and Petugas can create distribusi_zakat"
     ON public.distribusi_zakat
     FOR INSERT
@@ -199,6 +218,7 @@ CREATE POLICY "Admin and Petugas can create distribusi_zakat"
     WITH CHECK (public.get_user_role() IN ('admin', 'petugas'));
 
 -- Admin & Petugas: Update
+DROP POLICY IF EXISTS "Admin and Petugas can update distribusi_zakat" ON public.distribusi_zakat;
 CREATE POLICY "Admin and Petugas can update distribusi_zakat"
     ON public.distribusi_zakat
     FOR UPDATE
@@ -210,6 +230,7 @@ CREATE POLICY "Admin and Petugas can update distribusi_zakat"
     WITH CHECK (public.get_user_role() IN ('admin', 'petugas'));
 
 -- Admin only: Delete
+DROP POLICY IF EXISTS "Admin can delete distribusi_zakat" ON public.distribusi_zakat;
 CREATE POLICY "Admin can delete distribusi_zakat"
     ON public.distribusi_zakat
     FOR DELETE
@@ -221,6 +242,7 @@ CREATE POLICY "Admin can delete distribusi_zakat"
 -- ============================================================================
 
 -- All authenticated: Read own logs
+DROP POLICY IF EXISTS "Users can view own audit_logs" ON public.audit_logs;
 CREATE POLICY "Users can view own audit_logs"
     ON public.audit_logs
     FOR SELECT
@@ -228,6 +250,7 @@ CREATE POLICY "Users can view own audit_logs"
     USING (user_id = auth.uid() OR public.get_user_role() = 'admin');
 
 -- System: Insert only (no updates/deletes)
+DROP POLICY IF EXISTS "System can insert audit_logs" ON public.audit_logs;
 CREATE POLICY "System can insert audit_logs"
     ON public.audit_logs
     FOR INSERT
@@ -235,6 +258,7 @@ CREATE POLICY "System can insert audit_logs"
     WITH CHECK (true);
 
 -- Admin: View all
+DROP POLICY IF EXISTS "Admin can view all audit_logs" ON public.audit_logs;
 CREATE POLICY "Admin can view all audit_logs"
     ON public.audit_logs
     FOR SELECT
