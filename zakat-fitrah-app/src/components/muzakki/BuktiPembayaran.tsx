@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import {
   Dialog,
   DialogContent,
@@ -39,7 +40,7 @@ interface BuktiPembayaranProps {
 }
 
 export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranProps) {
-  const printRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const formatCurrency = (value: number | null) => {
     if (value === null) return '-';
@@ -55,12 +56,10 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
     return value.toFixed(2);
   };
 
-  const handlePrint = () => {
-    // Wait for dialog content to render before printing
-    setTimeout(() => {
-      window.print();
-    }, 100);
-  };
+  const handlePrint = useReactToPrint({
+    contentRef,
+    documentTitle: `Bukti-Pembayaran-${data.id.substring(0, 8).toUpperCase()}`,
+  });
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
@@ -177,7 +176,7 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto print:shadow-none">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto print:shadow-none print:max-h-none print:overflow-visible">
           <DialogHeader className="print:hidden">
             <DialogTitle>Bukti Pembayaran Zakat Fitrah</DialogTitle>
             <DialogDescription>
@@ -186,7 +185,7 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
           </DialogHeader>
 
           {/* Print Content */}
-          <div ref={printRef} className="space-y-6 py-4">
+          <div ref={contentRef} id="print-content" className="space-y-6 py-4">
             {/* Header */}
             <div className="text-center">
               <h1 className="text-2xl font-bold">BUKTI PEMBAYARAN ZAKAT FITRAH</h1>
@@ -301,21 +300,27 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
       {/* Print Styles */}
       <style>{`
         @media print {
+          @page {
+            size: A4;
+            margin: 1cm;
+          }
+
           body * {
             visibility: hidden;
           }
-          .print\\:shadow-none,
-          .print\\:shadow-none * {
+
+          #print-content,
+          #print-content * {
             visibility: visible;
           }
-          .print\\:shadow-none {
+
+          #print-content {
             position: absolute;
             left: 0;
             top: 0;
             width: 100%;
-          }
-          .print\\:hidden {
-            display: none !important;
+            padding: 20px;
+            background: white;
           }
         }
       `}</style>

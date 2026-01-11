@@ -87,7 +87,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // If user not found in users table, show helpful error
+        if (error.code === 'PGRST116') {
+          console.error('User not found in users table. Auth user exists but database record missing.');
+          await logout();
+          throw new Error(
+            'Akun Anda belum terdaftar di sistem. ' +
+            'Silakan hubungi administrator untuk mengaktifkan akun Anda.'
+          );
+        }
+        throw error;
+      }
 
       if (data && !(data as User).is_active) {
         await logout();
@@ -98,6 +109,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Error fetching user data:', error);
       setUser(null);
+      // Re-throw to show error to user
+      if (error instanceof Error) {
+        throw error;
+      }
     } finally {
       setLoading(false);
     }
@@ -136,7 +151,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error) throw error;
 
         if (data.user) {
-          await fetchUserData(data.user.id);
+          try {
+            await fetchUserData(data.user.id);
+          } catch (fetchError) {
+            // If fetchUserData fails, sign out and show error
+            await supabase.auth.signOut();
+            throw fetchError;
+          }
         }
       }
     } catch (error) {
