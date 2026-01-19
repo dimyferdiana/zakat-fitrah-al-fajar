@@ -58,6 +58,7 @@ interface CreatePembayaranInput {
   tahun_zakat_id: string;
   akun_uang?: 'kas' | 'bank';
   jumlah_uang_dibayar_rp?: number;
+  jumlah_beras_dibayar_kg?: number;
 }
 
 interface UpdatePembayaranInput extends CreatePembayaranInput {
@@ -182,14 +183,17 @@ export function useCreatePembayaran() {
 
       const typedTahunZakat = tahunZakat as TahunZakatRecord;
 
-      // Calculate total
+      // Calculate total (for beras) or use actual amount received (for uang)
       const totalBerasKg =
         input.jenis_zakat === 'beras'
-          ? input.jumlah_jiwa * typedTahunZakat.nilai_beras_kg
+          ? input.jumlah_beras_dibayar_kg ?? (input.jumlah_jiwa * typedTahunZakat.nilai_beras_kg)
           : null;
+      
+      // For uang: store actual amount received, not calculated kewajiban
+      // nilai_uang_rp is only used as reference/suggestion
       const totalUangRp =
         input.jenis_zakat === 'uang'
-          ? input.jumlah_jiwa * typedTahunZakat.nilai_uang_rp
+          ? input.jumlah_uang_dibayar_rp ?? (input.jumlah_jiwa * typedTahunZakat.nilai_uang_rp)
           : null;
 
       const akunUang = input.jenis_zakat === 'uang' ? input.akun_uang || null : null;
@@ -197,10 +201,6 @@ export function useCreatePembayaran() {
         input.jenis_zakat === 'uang'
           ? input.jumlah_uang_dibayar_rp ?? totalUangRp ?? 0
           : null;
-      const overpay =
-        input.jenis_zakat === 'uang' && totalUangRp !== null && jumlahUangDibayar !== null
-          ? jumlahUangDibayar - totalUangRp
-          : 0;
 
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -226,21 +226,6 @@ export function useCreatePembayaran() {
       }).select().single();
 
       if (error) throw error;
-
-      if (overpay > 0 && akunUang) {
-        const { error: overpayError } = await (supabase.from('pemasukan_uang').insert as any)({
-          tahun_zakat_id: input.tahun_zakat_id,
-          muzakki_id: muzakkiId,
-          kategori: 'infak_sedekah_uang',
-          akun: akunUang,
-          jumlah_uang_rp: overpay,
-          tanggal: input.tanggal_bayar,
-          catatan: `Overpayment dari pembayaran_zakat ${data.id}`,
-          created_by: user.id,
-        });
-
-        if (overpayError) throw overpayError;
-      }
 
       return data;
     },
@@ -280,14 +265,17 @@ export function useUpdatePembayaran() {
 
       const typedTahunZakat = tahunZakat as TahunZakatRecord;
 
-      // Recalculate total
+      // Recalculate total (for beras) or use actual amount received (for uang)
       const totalBerasKg =
         input.jenis_zakat === 'beras'
-          ? input.jumlah_jiwa * typedTahunZakat.nilai_beras_kg
+          ? input.jumlah_beras_dibayar_kg ?? (input.jumlah_jiwa * typedTahunZakat.nilai_beras_kg)
           : null;
+      
+      // For uang: store actual amount received, not calculated kewajiban
+      // nilai_uang_rp is only used as reference/suggestion
       const totalUangRp =
         input.jenis_zakat === 'uang'
-          ? input.jumlah_jiwa * typedTahunZakat.nilai_uang_rp
+          ? input.jumlah_uang_dibayar_rp ?? (input.jumlah_jiwa * typedTahunZakat.nilai_uang_rp)
           : null;
 
       const akunUang = input.jenis_zakat === 'uang' ? input.akun_uang || null : null;

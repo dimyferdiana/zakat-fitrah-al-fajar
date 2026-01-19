@@ -137,9 +137,12 @@ export interface Database {
           tahun_zakat_id: string;
           jumlah_jiwa: number;
           jenis_zakat: JenisZakat;
+          /** For beras: actual kg received (must meet minimum). For uang: not used, see jumlah_uang_rp */
           jumlah_beras_kg: number | null;
+          /** For uang: actual amount received (not calculated kewajiban). For beras: not used. */
           jumlah_uang_rp: number | null;
           akun_uang: AkunUang | null;
+          /** @deprecated Use jumlah_uang_rp instead. Kept for historical compatibility only. */
           jumlah_uang_dibayar_rp: number | null;
           tanggal_bayar: string;
           created_by: string;

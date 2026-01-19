@@ -13,6 +13,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -45,6 +46,7 @@ const formSchema = z.object({
   tanggal_bayar: z.date({ message: 'Pilih tanggal pembayaran' }),
   akun_uang: z.enum(['kas', 'bank']).optional(),
   jumlah_uang_dibayar_rp: z.number().positive({ message: 'Nominal harus lebih dari 0' }).optional(),
+  jumlah_beras_dibayar_kg: z.number().positive({ message: 'Jumlah beras harus lebih dari 0' }).optional(),
 }).refine((val) => {
   if (val.jenis_zakat === 'uang') {
     return !!val.akun_uang;
@@ -61,6 +63,14 @@ const formSchema = z.object({
 }, {
   path: ['jumlah_uang_dibayar_rp'],
   message: 'Nominal diterima wajib diisi',
+}).refine((val) => {
+  if (val.jenis_zakat === 'beras') {
+    return !!val.jumlah_beras_dibayar_kg && val.jumlah_beras_dibayar_kg > 0;
+  }
+  return true;
+}, {
+  path: ['jumlah_beras_dibayar_kg'],
+  message: 'Jumlah beras yang diterima wajib diisi',
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -89,7 +99,14 @@ interface PembayaranZakat {
 interface MuzakkiFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: FormValues & { id?: string; muzakki_id?: string; tahun_zakat_id: string; kewajiban_uang?: number }) => void;
+  onSubmit: (data: FormValues & { 
+    id?: string; 
+    muzakki_id?: string; 
+    tahun_zakat_id: string; 
+    kewajiban_uang?: number;
+    kewajiban_beras?: number;
+    beras_kurang?: boolean;
+  }) => void;
   editData?: PembayaranZakat | null;
   isSubmitting: boolean;
 }
@@ -118,6 +135,7 @@ export function MuzakkiForm({
       tanggal_bayar: new Date(),
       akun_uang: undefined,
       jumlah_uang_dibayar_rp: undefined,
+      jumlah_beras_dibayar_kg: undefined,
     },
   });
 
@@ -158,6 +176,7 @@ export function MuzakkiForm({
         tanggal_bayar: new Date(editData.tanggal_bayar),
         akun_uang: editData.akun_uang || undefined,
         jumlah_uang_dibayar_rp: editData.jumlah_uang_dibayar_rp || undefined,
+        jumlah_beras_dibayar_kg: editData.jumlah_beras_kg || undefined,
       });
     } else {
       form.reset({
@@ -169,6 +188,7 @@ export function MuzakkiForm({
         tanggal_bayar: new Date(),
         akun_uang: undefined,
         jumlah_uang_dibayar_rp: undefined,
+        jumlah_beras_dibayar_kg: undefined,
       });
     }
   }, [editData, form, open]);
@@ -204,6 +224,16 @@ export function MuzakkiForm({
         values.jenis_zakat === 'uang' && nilaiPerOrang
           ? values.jumlah_jiwa * nilaiPerOrang.uang
           : undefined,
+      kewajiban_beras:
+        values.jenis_zakat === 'beras' && nilaiPerOrang
+          ? values.jumlah_jiwa * nilaiPerOrang.beras
+          : undefined,
+      beras_kurang:
+        values.jenis_zakat === 'beras' &&
+        nilaiPerOrang &&
+        values.jumlah_beras_dibayar_kg
+          ? values.jumlah_beras_dibayar_kg < values.jumlah_jiwa * nilaiPerOrang.beras
+          : false,
     };
     onSubmit(submitData);
   };
@@ -317,6 +347,34 @@ export function MuzakkiForm({
               />
             </div>
 
+            {/* Conditional fields based on jenis_zakat */}
+            {jenisZakat === 'beras' && (
+              <FormField
+                control={form.control}
+                name="jumlah_beras_dibayar_kg"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Jumlah Beras Diterima (kg) *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={0}
+                        step="0.1"
+                        placeholder="Masukkan jumlah beras yang diterima"
+                        {...field}
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Minimum: {totalZakat.toFixed(2)} kg (untuk {jumlahJiwa} jiwa)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             {jenisZakat === 'uang' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -409,7 +467,9 @@ export function MuzakkiForm({
             {/* Calculated Total */}
             {nilaiPerOrang && (
               <div className="rounded-lg bg-muted p-4">
-                <div className="text-sm text-muted-foreground">Total Zakat</div>
+                <div className="text-sm text-muted-foreground">
+                  {jenisZakat === 'beras' ? 'Kewajiban Minimum' : 'Nilai Acuan'}
+                </div>
                 <div className="text-2xl font-bold">
                   {jenisZakat === 'beras'
                     ? `${totalZakat.toFixed(2)} kg`
@@ -420,6 +480,11 @@ export function MuzakkiForm({
                     ? `${nilaiPerOrang.beras} kg/jiwa`
                     : formatCurrency(nilaiPerOrang.uang) + '/jiwa'}
                 </div>
+                {jenisZakat === 'uang' && (
+                  <div className="text-xs text-muted-foreground mt-2 italic">
+                    * Nominal yang diterima akan dicatat sebagai zakat
+                  </div>
+                )}
               </div>
             )}
 

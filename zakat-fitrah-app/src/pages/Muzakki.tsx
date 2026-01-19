@@ -65,7 +65,10 @@ interface FormData {
   tahun_zakat_id: string;
   akun_uang?: 'kas' | 'bank';
   jumlah_uang_dibayar_rp?: number;
+  jumlah_beras_dibayar_kg?: number;
   kewajiban_uang?: number;
+  kewajiban_beras?: number;
+  beras_kurang?: boolean;
   id?: string;
   muzakki_id?: string;
 }
@@ -81,6 +84,11 @@ export function Muzakki() {
   const [formOpen, setFormOpen] = useState(false);
   const [editData, setEditData] = useState<PembayaranZakat | null>(null);
   const [printData, setPrintData] = useState<PembayaranZakat | null>(null);
+  const [berasKurangDialog, setBerasKurangDialog] = useState<{
+    open: boolean;
+    payload: FormData | null;
+    kekurangan: number;
+  }>({ open: false, payload: null, kekurangan: 0 });
 
   const pageSize = 20;
 
@@ -134,17 +142,13 @@ export function Muzakki() {
   };
 
   const handleSubmit = async (data: FormData) => {
-    const showOverpayWarning =
-      data.jenis_zakat === 'uang' &&
-      data.kewajiban_uang &&
-      data.jumlah_uang_dibayar_rp &&
-      data.jumlah_uang_dibayar_rp > data.kewajiban_uang;
-
-    if (showOverpayWarning) {
-      setOverpayDialog({
+    // Check if beras is insufficient
+    if (data.jenis_zakat === 'beras' && data.beras_kurang) {
+      const kekurangan = (data.kewajiban_beras ?? 0) - (data.jumlah_beras_dibayar_kg ?? 0);
+      setBerasKurangDialog({
         open: true,
         payload: data,
-        selisih: (data.jumlah_uang_dibayar_rp ?? 0) - (data.kewajiban_uang ?? 0),
+        kekurangan,
       });
       return;
     }
@@ -153,11 +157,7 @@ export function Muzakki() {
   };
 
   const handleSubmitInternal = async (data: FormData) => {
-    if (
-      data.jenis_zakat === 'uang' &&
-      data.kewajiban_uang &&
-      data.jumlah_uang_dibayar_rp &&
-      data.jumlah_uang_dibayar_rp > data.kewajiban_uang
+    if (false // Overpayment check removed - all money amounts accepted as zakat
     ) {
       // Overpay already confirmed via dialog; continue
     }
@@ -195,19 +195,27 @@ export function Muzakki() {
     refetch();
   };
 
-  const [overpayDialog, setOverpayDialog] = useState<{
-    open: boolean;
-    payload: FormData | null;
-    selisih: number;
-  }>({ open: false, payload: null, selisih: 0 });
+  // Overpayment dialog removed - all money amounts accepted as zakat
 
-  const confirmOverpayAndSubmit = async () => {
-    if (!overpayDialog.payload) return;
-    await handleSubmitInternal(overpayDialog.payload);
-    setOverpayDialog({ open: false, payload: null, selisih: 0 });
+  const recordAsInfaq = async () => {
+    if (!berasKurangDialog.payload) return;
+    
+    // Record as infaq/sadaqah instead
+    // TODO: Implement infaq creation via API
+    // For now, show error message that this needs negotiation
+    alert(
+      `Beras kurang ${berasKurangDialog.kekurangan.toFixed(2)} kg dari kewajiban.\n\n` +
+      'Silakan diskusikan dengan muzakki untuk:\n' +
+      '1. Melengkapi kekurangan beras, atau\n' +
+      '2. Jika tidak mampu, akan dicatat sebagai infaq/sadaqah'
+    );
+    
+    setBerasKurangDialog({ open: false, payload: null, kekurangan: 0 });
   };
 
-  const cancelOverpay = () => setOverpayDialog({ open: false, payload: null, selisih: 0 });
+  const cancelBerasKurang = () => {
+    setBerasKurangDialog({ open: false, payload: null, kekurangan: 0 });
+  };
 
   const handlePrint = (data: PembayaranZakat) => {
     setPrintData(data);
@@ -308,18 +316,23 @@ export function Muzakki() {
         />
       )}
 
-      <AlertDialog open={overpayDialog.open} onOpenChange={(open) => !open && cancelOverpay()}>
+      {/* Overpayment dialog removed - all money amounts accepted as zakat */}
+
+      {/* Beras Insufficiency Dialog */}
+      <AlertDialog open={berasKurangDialog.open} onOpenChange={(open) => !open && cancelBerasKurang()}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Nominal melebihi kewajiban</AlertDialogTitle>
+            <AlertDialogTitle>Beras Kurang dari Kewajiban</AlertDialogTitle>
             <AlertDialogDescription>
-              Selisih Rp {overpayDialog.selisih.toLocaleString('id-ID')} akan dicatat sebagai
-              infak/sedekah uang. Lanjutkan?
+              Beras yang diterima kurang {berasKurangDialog.kekurangan.toFixed(2)} kg dari kewajiban zakat fitrah.
+              <br /><br />
+              Silakan mintakan kekurangan kepada muzakki. Jika muzakki tidak mampu melengkapi, 
+              setelah negosiasi dapat dicatat sebagai infaq/sadaqah.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={cancelOverpay}>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmOverpayAndSubmit}>Lanjutkan</AlertDialogAction>
+            <AlertDialogCancel onClick={cancelBerasKurang}>Batal & Perbaiki</AlertDialogCancel>
+            <AlertDialogAction onClick={recordAsInfaq}>Catat sebagai Infaq</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
