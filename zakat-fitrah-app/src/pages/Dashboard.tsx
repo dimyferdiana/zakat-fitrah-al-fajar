@@ -136,7 +136,7 @@ export function Dashboard() {
         <StatCard
           title="Infak/Sedekah Uang"
           value={formatCurrency(stats?.infakSedekahUangRp || 0)}
-          description="Termasuk overpayment"
+          description="Pemasukan infak/sedekah"
           icon={Gift}
         />
         <StatCard
@@ -148,7 +148,7 @@ export function Dashboard() {
         <StatCard
           title="Total Pemasukan Uang"
           value={formatCurrency(stats?.totalPemasukanUangRp || 0)}
-          description="Fidyah + Infak + Maal + Rekonsiliasi"
+          description="Zakat Uang + Fidyah + Infak/Sedekah + Maal + Rekonsiliasi"
           icon={Banknote}
         />
       </div>

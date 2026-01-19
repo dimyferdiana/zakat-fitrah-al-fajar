@@ -160,8 +160,13 @@ export function useDashboardStats(tahunZakatId?: string) {
 
       const hakAmilUangRp = Number((hakAmilData as { jumlah_uang_rp?: number } | null)?.jumlah_uang_rp) || 0;
 
-      // Total pemasukan uang (dashboard card) = fidyah + infak + maal + rekonsiliasi (zakat uang ditampilkan terpisah)
-      const totalPemasukanUangRp = fidyahUangRp + infakSedekahUangRp + maalPenghasilanUangRp + rekonsiliasiUangRp;
+      // Total pemasukan uang (dashboard card) now includes zakat uang + other categories
+      const totalPemasukanUangRp =
+        totalUangRp + // zakat fitrah uang (actual received)
+        fidyahUangRp +
+        infakSedekahUangRp +
+        maalPenghasilanUangRp +
+        rekonsiliasiUangRp;
 
       // Sisa uang after amil = total pemasukan - hak amil - tersalurkan
       const sisaUangAfterAmilRp = totalPemasukanUangRp - hakAmilUangRp - totalDistribusiUangRp;
