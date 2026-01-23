@@ -35,21 +35,28 @@ export function useSearchDonor(params: SearchDonorParams) {
 
       const query = params.query.trim();
 
-      // Search by name or phone in muzakki table
-      const { data, error } = await supabase
-        .from('muzakki')
-        .select('id, nama_kk as nama, alamat, no_telp, created_at, updated_at')
-        .or(`nama_kk.ilike.%${query}%,no_telp.ilike.%${query}%`)
-        .limit(10);
+      try {
+        // Search by name or phone in muzakki table
+        // Use ilike (case-insensitive) with % wildcards for partial match
+        const { data, error } = await supabase
+          .from('muzakki')
+          .select('id, nama_kk as nama, alamat, no_telp, created_at, updated_at')
+          .or(`nama_kk.ilike.%${query}%,no_telp.ilike.%${query}%`)
+          .limit(10);
 
-      if (error) {
-        console.error('Error searching donors:', error);
+        if (error) {
+          console.error('Error searching donors:', error);
+          return [];
+        }
+
+        return (data || []) as unknown as DonorProfile[];
+      } catch (err) {
+        console.error('Exception searching donors:', err);
         return [];
       }
-
-      return (data || []) as unknown as DonorProfile[];
     },
     enabled: !!(params.query && params.query.trim().length > 0),
+    retry: 1,
   });
 }
 
