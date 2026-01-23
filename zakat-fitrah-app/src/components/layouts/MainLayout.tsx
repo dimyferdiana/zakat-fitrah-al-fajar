@@ -23,6 +23,7 @@ import {
   LogOut,
   User,
   Wallet,
+  Receipt,
 } from 'lucide-react';
 
 interface MainLayoutProps {
@@ -64,6 +65,12 @@ const navItems: NavItem[] = [
     label: 'Distribusi Zakat',
     path: '/distribusi',
     icon: Send,
+    roles: ['admin', 'petugas'],
+  },
+  {
+    label: 'Bukti Sedekah',
+    path: '/sedekah-receipt',
+    icon: Receipt,
     roles: ['admin', 'petugas'],
   },
   {
