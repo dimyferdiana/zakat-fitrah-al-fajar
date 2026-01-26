@@ -1,0 +1,490 @@
+{
+  "version": "2.6",
+  "children": [
+    {
+      "type": "frame",
+      "id": "bi8Au",
+      "x": 0,
+      "y": 0,
+      "name": "Receipt - Sedekah",
+      "clip": true,
+      "width": 800,
+      "height": 566,
+      "fill": "#FFFFFF",
+      "layout": "vertical",
+      "gap": 16,
+      "padding": 80,
+      "children": [
+        {
+          "type": "frame",
+          "id": "Kx2aF",
+          "name": "Header",
+          "width": "fill_container",
+          "gap": 16,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "w3nRz",
+              "name": "Logo",
+              "width": 50,
+              "height": 50,
+              "fill": "#E8E8E8",
+              "cornerRadius": 4,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#CCCCCC"
+              },
+              "layout": "vertical",
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "J1IP2",
+                  "name": "logoText",
+                  "fill": "#999999",
+                  "content": "Logo",
+                  "textAlign": "center",
+                  "fontFamily": "Inter",
+                  "fontSize": 9,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TqYvE",
+              "name": "Header Text",
+              "layout": "vertical",
+              "gap": 4,
+              "justifyContent": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "AZysW",
+                  "name": "Org Name",
+                  "fill": "#000000",
+                  "content": "YAYASAN AL-FAJAR PERMATA PAMULANG",
+                  "textAlign": "center",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "rgmnk",
+                  "name": "Org Address",
+                  "fill": "#000000",
+                  "content": "Jl. Bukit Permata VII Blok E20/16 Bakti Jaya Setu Tangerang Selatan",
+                  "textAlign": "center",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "zrHOp",
+          "name": "Header Line",
+          "width": "fill_container",
+          "height": 2,
+          "fill": "#000000"
+        },
+        {
+          "type": "text",
+          "id": "wGu1L",
+          "name": "Title",
+          "fill": "#000000",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "BUKTI PEMBAYARAN ZAKAT/INFAK/SEDEKAH",
+          "textAlign": "center",
+          "fontFamily": "Inter",
+          "fontSize": 14,
+          "fontWeight": "700"
+        },
+        {
+          "type": "frame",
+          "id": "tZ2FH",
+          "name": "Details Section",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            10,
+            0
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "Xh7E9",
+              "name": "Row 1",
+              "width": "fill_container",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "XtX6Z",
+                  "name": "No Bukti Group",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "yQMds",
+                      "name": "noBuktiLabel",
+                      "fill": "#000000",
+                      "content": "No Bukti :",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "w79aS",
+                      "name": "noBuktiValue",
+                      "fill": "#000000",
+                      "content": "ZIS-2024-001",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "D4vDY",
+                  "name": "Tanggal Group",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "justifyContent": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "P8aks",
+                      "name": "tanggalLabel",
+                      "fill": "#000000",
+                      "content": "Tanggal :",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "qGsqd",
+                      "name": "tanggalValue",
+                      "fill": "#000000",
+                      "content": "25-01-2026",
+                      "textAlign": "right",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "fbsI1",
+              "name": "Row Donor",
+              "width": "fill_container",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "R7Oxf",
+                  "name": "donorLabel",
+                  "fill": "#000000",
+                  "textGrowth": "fixed-width",
+                  "width": 180,
+                  "content": "Telah terima dari Bpk/Ibu/Sdr :",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "v6sCo",
+                  "name": "donorValue",
+                  "fill": "#000000",
+                  "content": "Ahmad Suryadi",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "cE8sS",
+              "name": "Row Alamat",
+              "width": "fill_container",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "tecuT",
+                  "name": "alamatLabel",
+                  "fill": "#000000",
+                  "textGrowth": "fixed-width",
+                  "width": 180,
+                  "content": "Alamat :",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "3oC1E",
+                  "name": "alamatValue",
+                  "fill": "#000000",
+                  "textGrowth": "fixed-width",
+                  "width": 400,
+                  "content": "Jl. Bukit Permata VII Blok A10/5 Tangerang Selatan",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "IRMFK",
+              "name": "Row Phone",
+              "width": "fill_container",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "YGimg",
+                  "name": "phoneLabel",
+                  "fill": "#000000",
+                  "textGrowth": "fixed-width",
+                  "width": 180,
+                  "content": "Nomor Handphone :",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "yvvVV",
+                  "name": "phoneValue",
+                  "fill": "#000000",
+                  "content": "081234567890",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "U6OcL",
+              "name": "Row Kategori",
+              "width": "fill_container",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "CLPyL",
+                  "name": "kategoriLabel",
+                  "fill": "#000000",
+                  "textGrowth": "fixed-width",
+                  "width": 180,
+                  "content": "Untuk pembayaran :",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "fvExJ",
+                  "name": "kategoriValue",
+                  "fill": "#000000",
+                  "content": "Infak/Sedekah",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "GjV5o",
+              "name": "Row Amount",
+              "width": "fill_container",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Lrily",
+                  "name": "amountLabel",
+                  "fill": "#000000",
+                  "textGrowth": "fixed-width",
+                  "width": 180,
+                  "content": "Sebesar :",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "p4Qng",
+                  "name": "amountValue",
+                  "fill": "#000000",
+                  "content": "Rp 500.000",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "4ZqNc",
+              "name": "Row Terbilang",
+              "width": "fill_container",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "fzK3s",
+                  "name": "terbilangLabel",
+                  "fill": "#000000",
+                  "textGrowth": "fixed-width",
+                  "width": 180,
+                  "content": "Terbilang :",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "mLWpB",
+                  "name": "terbilangValue",
+                  "fill": "#000000",
+                  "textGrowth": "fixed-width",
+                  "width": 400,
+                  "content": "Lima Ratus Ribu Rupiah",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "n52kz",
+          "name": "Doa Text",
+          "fill": "#000000",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Semoga Allah SWT memberikan pahala kepada Bpk./Ibu/Sdr. atas harta yang telah dikeluarkan dan menjadi berkah dan suci atas harta yang lainnya.",
+          "fontFamily": "Inter",
+          "fontSize": 11,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "mpaaO",
+          "name": "Signature Section",
+          "width": "fill_container",
+          "justifyContent": "end",
+          "children": [
+            {
+              "type": "frame",
+              "id": "tzPAY",
+              "name": "Signature Box",
+              "layout": "vertical",
+              "gap": 4,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "M1jf8",
+                  "name": "signatureOrgName",
+                  "fill": "#000000",
+                  "content": "YAYASAN AL-FAJAR PERMATA PAMULANG",
+                  "textAlign": "center",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "MTKTC",
+                  "name": "Stamp Area",
+                  "width": 150,
+                  "height": 60,
+                  "fill": "#F5F5F5",
+                  "cornerRadius": 4,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#CCCCCC"
+                  },
+                  "layout": "vertical",
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "EEt3a",
+                      "name": "stampPlaceholder",
+                      "fill": "#999999",
+                      "content": "Stamp + Signature",
+                      "textAlign": "center",
+                      "fontFamily": "Inter",
+                      "fontSize": 9,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "1OnV1",
+                  "name": "ketuaName",
+                  "fill": "#000000",
+                  "content": "H. Eldin Rizal Nasution",
+                  "textAlign": "center",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "frame",
+                  "id": "a9gu5",
+                  "name": "Underline",
+                  "width": 140,
+                  "height": 1,
+                  "fill": "#000000"
+                },
+                {
+                  "type": "text",
+                  "id": "d0toj",
+                  "name": "ketuaTitle",
+                  "fill": "#000000",
+                  "content": "Ketua",
+                  "textAlign": "center",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
