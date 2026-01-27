@@ -14,6 +14,8 @@
       "layout": "vertical",
       "gap": 16,
       "padding": 80,
+      "justifyContent": "center",
+      "alignItems": "center",
       "children": [
         {
           "type": "frame",
@@ -28,8 +30,8 @@
               "type": "frame",
               "id": "w3nRz",
               "name": "Logo",
-              "width": 50,
-              "height": 50,
+              "width": 64,
+              "height": 64,
               "fill": "#E8E8E8",
               "cornerRadius": 4,
               "stroke": {

@@ -22,32 +22,35 @@ const KETUA_NAME = 'H. Eldin Rizal Nasution';
 const DOA_TEXT =
   'Semoga Allah SWT memberikan pahala kepada Bpk./Ibu/Sdr. atas harta yang telah dikeluarkan dan menjadi berkah dan suci atas harta yang lainnya.';
 
-// Layout constants (converted from receipt-design.pen: 800x566px with 80px padding)
-// Conversion: 96 DPI standard, 1px ≈ 0.2646mm
-const MARGIN = 21.2; // 80px padding
-const LOGO_SIZE = 13.2; // 50px
-const LABEL_WIDTH = 47.6; // 180px label width
-const ROW_GAP = 2.1; // 8px gap between detail rows
-const SECTION_GAP = 4.2; // 16px main gap between sections (from .pen file)
-const HEADER_GAP = 4.2; // 16px gap in header
-const LINE_HEIGHT = 4.5; // ~17px line height for text rows
-const DETAILS_TOP_PADDING = 2.6; // 10px top padding for details section
+// Layout constants matching receipt-design.pen frame specs
+// Original design: 800x566px with 80px padding, gap 16px
+// Scaled proportionally to A5 landscape (210x148mm)
+const SCALE_FACTOR = 210 / 800; // A5 width / design width
+const MARGIN = 80 * SCALE_FACTOR; // 80px padding = 21mm
+const LOGO_SIZE = 64 * SCALE_FACTOR; // 64px = 16.8mm
+const LABEL_WIDTH = 180 * SCALE_FACTOR; // 180px = 47.25mm
+const ROW_GAP = 8 * SCALE_FACTOR; // 8px gap between detail rows = 2.1mm
+const SECTION_GAP = 16 * SCALE_FACTOR; // 16px main gap = 4.2mm
+const HEADER_GAP = 16 * SCALE_FACTOR; // 16px header gap = 4.2mm
+const LINE_HEIGHT = 17 * SCALE_FACTOR; // ~17px line height = 4.46mm
+const DETAILS_TOP_PADDING = 10 * SCALE_FACTOR; // 10px = 2.625mm
+const DIVIDER_HEIGHT = 2 * SCALE_FACTOR; // 2px = 0.525mm
 
 /**
  * Generate Sedekah receipt PDF matching receipt-design.pen layout
  * White background, printer-friendly
  */
 export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
-  // Create landscape PDF (A4: 297x210mm matches 800x566px aspect ratio)
+  // Create landscape PDF (A5: 210x148mm) to match requested size
   const pdf = new jsPDF({
     orientation: 'landscape',
     unit: 'mm',
-    format: 'a4',
+    format: 'a5',
   });
 
-  const pageWidth = pdf.internal.pageSize.getWidth(); // 297mm
-  const pageHeight = pdf.internal.pageSize.getHeight(); // 210mm
-  const contentWidth = pageWidth - MARGIN * 2; // ~257mm content area
+  const pageWidth = pdf.internal.pageSize.getWidth(); // 210mm
+  const pageHeight = pdf.internal.pageSize.getHeight(); // 148mm
+  const contentWidth = pageWidth - MARGIN * 2; // content area after margins
 
   // Set white background
   pdf.setFillColor(255, 255, 255);
@@ -65,7 +68,7 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
   const totalHeaderWidth = LOGO_SIZE + headerGap + textGroupWidth;
   const headerStartX = (pageWidth - totalHeaderWidth) / 2; // Center the entire group
 
-  // Logo (left side of centered group, 50x50px = ~13x13mm) with background
+  // Logo (left side of centered group, 64x64px from design spec)
   // Design: #E8E8E8 fill, #CCCCCC border, 4px corner radius
   //pdf.setFillColor(232, 232, 232);
   //pdf.setDrawColor(204, 204, 204);
@@ -78,26 +81,28 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
     console.warn('Could not embed logo image:', error);
   }
 
-  // Text positioned right of logo with gap (16px = 4.2mm)
+  // Text positioned right of logo with gap (16px from design)
   const headerTextX = headerStartX + LOGO_SIZE + HEADER_GAP;
+  const headerTextGap = 4 * SCALE_FACTOR; // 4px gap between org name and address
 
   // Organization name (16px, bold) - Design uses Inter font
   // Note: jsPDF doesn't have Inter by default, using Helvetica as fallback
   pdf.setFontSize(16 * 0.75); // Convert px to pt (16px ≈ 12pt)
   pdf.setFont('Helvetica', 'bold');
-  pdf.text(ORGANIZATION_NAME, headerTextX, yPosition + 4.5);
+  const orgNameY = yPosition + (LOGO_SIZE / 2) - 2; // Vertically center with logo
+  pdf.text(ORGANIZATION_NAME, headerTextX, orgNameY);
 
-  // Organization address (11px, normal)
+  // Organization address (11px, normal, 4px gap from design)
   pdf.setFontSize(11 * 0.75); // 11px ≈ 8.25pt
   pdf.setFont('Helvetica', 'normal');
-  pdf.text(ORGANIZATION_ADDRESS, headerTextX, yPosition + 9);
+  pdf.text(ORGANIZATION_ADDRESS, headerTextX, orgNameY + 4 + headerTextGap);
 
   yPosition += LOGO_SIZE + SECTION_GAP;
 
-  // Header line (1px = ~0.26mm)
-  pdf.setLineWidth(0.26);
+  // Header line (2px from design spec)
+  pdf.setLineWidth(DIVIDER_HEIGHT);
   pdf.line(leftX, yPosition, pageWidth - MARGIN, yPosition);
-  yPosition += SECTION_GAP + 3; // 16px gap + extra 3mm for more space
+  yPosition += SECTION_GAP; // 16px gap from design spec
 
   // ============ TITLE SECTION ============
   // Title - centered (14px bold)
