@@ -131,50 +131,50 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
 
   // Row 2: Donor name
   pdf.setFont('Helvetica', 'normal');
-  pdf.text('Telah terima dari Bpk/Ibu/Sdr :', leftX, yPosition);
+  pdf.text('Telah terima dari Bpk/Ibu/Sdr', leftX, yPosition);
   pdf.setFont('Helvetica', 'bold');
-  pdf.text(data.donorName, valueX, yPosition);
+  pdf.text(':'+ data.donorName, valueX, yPosition);
   yPosition += ROW_GAP + LINE_HEIGHT;
 
   // Row 3: Address (with text wrapping, fixed width 400px = ~105mm)
   pdf.setFont('Helvetica', 'normal');
-  pdf.text('Alamat :', leftX, yPosition);
+  pdf.text('Alamat', leftX, yPosition);
   pdf.setFont('Helvetica', 'bold');
   const maxAddressWidth = 105; // 400px from design
   const addressLines = pdf.splitTextToSize(data.donorAddress, maxAddressWidth);
-  pdf.text(addressLines, valueX, yPosition);
+  pdf.text(':'+ addressLines, valueX, yPosition);
   yPosition += ROW_GAP + addressLines.length * LINE_HEIGHT;
 
   // Row 4: Phone (optional)
   if (data.donorPhone) {
     pdf.setFont('Helvetica', 'normal');
-    pdf.text('Nomor Handphone :', leftX, yPosition);
+    pdf.text('Nomor Handphone', leftX, yPosition);
     pdf.setFont('Helvetica', 'bold');
-    pdf.text(data.donorPhone, valueX, yPosition);
+    pdf.text(':'+ data.donorPhone, valueX, yPosition);
     yPosition += ROW_GAP + LINE_HEIGHT;
   }
 
   // Row 5: Category
   pdf.setFont('Helvetica', 'normal');
-  pdf.text('Untuk pembayaran :', leftX, yPosition);
+  pdf.text('Untuk pembayaran', leftX, yPosition);
   pdf.setFont('Helvetica', 'bold');
-  pdf.text(data.category, valueX, yPosition);
+  pdf.text(':'+ data.category, valueX, yPosition);
   yPosition += ROW_GAP + LINE_HEIGHT;
 
   // Row 6: Amount
   pdf.setFont('Helvetica', 'normal');
-  pdf.text('Sebesar :', leftX, yPosition);
+  pdf.text('Sebesar', leftX, yPosition);
   pdf.setFont('Helvetica', 'bold');
-  pdf.text(formatRupiah(data.amount), valueX, yPosition);
+  pdf.text(':'+ formatRupiah(data.amount), valueX, yPosition);
   yPosition += ROW_GAP + LINE_HEIGHT;
 
   // Row 7: Terbilang (with text wrapping, fixed width 400px = ~105mm)
   pdf.setFont('Helvetica', 'normal');
-  pdf.text('Terbilang :', leftX, yPosition);
+  pdf.text('Terbilang', leftX, yPosition);
   pdf.setFont('Helvetica', 'bold');
   const terbilangText = getTerbilangText(data.amount);
   const terbilangLines = pdf.splitTextToSize(terbilangText, maxAddressWidth);
-  pdf.text(terbilangLines, valueX, yPosition);
+  pdf.text(':'+ terbilangLines, valueX, yPosition);
   yPosition += terbilangLines.length * LINE_HEIGHT + SECTION_GAP;
 
   // ============ DOA TEXT SECTION ============

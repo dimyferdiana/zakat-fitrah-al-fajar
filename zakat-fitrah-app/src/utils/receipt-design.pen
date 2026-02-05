@@ -399,7 +399,7 @@
         {
           "type": "frame",
           "id": "mpaaO",
-          "name": "Signature Section",
+          "name": "Footer",
           "width": "fill_container",
           "justifyContent": "end",
           "children": [
