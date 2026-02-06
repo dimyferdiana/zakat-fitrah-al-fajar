@@ -22,7 +22,7 @@ const ORGANIZATION_EMAIL = 'permataalfajar@gmail.com';
 const ORGANIZATION_SERVICE = 'Layanan Al Fajar 0877-1335-9800 (WA Only)';
 const KETUA_NAME = 'H. Eldin Rizal Nasution';
 const DOA_TEXT =
-  'Semoga Allah SWT memberikan pahala kepada Bpk./Ibu/Sdr. atas harta yang telah dikeluarkan dan menjadi berkah dan suci atas harta yang lainnya. Aamiin ya rabbal\'alamin.';
+  'Semoga Allah SWT memberikan pahala kepada Bpk./Ibu/Sdr. atas harta yang telah dikeluarkan dan menjadi berkah dan suci atas harta yang lainnya. Aamiin';
 
 const CATEGORY_PREFIX_MAP: Record<string, string> = {
   infak: 'INF',
@@ -67,14 +67,15 @@ export function formatReceiptNumber(category: string, receiptNumber: string) {
 // Scaled proportionally to A5 landscape (210x148mm)
 const SCALE_FACTOR = 210 / 800; // A5 width / design width
 const MARGIN = 80 * SCALE_FACTOR; // 80px padding = 21mm
-const LOGO_SIZE = 64 * SCALE_FACTOR; // 64px = 16.8mm
+const LOGO_SIZE = 80 * SCALE_FACTOR; // 80px = 21mm
 const LABEL_WIDTH = 180 * SCALE_FACTOR; // 180px = 47.25mm
 const ROW_GAP = 8 * SCALE_FACTOR; // 8px gap between detail rows = 2.1mm
-const SECTION_GAP = 16 * SCALE_FACTOR; // 16px main gap = 4.2mm
+const SECTION_GAP = 20 * SCALE_FACTOR; // 20px main gap = 5.25mm
 const HEADER_GAP = 16 * SCALE_FACTOR; // 16px header gap = 4.2mm
 const LINE_HEIGHT = 17 * SCALE_FACTOR; // ~17px line height = 4.46mm
 const DETAILS_TOP_PADDING = 10 * SCALE_FACTOR; // 10px = 2.625mm
 const DIVIDER_HEIGHT = 2 * SCALE_FACTOR; // 2px = 0.525mm
+const TOP_SHIFT = -8; // shift content up by 8mm to center better
 
 /**
  * Generate Sedekah receipt PDF matching receipt-design.pen layout
@@ -96,7 +97,7 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
   pdf.setFillColor(255, 255, 255);
   pdf.rect(0, 0, pageWidth, pageHeight, 'F');
 
-  let yPosition = MARGIN;
+  let yPosition = MARGIN + TOP_SHIFT;
   const leftX = MARGIN;
   const valueX = MARGIN + LABEL_WIDTH; // Where values start after labels
 
@@ -160,10 +161,10 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
 
   // Row 1: No Bukti (left) | Tanggal (right)
   pdf.setFont('Helvetica', 'normal');
-  pdf.text('No Bukti :', leftX, yPosition);
+  pdf.text('No Bukti', leftX, yPosition);
   pdf.setFont('Helvetica', 'bold');
   const formattedReceiptNumber = formatReceiptNumber(data.category, data.receiptNumber);
-  pdf.text(formattedReceiptNumber, valueX, yPosition);
+  pdf.text(': '+ formattedReceiptNumber, valueX, yPosition);
 
   // Tanggal - right aligned
   const rightLabelX = pageWidth - MARGIN - 80;

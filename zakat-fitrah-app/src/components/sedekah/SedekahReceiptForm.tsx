@@ -211,23 +211,6 @@ export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
         notes: values.notes,
       });
 
-      try {
-        localStorage.setItem(
-          'last_sedekah_receipt_sample',
-          JSON.stringify({
-            receiptNumber: formattedReceiptNumber,
-            donorName: values.donorName,
-            donorAddress: values.donorAddress,
-            donorPhone: values.donorPhone,
-            category: finalCategory,
-            amount: values.amount,
-            date: date.toISOString(),
-            notes: values.notes,
-          }),
-        );
-      } catch {
-        // Ignore storage errors
-      }
 
       toast.success('Bukti sedekah berhasil dibuat dan diunduh');
       form.reset();
