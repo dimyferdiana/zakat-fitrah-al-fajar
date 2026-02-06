@@ -161,5 +161,5 @@ export function formatRupiah(amount: number): string {
  */
 export function getTerbilangText(amount: number): string {
   const words = numberToTerbilang(amount);
-  return words.charAt(0).toUpperCase() + words.slice(1) + ' Rupiah';
+  return words.charAt(0).toUpperCase() + words.slice(1) + ' rupiah';
 }

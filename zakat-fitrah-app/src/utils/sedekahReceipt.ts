@@ -18,9 +18,49 @@ export interface SedekahReceiptData {
 // Constants matching receipt-design.pen
 const ORGANIZATION_NAME = 'YAYASAN AL-FAJAR PERMATA PAMULANG';
 const ORGANIZATION_ADDRESS = 'Jl. Bukit Permata VII Blok E20/16 Bakti Jaya Setu Tangerang Selatan';
+const ORGANIZATION_EMAIL = 'permataalfajar@gmail.com';
+const ORGANIZATION_SERVICE = 'Layanan Al Fajar 0877-1335-9800 (WA Only)';
 const KETUA_NAME = 'H. Eldin Rizal Nasution';
 const DOA_TEXT =
-  'Semoga Allah SWT memberikan pahala kepada Bpk./Ibu/Sdr. atas harta yang telah dikeluarkan dan menjadi berkah dan suci atas harta yang lainnya.';
+  'Semoga Allah SWT memberikan pahala kepada Bpk./Ibu/Sdr. atas harta yang telah dikeluarkan dan menjadi berkah dan suci atas harta yang lainnya. Aamiin ya rabbal\'alamin.';
+
+const CATEGORY_PREFIX_MAP: Record<string, string> = {
+  infak: 'INF',
+  zakat: 'ZKT',
+  'sahabat quran': 'QRN',
+  'bank infak': 'BIN',
+  'santunan yatim dan dhuafa': 'YTM',
+  lainnya: 'LAI',
+};
+
+export function normalizeCategory(category: string) {
+  return category
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, 'dan')
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getCategoryPrefix(category: string) {
+  const key = normalizeCategory(category ?? '');
+  return CATEGORY_PREFIX_MAP[key] ?? 'LAI';
+}
+
+export function formatReceiptNumber(category: string, receiptNumber: string) {
+  const raw = (receiptNumber ?? '').toString().trim();
+  const numberPart = raw.replace(/\D/g, '');
+  const prefix = getCategoryPrefix(category);
+
+  if (!numberPart) {
+    const stripped = raw.replace(/^[A-Z]{3}\//, '');
+    return `${prefix}/${stripped || raw}`;
+  }
+
+  const paddedNumber = numberPart.padStart(6, '0');
+  return `${prefix}/${paddedNumber}`;
+}
 
 // Layout constants matching receipt-design.pen frame specs
 // Original design: 800x566px with 80px padding, gap 16px
@@ -95,7 +135,10 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
   // Organization address (11px, normal, 4px gap from design)
   pdf.setFontSize(11 * 0.75); // 11px ≈ 8.25pt
   pdf.setFont('Helvetica', 'normal');
-  pdf.text(ORGANIZATION_ADDRESS, headerTextX, orgNameY + 4 + headerTextGap);
+  const addressY = orgNameY + 4 + headerTextGap;
+  pdf.text(ORGANIZATION_ADDRESS, headerTextX, addressY);
+  pdf.text(`Email : ${ORGANIZATION_EMAIL}`, headerTextX, addressY + 3 + headerTextGap);
+  pdf.text(ORGANIZATION_SERVICE, headerTextX, addressY + 6 + headerTextGap * 2);
 
   yPosition += LOGO_SIZE + SECTION_GAP;
 
@@ -119,7 +162,8 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
   pdf.setFont('Helvetica', 'normal');
   pdf.text('No Bukti :', leftX, yPosition);
   pdf.setFont('Helvetica', 'bold');
-  pdf.text(data.receiptNumber, valueX, yPosition);
+  const formattedReceiptNumber = formatReceiptNumber(data.category, data.receiptNumber);
+  pdf.text(formattedReceiptNumber, valueX, yPosition);
 
   // Tanggal - right aligned
   const rightLabelX = pageWidth - MARGIN - 80;
@@ -133,7 +177,7 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
   pdf.setFont('Helvetica', 'normal');
   pdf.text('Telah terima dari Bpk/Ibu/Sdr', leftX, yPosition);
   pdf.setFont('Helvetica', 'bold');
-  pdf.text(':'+ data.donorName, valueX, yPosition);
+  pdf.text(': '+ data.donorName, valueX, yPosition);
   yPosition += ROW_GAP + LINE_HEIGHT;
 
   // Row 3: Address (with text wrapping, fixed width 400px = ~105mm)
@@ -142,7 +186,7 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
   pdf.setFont('Helvetica', 'bold');
   const maxAddressWidth = 105; // 400px from design
   const addressLines = pdf.splitTextToSize(data.donorAddress, maxAddressWidth);
-  pdf.text(':'+ addressLines, valueX, yPosition);
+  pdf.text(': '+ addressLines, valueX, yPosition);
   yPosition += ROW_GAP + addressLines.length * LINE_HEIGHT;
 
   // Row 4: Phone (optional)
@@ -150,7 +194,7 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
     pdf.setFont('Helvetica', 'normal');
     pdf.text('Nomor Handphone', leftX, yPosition);
     pdf.setFont('Helvetica', 'bold');
-    pdf.text(':'+ data.donorPhone, valueX, yPosition);
+    pdf.text(': '+ data.donorPhone, valueX, yPosition);
     yPosition += ROW_GAP + LINE_HEIGHT;
   }
 
@@ -158,14 +202,14 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
   pdf.setFont('Helvetica', 'normal');
   pdf.text('Untuk pembayaran', leftX, yPosition);
   pdf.setFont('Helvetica', 'bold');
-  pdf.text(':'+ data.category, valueX, yPosition);
+  pdf.text(': '+ data.category, valueX, yPosition);
   yPosition += ROW_GAP + LINE_HEIGHT;
 
   // Row 6: Amount
   pdf.setFont('Helvetica', 'normal');
   pdf.text('Sebesar', leftX, yPosition);
   pdf.setFont('Helvetica', 'bold');
-  pdf.text(':'+ formatRupiah(data.amount), valueX, yPosition);
+  pdf.text(': '+ formatRupiah(data.amount), valueX, yPosition);
   yPosition += ROW_GAP + LINE_HEIGHT;
 
   // Row 7: Terbilang (with text wrapping, fixed width 400px = ~105mm)
@@ -174,7 +218,7 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
   pdf.setFont('Helvetica', 'bold');
   const terbilangText = getTerbilangText(data.amount);
   const terbilangLines = pdf.splitTextToSize(terbilangText, maxAddressWidth);
-  pdf.text(':'+ terbilangLines, valueX, yPosition);
+  pdf.text(': '+ terbilangLines, valueX, yPosition);
   yPosition += terbilangLines.length * LINE_HEIGHT + SECTION_GAP;
 
   // ============ DOA TEXT SECTION ============

@@ -130,6 +130,56 @@ export interface Database {
           updated_at?: string;
         };
       };
+      bukti_sedekah: {
+        Row: {
+          id: string;
+          receipt_number: string;
+          category: string;
+          category_key: string;
+          donor_id: string | null;
+          donor_name: string;
+          donor_address: string;
+          donor_phone: string | null;
+          amount: number;
+          tanggal: string;
+          notes: string | null;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          receipt_number: string;
+          category: string;
+          category_key: string;
+          donor_id?: string | null;
+          donor_name: string;
+          donor_address: string;
+          donor_phone?: string | null;
+          amount: number;
+          tanggal?: string;
+          notes?: string | null;
+          created_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          receipt_number?: string;
+          category?: string;
+          category_key?: string;
+          donor_id?: string | null;
+          donor_name?: string;
+          donor_address?: string;
+          donor_phone?: string | null;
+          amount?: number;
+          tanggal?: string;
+          notes?: string | null;
+          created_by?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       pembayaran_zakat: {
         Row: {
           id: string;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -22,7 +22,8 @@ import {
 } from '@/components/ui/form';
 import { useSearchDonor, useUpsertDonor, type DonorProfile } from '@/hooks/useDonor';
 import { getTerbilangText, formatRupiah } from '@/lib/terbilang';
-import { downloadSedekahReceipt } from '@/utils/sedekahReceipt';
+import { supabase } from '@/lib/supabase';
+import { downloadSedekahReceipt, normalizeCategory } from '@/utils/sedekahReceipt';
 import { toast } from 'sonner';
 
 const SEDEKAH_CATEGORIES = [
@@ -35,7 +36,7 @@ const SEDEKAH_CATEGORIES = [
 ];
 
 const sedekahReceiptFormSchema = z.object({
-  receiptNumber: z.string().min(1, 'Nomor bukti diperlukan'),
+  receiptNumber: z.string().optional(),
   searchQuery: z.string().optional(),
   donorId: z.string().optional(),
   donorName: z.string().min(1, 'Nama donor diperlukan'),
@@ -82,8 +83,59 @@ export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
 
   const amount = form.watch('amount') || 0;
   const category = form.watch('category');
+  const categoryCustom = form.watch('categoryCustom');
   const terbilangText = amount > 0 ? getTerbilangText(amount) : '';
   const formattedAmount = amount > 0 ? formatRupiah(amount) : 'Rp 0';
+
+  const getReceiptNumberWithRetry = async (
+    categoryKey: string,
+    mode: 'peek' | 'next',
+    attempts = 2,
+  ) => {
+    const rpcName = mode === 'peek'
+      ? 'peek_bukti_sedekah_number'
+      : 'next_bukti_sedekah_number';
+
+    let lastError: any;
+    for (let i = 0; i < attempts; i += 1) {
+      const { data, error } = await supabase.rpc(rpcName, { p_category_key: categoryKey });
+      if (!error && data) {
+        return data as string;
+      }
+      lastError = error;
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+    throw lastError || new Error('Gagal membuat nomor bukti otomatis');
+  };
+
+  useEffect(() => {
+    let isActive = true;
+
+    const loadReceiptNumber = async () => {
+      const finalCategory =
+        category === 'Lainnya' ? categoryCustom || '' : category;
+
+      if (!finalCategory) {
+        form.setValue('receiptNumber', '');
+        return;
+      }
+
+      const categoryKey = normalizeCategory(finalCategory);
+      try {
+        const previewNumber = await getReceiptNumberWithRetry(categoryKey, 'peek');
+        if (!isActive) return;
+        form.setValue('receiptNumber', previewNumber, { shouldValidate: true });
+      } catch (error) {
+        console.warn('Failed to preview receipt number:', error);
+      }
+    };
+
+    loadReceiptNumber();
+
+    return () => {
+      isActive = false;
+    };
+  }, [category, categoryCustom, form]);
 
   const handleDonorSelect = (donor: DonorProfile) => {
     setSelectedDonor(donor);
@@ -106,15 +158,50 @@ export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
         return;
       }
 
-      await upsertDonor.mutateAsync({
+      const donor = await upsertDonor.mutateAsync({
         nama: values.donorName,
         alamat: values.donorAddress,
         no_telp: values.donorPhone,
       });
 
       const date = new Date(values.date);
+      const categoryKey = normalizeCategory(finalCategory);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      const formattedReceiptNumber = await getReceiptNumberWithRetry(categoryKey, 'next', 3);
+
+      const { error: receiptError } = await (supabase
+        .from('bukti_sedekah') as any)
+        .insert({
+          receipt_number: formattedReceiptNumber,
+          category: finalCategory,
+          category_key: categoryKey,
+          donor_id: donor?.id ?? null,
+          donor_name: values.donorName,
+          donor_address: values.donorAddress,
+          donor_phone: values.donorPhone || null,
+          amount: values.amount,
+          tanggal: values.date,
+          notes: values.notes || null,
+          created_by: user.id,
+        });
+
+      if (receiptError) {
+        if (receiptError.code === '23505') {
+          toast.error('Nomor bukti sudah digunakan untuk kategori ini.');
+          return;
+        }
+        throw receiptError;
+      }
+
+      form.setValue('receiptNumber', formattedReceiptNumber);
+
       await downloadSedekahReceipt({
-        receiptNumber: values.receiptNumber,
+        receiptNumber: formattedReceiptNumber,
         donorName: values.donorName,
         donorAddress: values.donorAddress,
         donorPhone: values.donorPhone,
@@ -145,9 +232,9 @@ export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
             name="receiptNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nomor Bukti</FormLabel>
+                <FormLabel>Nomor Bukti (Otomatis)</FormLabel>
                 <FormControl>
-                  <Input placeholder="Misal: 001/2026" {...field} />
+                <Input placeholder="Otomatis" {...field} readOnly />
                 </FormControl>
                 <FormMessage />
               </FormItem>
