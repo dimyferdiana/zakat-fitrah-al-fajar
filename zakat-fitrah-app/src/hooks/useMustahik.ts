@@ -361,3 +361,27 @@ export function useImportMustahik() {
     },
   });
 }
+
+// Mutation: Delete mustahik
+export function useDeleteMustahik() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase
+        .from('mustahik')
+        .delete as any)()
+        .eq('id', id);
+
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mustahik-list'] });
+      toast.success('Mustahik berhasil dihapus');
+    },
+    onError: (error: any) => {
+      toast.error(`Gagal menghapus mustahik: ${error.message}`);
+    },
+  });
+}

@@ -26,6 +26,7 @@ import {
   useBulkToggleMustahik,
   usePreviousYearMustahik,
   useImportMustahik,
+  useDeleteMustahik,
   useMustahikHistory,
   type Mustahik,
 } from '@/hooks/useMustahik';
@@ -105,6 +106,7 @@ export default function MustahikPage() {
   const toggleActiveMutation = useToggleMustahikActive();
   const bulkToggleMutation = useBulkToggleMustahik();
   const importMutation = useImportMustahik();
+  const deleteMutation = useDeleteMustahik();
 
   // Handlers
   const handleOpenForm = (mustahik?: Mustahik) => {
@@ -148,6 +150,10 @@ export default function MustahikPage() {
       setSelectedIds([]);
       setBulkAction(null);
     }
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteMutation.mutateAsync(id);
   };
 
   const mustahikList = (mustahikData?.data || []).map((m: any) => ({
@@ -206,6 +212,7 @@ export default function MustahikPage() {
             onEdit={handleOpenForm}
             onToggleActive={handleToggleActive}
             onViewHistory={handleViewHistory}
+            onDelete={handleDelete}
             onSearch={setSearch}
             onFilterKategori={setKategoriFilter}
             onFilterStatus={(status) => setStatusFilter(status as 'aktif' | 'non-aktif' | 'semua')}
