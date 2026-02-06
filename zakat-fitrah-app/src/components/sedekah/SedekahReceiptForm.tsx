@@ -98,7 +98,7 @@ export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
 
     let lastError: any;
     for (let i = 0; i < attempts; i += 1) {
-      const { data, error } = await supabase.rpc(rpcName, { p_category_key: categoryKey });
+      const { data, error } = await (supabase.rpc as any)(rpcName, { p_category_key: categoryKey });
       if (!error && data) {
         return data as string;
       }
