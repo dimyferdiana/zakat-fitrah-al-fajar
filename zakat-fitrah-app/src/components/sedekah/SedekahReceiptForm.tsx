@@ -25,6 +25,8 @@ import { getTerbilangText, formatRupiah } from '@/lib/terbilang';
 import { supabase } from '@/lib/supabase';
 import { downloadSedekahReceipt, normalizeCategory } from '@/utils/sedekahReceipt';
 import { toast } from 'sonner';
+import type { PostgrestError } from '@supabase/supabase-js';
+import type { Database } from '@/types/database.types';
 
 const SEDEKAH_CATEGORIES = [
   'Zakat',
@@ -92,17 +94,20 @@ export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
     mode: 'peek' | 'next',
     attempts = 2,
   ) => {
-    const rpcName = mode === 'peek'
-      ? 'peek_bukti_sedekah_number'
-      : 'next_bukti_sedekah_number';
+    const rpc = supabase.rpc as unknown as (
+      fn: 'peek_bukti_sedekah_number' | 'next_bukti_sedekah_number',
+      args: { p_category_key: string },
+    ) => Promise<{ data: string | null; error: PostgrestError | null }>;
 
-    let lastError: any;
+    let lastError: Error | null = null;
     for (let i = 0; i < attempts; i += 1) {
-      const { data, error } = await (supabase.rpc as any)(rpcName, { p_category_key: categoryKey });
+      const { data, error } = mode === 'peek'
+        ? await rpc('peek_bukti_sedekah_number', { p_category_key: categoryKey })
+        : await rpc('next_bukti_sedekah_number', { p_category_key: categoryKey });
       if (!error && data) {
-        return data as string;
+        return data;
       }
-      lastError = error;
+      lastError = error as Error | null;
       await new Promise((resolve) => setTimeout(resolve, 300));
     }
     throw lastError || new Error('Gagal membuat nomor bukti otomatis');
@@ -174,21 +179,27 @@ export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
 
       const formattedReceiptNumber = await getReceiptNumberWithRetry(categoryKey, 'next', 3);
 
-      const { error: receiptError } = await (supabase
-        .from('bukti_sedekah') as any)
-        .insert({
-          receipt_number: formattedReceiptNumber,
-          category: finalCategory,
-          category_key: categoryKey,
-          donor_id: donor?.id ?? null,
-          donor_name: values.donorName,
-          donor_address: values.donorAddress,
-          donor_phone: values.donorPhone || null,
-          amount: values.amount,
-          tanggal: values.date,
-          notes: values.notes || null,
-          created_by: user.id,
-        });
+      const receiptPayload: Database['public']['Tables']['bukti_sedekah']['Insert'] = {
+        receipt_number: formattedReceiptNumber,
+        category: finalCategory,
+        category_key: categoryKey,
+        donor_id: donor?.id ?? null,
+        donor_name: values.donorName,
+        donor_address: values.donorAddress,
+        donor_phone: values.donorPhone || null,
+        amount: values.amount,
+        tanggal: values.date,
+        notes: values.notes || null,
+        created_by: user.id,
+      };
+
+      const receiptTable = supabase.from('bukti_sedekah') as unknown as {
+        insert: (
+          values: Database['public']['Tables']['bukti_sedekah']['Insert'],
+        ) => Promise<{ error: PostgrestError | null }>;
+      };
+
+      const { error: receiptError } = await receiptTable.insert(receiptPayload);
 
       if (receiptError) {
         if (receiptError.code === '23505') {
@@ -216,9 +227,10 @@ export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
       form.reset();
       setSelectedDonor(null);
       onSuccess?.();
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       console.error('Error generating receipt:', error);
-      toast.error('Gagal membuat bukti sedekah: ' + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast.error('Gagal membuat bukti sedekah: ' + errorMessage);
     } finally {
       setIsGenerating(false);
     }

@@ -451,7 +451,18 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      next_bukti_sedekah_number: {
+        Args: {
+          p_category_key: string;
+        };
+        Returns: string;
+      };
+      peek_bukti_sedekah_number: {
+        Args: {
+          p_category_key: string;
+        };
+        Returns: string;
+      };
     };
     Enums: {
       user_role: UserRole;
