@@ -361,8 +361,10 @@ export function useCreatePembayaran() {
             return zakatData;
           }
         } catch (error) {
-          // Transaction failed, throw error to rollback
-          throw new Error(`Transaksi gagal: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          // Transaction failed, log and throw detailed error
+          console.error('Split payment transaction error:', error);
+          const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+          throw new Error(`Transaksi gagal: ${errorMessage}`);
         }
       } else {
         // Normal payment without split
@@ -395,6 +397,7 @@ export function useCreatePembayaran() {
       }
     },
     onError: (error: Error) => {
+      console.error('Create pembayaran error:', error);
       toast.error(`Gagal menambahkan pembayaran: ${error.message}`);
     },
   });
