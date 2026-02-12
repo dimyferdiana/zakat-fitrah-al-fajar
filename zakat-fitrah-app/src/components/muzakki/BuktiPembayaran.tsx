@@ -52,7 +52,6 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
   }, [open, data]);
 
   const checkForSedekahRecord = async () => {
-    setIsLoadingSedekah(true);
     try {
       const tableName = data.jenis_zakat === 'uang' ? 'pemasukan_uang' : 'pemasukan_beras';
       const amountField = data.jenis_zakat === 'uang' ? 'jumlah_uang_rp' : 'jumlah_beras_kg';
@@ -72,8 +71,6 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
     } catch (error) {
       console.error('Error fetching sedekah record:', error);
       setSedekahAmount(null);
-    } finally {
-      setIsLoadingSedekah(false);
     }
   };
 
