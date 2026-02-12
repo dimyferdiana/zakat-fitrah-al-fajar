@@ -26,12 +26,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ ui/alert';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -106,6 +107,9 @@ interface MuzakkiFormProps {
     kewajiban_uang?: number;
     kewajiban_beras?: number;
     beras_kurang?: boolean;
+    has_overpayment?: boolean;
+    zakat_amount?: number;
+    sedekah_amount?: number;
   }) => void;
   editData?: PembayaranZakat | null;
   isSubmitting: boolean;
@@ -123,6 +127,9 @@ export function MuzakkiForm({
     uang: number;
   } | null>(null);
   const [activeTahunId, setActiveTahunId] = useState<string>('');
+  const [calculatedZakatAmount, setCalculatedZakatAmount] = useState<number>(0);
+  const [calculatedSedekahAmount, setCalculatedSedekahAmount] = useState<number>(0);
+  const [showBreakdown, setShowBreakdown] = useState<boolean>(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -196,6 +203,8 @@ export function MuzakkiForm({
   // Calculate total zakat
   const jumlahJiwa = form.watch('jumlah_jiwa');
   const jenisZakat = form.watch('jenis_zakat');
+  const jumlahUangDibayar = form.watch('jumlah_uang_dibayar_rp');
+  const jumlahBerasDibayar = form.watch('jumlah_beras_dibayar_kg');
 
   const totalZakat =
     nilaiPerOrang && jumlahJiwa
@@ -203,6 +212,33 @@ export function MuzakkiForm({
         ? jumlahJiwa * nilaiPerOrang.beras
         : jumlahJiwa * nilaiPerOrang.uang
       : 0;
+
+  // Calculate split when amount changes
+  useEffect(() => {
+    if (!nilaiPerOrang || !jumlahJiwa) {
+      setShowBreakdown(false);
+      return;
+    }
+
+    const requiredAmount = jenisZakat === 'beras'
+      ? jumlahJiwa * nilaiPerOrang.beras
+      : jumlahJiwa * nilaiPerOrang.uang;
+
+    const paidAmount = jenisZakat === 'beras'
+      ? (jumlahBerasDibayar || 0)
+      : (jumlahUangDibayar || 0);
+
+    if (paidAmount > requiredAmount) {
+      const excess = paidAmount - requiredAmount;
+      setCalculatedZakatAmount(requiredAmount);
+      setCalculatedSedekahAmount(excess);
+      setShowBreakdown(true);
+    } else {
+      setShowBreakdown(false);
+      setCalculatedZakatAmount(0);
+      setCalculatedSedekahAmount(0);
+    }
+  }, [jenisZakat, jumlahJiwa, jumlahUangDibayar, jumlahBerasDibayar, nilaiPerOrang]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -234,6 +270,9 @@ export function MuzakkiForm({
         values.jumlah_beras_dibayar_kg
           ? values.jumlah_beras_dibayar_kg < values.jumlah_jiwa * nilaiPerOrang.beras
           : false,
+      has_overpayment: showBreakdown,
+      zakat_amount: showBreakdown ? calculatedZakatAmount : undefined,
+      sedekah_amount: showBreakdown ? calculatedSedekahAmount : undefined,
     };
     onSubmit(submitData);
   };
@@ -421,6 +460,47 @@ export function MuzakkiForm({
                   )}
                 />
               </div>
+            )}
+
+            {/* Payment Breakdown Display (when overpayment detected) */}
+            {showBreakdown && (
+              <Alert className="border-blue-200 bg-blue-50">
+                <Info className="h-4 w-4 text-blue-600" />
+                <AlertDescription>
+                  <div className="font-semibold text-blue-900 mb-2">
+                    ℹ️ Rincian Pembayaran
+                  </div>
+                  <div className="space-y-1 text-sm text-blue-800">
+                    <div className="flex justify-between">
+                      <span>Pembayaran Zakat:</span>
+                      <span className="font-semibold">
+                        {jenisZakat === 'beras'
+                          ? `${calculatedZakatAmount.toFixed(2)} kg`
+                          : formatCurrency(calculatedZakatAmount)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Sedekah/Infak:</span>
+                      <span className="font-semibold">
+                        {jenisZakat === 'beras'
+                          ? `${calculatedSedekahAmount.toFixed(2)} kg`
+                          : formatCurrency(calculatedSedekahAmount)}
+                      </span>
+                    </div>
+                    <div className="border-t border-blue-200 my-1 pt-1 flex justify-between font-bold">
+                      <span>Total:</span>
+                      <span>
+                        {jenisZakat === 'beras'
+                          ? `${(calculatedZakatAmount + calculatedSedekahAmount).toFixed(2)} kg`
+                          : formatCurrency(calculatedZakatAmount + calculatedSedekahAmount)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-blue-700 mt-2 italic">
+                    * Kelebihan akan dicatat sebagai sedekah/infak terpisah
+                  </div>
+                </AlertDescription>
+              </Alert>
             )}
 
             {/* Tanggal Bayar */}

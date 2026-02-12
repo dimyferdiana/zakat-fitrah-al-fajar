@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import {
   Dialog,
@@ -13,6 +13,7 @@ import { Printer, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import jsPDF from 'jspdf';
+import { supabase } from '@/lib/supabase';
 
 interface Muzakki {
   id: string;
@@ -41,6 +42,48 @@ interface BuktiPembayaranProps {
 
 export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranProps) {
   const contentRef = useRef<HTMLDivElement>(null);
+  const [sedekahAmount, setSedekahAmount] = useState<number | null>(null);
+  const [isLoadingSedekah, setIsLoadingSedekah] = useState(false);
+
+  // Check for related sedekah record when dialog opens
+  useEffect(() => {
+    if (open && data) {
+      checkForSedekahRecord();
+    }
+  }, [open, data]);
+
+  const checkForSedekahRecord = async () => {
+    setIsLoadingSedekah(true);
+    try {
+      const tableName = data.jenis_zakat === 'uang' ? 'pemasukan_uang' : 'pemasukan_beras';
+      const amountField = data.jenis_zakat === 'uang' ? 'jumlah_uang_rp' : 'jumlah_beras_kg';
+      
+      const { data: sedekahData, error } = await supabase
+        .from(tableName)
+        .select(amountField)
+        .eq('muzakki_id', data.muzakki_id)
+        .eq('tanggal', data.tanggal_bayar)
+        .maybeSingle();
+
+      if (!error && sedekahData) {
+        setSedekahAmount(sedekahData[amountField]);
+      } else {
+        setSedekahAmount(null);
+      }
+    } catch (error) {
+      console.error('Error fetching sedekah record:', error);
+      setSedekahAmount(null);
+    } finally {
+      setIsLoadingSedekah(false);
+    }
+  };
+
+  const hasSplitPayment = sedekahAmount !== null && sedekahAmount > 0;
+  const totalPayment = hasSplitPayment
+    ? (data.jenis_zakat === 'beras'
+        ? (data.jumlah_beras_kg || 0) + sedekahAmount
+        : (data.jumlah_uang_rp || 0) + sedekahAmount)
+    : (data.jenis_zakat === 'beras' ? data.jumlah_beras_kg : data.jumlah_uang_rp);
 
   const formatCurrency = (value: number | null) => {
     if (value === null) return '-';
@@ -134,14 +177,56 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
     doc.text(data.jenis_zakat === 'beras' ? 'Beras' : 'Uang', 70, yPosition);
     yPosition += 6;
 
-    doc.text(`Total:`, 20, yPosition);
+    doc.text(`Total:`, 20, yPosition );
     doc.setFont('helvetica', 'bold');
-    const totalText =
-      data.jenis_zakat === 'beras'
-        ? `${formatNumber(data.jumlah_beras_kg)} kg`
-        : formatCurrency(data.jumlah_uang_rp);
-    doc.text(totalText, 70, yPosition);
-    yPosition += 15;
+    
+    if (hasSplitPayment) {
+      // Show split payment details
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Zakat Fitrah:`, 30, yPosition);
+      const zakatText =
+        data.jenis_zakat === 'beras'
+          ? `${formatNumber(data.jumlah_beras_kg)} kg`
+          : formatCurrency(data.jumlah_uang_rp);
+      doc.text(zakatText, 70, yPosition);
+      yPosition += 6;
+
+      doc.text(`Sedekah/Infak:`, 30, yPosition);
+      const sedekahText =
+        data.jenis_zakat === 'beras'
+          ? `${sedekahAmount.toFixed(2)} kg`
+          : formatCurrency(sedekahAmount);
+      doc.text(sedekahText, 70, yPosition);
+      yPosition += 6;
+
+      // Separator line
+      doc.setLineWidth(0.1);
+      doc.line(30, yPosition, 90, yPosition);
+      yPosition += 4;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Total Pembayaran:`, 30, yPosition);
+      const totalText =
+        data.jenis_zakat === 'beras'
+          ? `${(totalPayment || 0).toFixed(2)} kg`
+          : formatCurrency(totalPayment || 0);
+      doc.text(totalText, 70, yPosition);
+      yPosition += 10;
+
+      // Thank you message
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(9);
+      const thankYouMsg = 'Terima kasih atas kontribusi sedekah Anda';
+      doc.text(thankYouMsg, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 10;
+    } else {
+      const totalText =
+        data.jenis_zakat === 'beras'
+          ? `${formatNumber(data.jumlah_beras_kg)} kg`
+          : formatCurrency(data.jumlah_uang_rp);
+      doc.text(totalText, 70, yPosition);
+      yPosition += 15;
+    }
 
     // Separator line
     doc.setLineWidth(0.3);
@@ -248,14 +333,48 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
                     {data.jenis_zakat === 'beras' ? 'Beras' : 'Uang'}
                   </span>
                 </div>
-                <div className="flex items-center">
-                  <span className="w-40 text-muted-foreground">Total:</span>
-                  <span className="text-xl font-bold">
-                    {data.jenis_zakat === 'beras'
-                      ? `${formatNumber(data.jumlah_beras_kg)} kg`
-                      : formatCurrency(data.jumlah_uang_rp)}
-                  </span>
-                </div>
+                
+                {hasSplitPayment ? (
+                  <>
+                    <div className="flex items-center">
+                      <span className="w-40 text-muted-foreground">Zakat Fitrah:</span>
+                      <span className="text-lg font-semibold">
+                        {data.jenis_zakat === 'beras'
+                          ? `${formatNumber(data.jumlah_beras_kg)} kg`
+                          : formatCurrency(data.jumlah_uang_rp)}
+                      </span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="w-40 text-muted-foreground">Sedekah/Infak:</span>
+                      <span className="text-lg font-semibold text-green-700">
+                        {data.jenis_zakat === 'beras'
+                          ? `${sedekahAmount.toFixed(2)} kg`
+                          : formatCurrency(sedekahAmount)}
+                      </span>
+                    </div>
+                    <Separator className="my-2" />
+                    <div className="flex items-center">
+                      <span className="w-40 text-muted-foreground font-semibold">Total Pembayaran:</span>
+                      <span className="text-xl font-bold">
+                        {data.jenis_zakat === 'beras'
+                          ? `${(totalPayment || 0).toFixed(2)} kg`
+                          : formatCurrency(totalPayment || 0)}
+                      </span>
+                    </div>
+                    <div className="mt-2 p-2 bg-green-50 rounded text-xs text-green-800 italic text-center">
+                      Terima kasih atas kontribusi sedekah Anda
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center">
+                    <span className="w-40 text-muted-foreground">Total:</span>
+                    <span className="text-xl font-bold">
+                      {data.jenis_zakat === 'beras'
+                        ? `${formatNumber(data.jumlah_beras_kg)} kg`
+                        : formatCurrency(data.jumlah_uang_rp)}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 

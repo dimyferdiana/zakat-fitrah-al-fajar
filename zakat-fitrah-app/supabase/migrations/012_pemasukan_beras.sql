@@ -1,0 +1,74 @@
+-- Migration: Create pemasukan_beras table
+-- Date: 2026-02-12
+-- Purpose: Add pemasukan_beras table to support tracking beras income (infak/sedekah beras)
+
+-- Create enum for pemasukan_beras kategori
+DO $$ BEGIN
+    CREATE TYPE pemasukan_beras_kategori AS ENUM (
+        'infak_sedekah_beras'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+-- Create pemasukan_beras table
+CREATE TABLE IF NOT EXISTS pemasukan_beras (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tahun_zakat_id UUID NOT NULL REFERENCES tahun_zakat(id) ON DELETE RESTRICT,
+    muzakki_id UUID REFERENCES muzakki(id) ON DELETE SET NULL,
+    kategori pemasukan_beras_kategori NOT NULL,
+    jumlah_beras_kg DECIMAL(10,2) NOT NULL CHECK (jumlah_beras_kg > 0),
+    tanggal DATE NOT NULL DEFAULT CURRENT_DATE,
+    catatan TEXT,
+    created_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Create indexes for performance
+CREATE INDEX IF NOT EXISTS idx_pemasukan_beras_tahun_zakat_id ON pemasukan_beras(tahun_zakat_id);
+CREATE INDEX IF NOT EXISTS idx_pemasukan_beras_kategori ON pemasukan_beras(kategori);
+CREATE INDEX IF NOT EXISTS idx_pemasukan_beras_tanggal ON pemasukan_beras(tanggal);
+CREATE INDEX IF NOT EXISTS idx_pemasukan_beras_muzakki_id ON pemasukan_beras(muzakki_id);
+
+-- Add comment
+COMMENT ON TABLE pemasukan_beras IS 'Track beras income (infak/sedekah) including excess from zakat payments';
+
+-- Enable RLS
+ALTER TABLE public.pemasukan_beras ENABLE ROW LEVEL SECURITY;
+
+-- =========================================
+-- RLS POLICIES
+-- =========================================
+
+-- All authenticated: Read
+CREATE POLICY "All can view pemasukan_beras"
+    ON public.pemasukan_beras
+    FOR SELECT
+    TO authenticated
+    USING (true);
+
+-- Admin & Petugas: Create
+CREATE POLICY "Admin and Petugas can create pemasukan_beras"
+    ON public.pemasukan_beras
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (public.get_user_role() IN ('admin', 'petugas'));
+
+-- Admin & Petugas: Update own records
+CREATE POLICY "Admin and Petugas can update pemasukan_beras"
+    ON public.pemasukan_beras
+    FOR UPDATE
+    TO authenticated
+    USING (
+        public.get_user_role() IN ('admin', 'petugas') AND
+        (created_by = auth.uid() OR public.get_user_role() = 'admin')
+    )
+    WITH CHECK (public.get_user_role() IN ('admin', 'petugas'));
+
+-- Admin only: Delete
+CREATE POLICY "Admin can delete pemasukan_beras"
+    ON public.pemasukan_beras
+    FOR DELETE
+    TO authenticated
+    USING (public.get_user_role() = 'admin');

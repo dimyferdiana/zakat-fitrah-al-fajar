@@ -53,6 +53,8 @@ interface PembayaranZakat {
   jumlah_uang_dibayar_rp?: number | null;
   created_at: string;
   updated_at: string;
+  sedekah_uang?: number | null;
+  sedekah_beras?: number | null;
 }
 
 interface FormData {
@@ -69,6 +71,9 @@ interface FormData {
   kewajiban_uang?: number;
   kewajiban_beras?: number;
   beras_kurang?: boolean;
+  has_overpayment?: boolean;
+  zakat_amount?: number;
+  sedekah_amount?: number;
   id?: string;
   muzakki_id?: string;
 }
@@ -89,6 +94,14 @@ export function Muzakki() {
     payload: FormData | null;
     kekurangan: number;
   }>({ open: false, payload: null, kekurangan: 0 });
+  
+  const [overpaymentDialog, setOverpaymentDialog] = useState<{
+    open: boolean;
+    payload: FormData | null;
+    zakatAmount: number;
+    sedekahAmount: number;
+    jenisZakat: 'beras' | 'uang';
+  }>({ open: false, payload: null, zakatAmount: 0, sedekahAmount: 0, jenisZakat: 'beras' });
 
   const pageSize = 20;
 
@@ -153,15 +166,22 @@ export function Muzakki() {
       return;
     }
 
+    // Check if overpayment exists
+    if (data.has_overpayment && data.zakat_amount && data.sedekah_amount) {
+      setOverpaymentDialog({
+        open: true,
+        payload: data,
+        zakatAmount: data.zakat_amount,
+        sedekahAmount: data.sedekah_amount,
+        jenisZakat: data.jenis_zakat,
+      });
+      return;
+    }
+
     await handleSubmitInternal(data);
   };
 
   const handleSubmitInternal = async (data: FormData) => {
-    if (false // Overpayment check removed - all money amounts accepted as zakat
-    ) {
-      // Overpay already confirmed via dialog; continue
-    }
-
     const submitData = {
       nama_kk: data.nama_kk,
       alamat: data.alamat,
@@ -172,6 +192,10 @@ export function Muzakki() {
       tahun_zakat_id: data.tahun_zakat_id,
       akun_uang: data.akun_uang,
       jumlah_uang_dibayar_rp: data.jumlah_uang_dibayar_rp,
+      jumlah_beras_dibayar_kg: data.jumlah_beras_dibayar_kg,
+      has_overpayment: data.has_overpayment,
+      zakat_amount: data.zakat_amount,
+      sedekah_amount: data.sedekah_amount,
     };
 
     if (data.id && data.muzakki_id) {
@@ -193,6 +217,17 @@ export function Muzakki() {
   const handleDelete = async (id: string) => {
     await deleteMutation.mutateAsync(id);
     refetch();
+  };
+
+  const confirmOverpayment = async () => {
+    if (!overpaymentDialog.payload) return;
+    
+    await handleSubmitInternal(overpaymentDialog.payload);
+    setOverpaymentDialog({ open: false, payload: null, zakatAmount: 0, sedekahAmount: 0, jenisZakat: 'beras' });
+  };
+
+  const cancelOverpayment = () => {
+    setOverpaymentDialog({ open: false, payload: null, zakatAmount: 0, sedekahAmount: 0, jenisZakat: 'beras' });
   };
 
   // Overpayment dialog removed - all money amounts accepted as zakat
@@ -316,7 +351,52 @@ export function Muzakki() {
         />
       )}
 
-      {/* Overpayment dialog removed - all money amounts accepted as zakat */}
+      {/* Overpayment Confirmation Dialog */}
+      <AlertDialog open={overpaymentDialog.open} onOpenChange={(open) => !open && cancelOverpayment()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Pembagian Pembayaran</AlertDialogTitle>
+            <AlertDialogDescription>
+              <div className="space-y-3">
+                <p>Pembayaran melebihi kewajiban zakat. Sistem akan membagi pembayaran sebagai berikut:</p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium">Pembayaran Zakat:</span>
+                    <span className="font-bold">
+                      {overpaymentDialog.jenisZakat === 'beras'
+                        ? `${overpaymentDialog.zakatAmount.toFixed(2)} kg`
+                        : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(overpaymentDialog.zakatAmount)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium">Sedekah/Infak:</span>
+                    <span className="font-bold text-green-700">
+                      {overpaymentDialog.jenisZakat === 'beras'
+                        ? `${overpaymentDialog.sedekahAmount.toFixed(2)} kg`
+                        : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(overpaymentDialog.sedekahAmount)}
+                    </span>
+                  </div>
+                  <div className="border-t border-blue-300 pt-2 flex justify-between font-bold">
+                    <span>Total:</span>
+                    <span>
+                      {overpaymentDialog.jenisZakat === 'beras'
+                        ? `${(overpaymentDialog.zakatAmount + overpaymentDialog.sedekahAmount).toFixed(2)} kg`
+                        : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(overpaymentDialog.zakatAmount + overpaymentDialog.sedekahAmount)}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground italic">
+                  * Dua catatan terpisah akan dibuat: pembayaran zakat dan sedekah/infak
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelOverpayment}>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmOverpayment}>Lanjutkan dengan Pembagian Ini</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Beras Insufficiency Dialog */}
       <AlertDialog open={berasKurangDialog.open} onOpenChange={(open) => !open && cancelBerasKurang()}>

@@ -36,6 +36,8 @@ interface PembayaranZakat {
   jumlah_uang_dibayar_rp?: number | null;
   created_at: string;
   updated_at: string;
+  sedekah_uang?: number | null;
+  sedekah_beras?: number | null;
 }
 
 interface PembayaranListParams {
@@ -59,11 +61,45 @@ interface CreatePembayaranInput {
   akun_uang?: 'kas' | 'bank';
   jumlah_uang_dibayar_rp?: number;
   jumlah_beras_dibayar_kg?: number;
+  has_overpayment?: boolean;
+  zakat_amount?: number;
+  sedekah_amount?: number;
 }
 
 interface UpdatePembayaranInput extends CreatePembayaranInput {
   id: string;
   muzakki_id: string;
+}
+
+// Helper function to check if payment should be split
+function shouldSplitPayment(input: CreatePembayaranInput): boolean {
+  return input.has_overpayment === true && 
+         (input.zakat_amount !== undefined) && 
+         (input.sedekah_amount !== undefined) &&
+         input.sedekah_amount > 0;
+}
+
+// Helper function to calculate payment split
+function calculatePaymentSplit(
+  input: CreatePembayaranInput,
+  nilaiPerJiwa: number
+): { zakatAmount: number; sedekahAmount: number } {
+  const requiredAmount = input.jumlah_jiwa * nilaiPerJiwa;
+  const paidAmount = input.jenis_zakat === 'beras'
+    ? (input.jumlah_beras_dibayar_kg || 0)
+    : (input.jumlah_uang_dibayar_rp || 0);
+
+  if (paidAmount > requiredAmount) {
+    return {
+      zakatAmount: requiredAmount,
+      sedekahAmount: paidAmount - requiredAmount,
+    };
+  }
+
+  return {
+    zakatAmount: paidAmount,
+    sedekahAmount: 0,
+  };
 }
 
 // Fetch list pembayaran with filters, search, and pagination
@@ -129,8 +165,54 @@ export function usePembayaranList(params: PembayaranListParams) {
 
       if (error) throw error;
 
+      // Fetch related sedekah records
+      const pembayaranWithSedekah = await Promise.all(
+        (data || []).map(async (pembayaran: any) => {
+          const tanggalBayar = new Date(pembayaran.tanggal_bayar).toISOString().split('T')[0];
+          const namaKk = pembayaran.muzakki?.nama_kk || '';
+
+          // Query pemasukan_uang for sedekah (jenis_zakat = 'uang')
+          let sedekahUang = null;
+          if (namaKk) {
+            const { data: pemasukanUang } = await supabase
+              .from('pemasukan_uang')
+              .select('jumlah_uang_rp')
+              .eq('muzakki_id', pembayaran.muzakki_id)
+              .eq('kategori', 'infak_sedekah_uang')
+              .gte('tanggal', tanggalBayar)
+              .lte('tanggal', tanggalBayar)
+              .ilike('catatan', `%Kelebihan pembayaran dari ${namaKk}%`)
+              .maybeSingle();
+            
+            sedekahUang = pemasukanUang?.jumlah_uang_rp || null;
+          }
+
+          // Query pemasukan_beras for sedekah (jenis_zakat = 'beras')
+          let sedekahBeras = null;
+          if (namaKk) {
+            const { data: pemasukanBeras } = await supabase
+              .from('pemasukan_beras')
+              .select('jumlah_beras_kg')
+              .eq('muzakki_id', pembayaran.muzakki_id)
+              .eq('kategori', 'infak_sedekah_beras')
+              .gte('tanggal', tanggalBayar)
+              .lte('tanggal', tanggalBayar)
+              .ilike('catatan', `%Kelebihan pembayaran dari ${namaKk}%`)
+              .maybeSingle();
+            
+            sedekahBeras = pemasukanBeras?.jumlah_beras_kg || null;
+          }
+
+          return {
+            ...pembayaran,
+            sedekah_uang: sedekahUang,
+            sedekah_beras: sedekahBeras,
+          };
+        })
+      );
+
       return {
-        data: (data || []) as unknown as PembayaranZakat[],
+        data: pembayaranWithSedekah as unknown as PembayaranZakat[],
         count: count || 0,
       };
     },
@@ -206,33 +288,111 @@ export function useCreatePembayaran() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Create pembayaran
-      const { data, error } = await (supabase.from('pembayaran_zakat').insert as any)({
-        muzakki_id: muzakkiId,
-        tahun_zakat_id: input.tahun_zakat_id,
-        tanggal_bayar: input.tanggal_bayar,
-        jumlah_jiwa: input.jumlah_jiwa,
-        jenis_zakat: input.jenis_zakat,
-        nilai_per_orang: input.jenis_zakat === 'beras' 
-          ? typedTahunZakat.nilai_beras_kg 
-          : typedTahunZakat.nilai_uang_rp,
-        total_zakat: totalBerasKg || totalUangRp,
-        jumlah_beras_kg: totalBerasKg,
-        jumlah_uang_rp: totalUangRp,
-        akun_uang: akunUang,
-        jumlah_uang_dibayar_rp: jumlahUangDibayar,
-        created_by: user.id,
-        petugas_penerima: user.id,
-      }).select().single();
+      // Check if payment should be split
+      const needsSplit = shouldSplitPayment(input);
 
-      if (error) throw error;
+      if (needsSplit) {
+        // Handle split payment with transaction
+        const split = calculatePaymentSplit(
+          input,
+          input.jenis_zakat === 'beras' ? typedTahunZakat.nilai_beras_kg : typedTahunZakat.nilai_uang_rp
+        );
 
-      return data;
+        try {
+          if (input.jenis_zakat === 'uang') {
+            // Create zakat payment record
+            const { data: zakatData, error: zakatError } = await (supabase.from('pembayaran_zakat').insert as any)({
+              muzakki_id: muzakkiId,
+              tahun_zakat_id: input.tahun_zakat_id,
+              tanggal_bayar: input.tanggal_bayar,
+              jumlah_jiwa: input.jumlah_jiwa,
+              jenis_zakat: 'uang',
+              jumlah_uang_rp: split.zakatAmount,
+              akun_uang: akunUang,
+              jumlah_uang_dibayar_rp: split.zakatAmount,
+              created_by: user.id,
+            }).select().single();
+
+            if (zakatError) throw zakatError;
+
+            // Create sedekah/infak record in pemasukan_uang
+            const { error: sedekahError } = await (supabase.from('pemasukan_uang').insert as any)({
+              tahun_zakat_id: input.tahun_zakat_id,
+              muzakki_id: muzakkiId,
+              kategori: 'infak_sedekah_uang',
+              akun: akunUang,
+              jumlah_uang_rp: split.sedekahAmount,
+              tanggal: input.tanggal_bayar,
+              catatan: `Kelebihan pembayaran dari ${input.nama_kk}`,
+              created_by: user.id,
+            });
+
+            if (sedekahError) throw sedekahError;
+
+            return zakatData;
+          } else {
+            // Beras payment split
+            // Create zakat payment record
+            const { data: zakatData, error: zakatError } = await (supabase.from('pembayaran_zakat').insert as any)({
+              muzakki_id: muzakkiId,
+              tahun_zakat_id: input.tahun_zakat_id,
+              tanggal_bayar: input.tanggal_bayar,
+              jumlah_jiwa: input.jumlah_jiwa,
+              jenis_zakat: 'beras',
+              jumlah_beras_kg: split.zakatAmount,
+              created_by: user.id,
+            }).select().single();
+
+            if (zakatError) throw zakatError;
+
+            // Create sedekah beras record in pemasukan_beras
+            const { error: sedekahError } = await (supabase.from('pemasukan_beras').insert as any)({
+              tahun_zakat_id: input.tahun_zakat_id,
+              muzakki_id: muzakkiId,
+              kategori: 'infak_sedekah_beras',
+              jumlah_beras_kg: split.sedekahAmount,
+              tanggal: input.tanggal_bayar,
+              catatan: `Kelebihan pembayaran dari ${input.nama_kk}`,
+              created_by: user.id,
+            });
+
+            if (sedekahError) throw sedekahError;
+
+            return zakatData;
+          }
+        } catch (error) {
+          // Transaction failed, throw error to rollback
+          throw new Error(`Transaksi gagal: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      } else {
+        // Normal payment without split
+        const { data, error } = await (supabase.from('pembayaran_zakat').insert as any)({
+          muzakki_id: muzakkiId,
+          tahun_zakat_id: input.tahun_zakat_id,
+          tanggal_bayar: input.tanggal_bayar,
+          jumlah_jiwa: input.jumlah_jiwa,
+          jenis_zakat: input.jenis_zakat,
+          jumlah_beras_kg: totalBerasKg,
+          jumlah_uang_rp: totalUangRp,
+          akun_uang: akunUang,
+          jumlah_uang_dibayar_rp: jumlahUangDibayar,
+          created_by: user.id,
+        }).select().single();
+
+        if (error) throw error;
+
+        return data;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['pembayaran-list'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-      toast.success('Pembayaran zakat berhasil ditambahkan');
+      
+      if (shouldSplitPayment(variables)) {
+        toast.success('Pembayaran berhasil! Zakat dan Sedekah/Infak telah dicatat terpisah.');
+      } else {
+        toast.success('Pembayaran zakat berhasil ditambahkan');
+      }
     },
     onError: (error: Error) => {
       toast.error(`Gagal menambahkan pembayaran: ${error.message}`);
