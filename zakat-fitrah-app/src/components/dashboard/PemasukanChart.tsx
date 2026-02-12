@@ -41,7 +41,8 @@ export function PemasukanChart({ data }: PemasukanChartProps) {
               tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
             />
             <Tooltip 
-              formatter={(value: number, name: string) => {
+              formatter={(value: number | undefined, name: string) => {
+                if (!value) return ['0', name];
                 if (name.includes('(kg)')) {
                   return [`${value.toFixed(2)} kg`, name];
                 }
