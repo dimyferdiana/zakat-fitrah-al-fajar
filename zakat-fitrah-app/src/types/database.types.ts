@@ -18,6 +18,8 @@ export type PemasukanUangKategori =
   | 'maal_penghasilan_uang'
   | 'infak_sedekah_uang';
 
+export type PemasukanBerasKategori = 'infak_sedekah_beras';
+
 export type StatusDistribusi = 'pending' | 'selesai';
 
 export interface Database {
@@ -271,6 +273,44 @@ export interface Database {
           updated_at?: string;
         };
       };
+      pemasukan_beras: {
+        Row: {
+          id: string;
+          tahun_zakat_id: string;
+          muzakki_id: string | null;
+          kategori: PemasukanBerasKategori;
+          jumlah_beras_kg: number;
+          tanggal: string;
+          catatan: string | null;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tahun_zakat_id: string;
+          muzakki_id?: string | null;
+          kategori: PemasukanBerasKategori;
+          jumlah_beras_kg: number;
+          tanggal?: string;
+          catatan?: string | null;
+          created_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tahun_zakat_id?: string;
+          muzakki_id?: string | null;
+          kategori?: PemasukanBerasKategori;
+          jumlah_beras_kg?: number;
+          tanggal?: string;
+          catatan?: string | null;
+          created_by?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       hak_amil: {
         Row: {
           tahun_zakat_id: string;
@@ -470,6 +510,7 @@ export interface Database {
       status_distribusi: StatusDistribusi;
       akun_uang: AkunUang;
       pemasukan_uang_kategori: PemasukanUangKategori;
+      pemasukan_beras_kategori: PemasukanBerasKategori;
     };
   };
 }
@@ -480,6 +521,7 @@ export type KategoriMustahik = Database['public']['Tables']['kategori_mustahik']
 export type Muzakki = Database['public']['Tables']['muzakki']['Row'];
 export type PembayaranZakat = Database['public']['Tables']['pembayaran_zakat']['Row'];
 export type PemasukanUang = Database['public']['Tables']['pemasukan_uang']['Row'];
+export type PemasukanBeras = Database['public']['Tables']['pemasukan_beras']['Row'];
 export type HakAmil = Database['public']['Tables']['hak_amil']['Row'];
 export type Rekonsiliasi = Database['public']['Tables']['rekonsiliasi']['Row'];
 export type Mustahik = Database['public']['Tables']['mustahik']['Row'];
