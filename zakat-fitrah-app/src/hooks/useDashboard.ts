@@ -259,8 +259,13 @@ export function useTahunZakatList() {
 
 interface MonthlyPemasukan {
   month: string;
-  beras: number;
-  uang: number;
+  zakatBerasKg: number;
+  fidyahBerasKg: number;
+  sedekahBerasKg: number;
+  zakatUangRp: number;
+  fidyahUangRp: number;
+  sedekahUangRp: number;
+  maalUangRp: number;
 }
 
 export function useMonthlyPemasukan(tahunZakatId?: string) {
@@ -282,28 +287,114 @@ export function useMonthlyPemasukan(tahunZakatId?: string) {
         return [];
       }
 
-      const { data, error } = await supabase
+      // Get zakat fitrah from pembayaran_zakat
+      const { data: zakatData, error: zakatError } = await supabase
         .from('pembayaran_zakat')
         .select('tanggal_bayar, jenis_zakat, jumlah_beras_kg, jumlah_uang_rp')
         .eq('tahun_zakat_id', activeTahunId)
         .order('tanggal_bayar');
 
-      if (error) throw error;
+      if (zakatError) throw zakatError;
+
+      // Get pemasukan_uang (fidyah, sedekah, maal)
+      const { data: uangData, error: uangError } = await supabase
+        .from('pemasukan_uang')
+        .select('tanggal, kategori, jumlah_uang_rp')
+        .eq('tahun_zakat_id', activeTahunId)
+        .order('tanggal');
+
+      if (uangError) throw uangError;
+
+      // Get pemasukan_beras (fidyah, sedekah)
+      const { data: berasData, error: berasError } = await supabase
+        .from('pemasukan_beras')
+        .select('tanggal, kategori, jumlah_beras_kg')
+        .eq('tahun_zakat_id', activeTahunId)
+        .order('tanggal');
+
+      if (berasError) throw berasError;
 
       // Group by month
-      const monthlyData: { [key: string]: { beras: number; uang: number } } = {};
+      const monthlyData: { [key: string]: {
+        zakatBerasKg: number;
+        fidyahBerasKg: number;
+        sedekahBerasKg: number;
+        zakatUangRp: number;
+        fidyahUangRp: number;
+        sedekahUangRp: number;
+        maalUangRp: number;
+      } } = {};
 
-      (data as PembayaranData[] | null)?.forEach((item) => {
+      // Process zakat fitrah
+      (zakatData as PembayaranData[] | null)?.forEach((item) => {
         const month = new Date(item.tanggal_bayar).toLocaleString('id-ID', { month: 'short' });
         
         if (!monthlyData[month]) {
-          monthlyData[month] = { beras: 0, uang: 0 };
+          monthlyData[month] = {
+            zakatBerasKg: 0,
+            fidyahBerasKg: 0,
+            sedekahBerasKg: 0,
+            zakatUangRp: 0,
+            fidyahUangRp: 0,
+            sedekahUangRp: 0,
+            maalUangRp: 0,
+          };
         }
 
         if (item.jenis_zakat === 'beras') {
-          monthlyData[month].beras += Number(item.jumlah_beras_kg) || 0;
+          monthlyData[month].zakatBerasKg += Number(item.jumlah_beras_kg) || 0;
         } else {
-          monthlyData[month].uang += Number(item.jumlah_uang_rp) || 0;
+          monthlyData[month].zakatUangRp += Number(item.jumlah_uang_rp) || 0;
+        }
+      });
+
+      // Process pemasukan_uang
+      (uangData || []).forEach((item: any) => {
+        const month = new Date(item.tanggal).toLocaleString('id-ID', { month: 'short' });
+        
+        if (!monthlyData[month]) {
+          monthlyData[month] = {
+            zakatBerasKg: 0,
+            fidyahBerasKg: 0,
+            sedekahBerasKg: 0,
+            zakatUangRp: 0,
+            fidyahUangRp: 0,
+            sedekahUangRp: 0,
+            maalUangRp: 0,
+          };
+        }
+
+        const amount = Number(item.jumlah_uang_rp) || 0;
+        if (item.kategori === 'fidyah_uang') {
+          monthlyData[month].fidyahUangRp += amount;
+        } else if (item.kategori === 'infak_sedekah_uang') {
+          monthlyData[month].sedekahUangRp += amount;
+        } else if (item.kategori === 'maal_penghasilan_uang') {
+          monthlyData[month].maalUangRp += amount;
+        }
+      });
+
+      // Process pemasukan_beras
+      (berasData || []).forEach((item: any) => {
+        const month = new Date(item.tanggal).toLocaleString('id-ID', { month: 'short' });
+        
+        if (!monthlyData[month]) {
+          monthlyData[month] = {
+            zakatBerasKg: 0,
+            fidyahBerasKg: 0,
+            sedekahBerasKg: 0,
+            zakatUangRp: 0,
+            fidyahUangRp: 0,
+            sedekahUangRp: 0,
+            maalUangRp: 0,
+          };
+        }
+
+        const amount = Number(item.jumlah_beras_kg) || 0;
+        if (item.kategori === 'fidyah_beras') {
+          monthlyData[month].fidyahBerasKg += amount;
+        } else if (item.kategori === 'infak_sedekah_beras') {
+          monthlyData[month].sedekahBerasKg += amount;
         }
       });
 

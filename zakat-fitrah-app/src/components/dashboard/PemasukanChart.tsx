@@ -4,10 +4,23 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 interface PemasukanChartProps {
   data: Array<{
     month: string;
-    beras: number;
-    uang: number;
+    zakatBerasKg: number;
+    fidyahBerasKg: number;
+    sedekahBerasKg: number;
+    zakatUangRp: number;
+    fidyahUangRp: number;
+    sedekahUangRp: number;
+    maalUangRp: number;
   }>;
 }
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(value);
+};
 
 export function PemasukanChart({ data }: PemasukanChartProps) {
   return (
@@ -16,16 +29,35 @@ export function PemasukanChart({ data }: PemasukanChartProps) {
         <CardTitle>Grafik Pemasukan Bulanan</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={400}>
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
-            <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
-            <Tooltip />
+            <YAxis 
+              yAxisId="right" 
+              orientation="right" 
+              stroke="#82ca9d"
+              tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+            />
+            <Tooltip 
+              formatter={(value: number, name: string) => {
+                if (name.includes('(kg)')) {
+                  return [`${value.toFixed(2)} kg`, name];
+                }
+                return [formatCurrency(value), name];
+              }}
+            />
             <Legend />
-            <Bar yAxisId="left" dataKey="beras" fill="#8884d8" name="Beras (kg)" />
-            <Bar yAxisId="right" dataKey="uang" fill="#82ca9d" name="Uang (Rp)" />
+            {/* Beras bars - stacked */}
+            <Bar yAxisId="left" dataKey="zakatBerasKg" stackId="beras" fill="#8884d8" name="Zakat Beras (kg)" />
+            <Bar yAxisId="left" dataKey="fidyahBerasKg" stackId="beras" fill="#6366f1" name="Fidyah Beras (kg)" />
+            <Bar yAxisId="left" dataKey="sedekahBerasKg" stackId="beras" fill="#a78bfa" name="Sedekah Beras (kg)" />
+            {/* Uang bars - stacked */}
+            <Bar yAxisId="right" dataKey="zakatUangRp" stackId="uang" fill="#82ca9d" name="Zakat Uang (Rp)" />
+            <Bar yAxisId="right" dataKey="fidyahUangRp" stackId="uang" fill="#10b981" name="Fidyah Uang (Rp)" />
+            <Bar yAxisId="right" dataKey="sedekahUangRp" stackId="uang" fill="#34d399" name="Sedekah Uang (Rp)" />
+            <Bar yAxisId="right" dataKey="maalUangRp" stackId="uang" fill="#6ee7b7" name="Maal Uang (Rp)" />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
