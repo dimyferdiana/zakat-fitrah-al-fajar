@@ -309,9 +309,11 @@ export function useCreatePembayaran() {
               jenis_zakat: 'uang',
               nilai_per_orang: typedTahunZakat.nilai_uang_rp,
               total_zakat: split.zakatAmount,
+              jumlah_beras_kg: null,
               jumlah_uang_rp: split.zakatAmount,
               akun_uang: akunUang,
               jumlah_uang_dibayar_rp: split.zakatAmount,
+              petugas_penerima: user.id,
               created_by: user.id,
             }).select().single();
 
@@ -344,6 +346,10 @@ export function useCreatePembayaran() {
               nilai_per_orang: typedTahunZakat.nilai_beras_kg,
               total_zakat: split.zakatAmount,
               jumlah_beras_kg: split.zakatAmount,
+              jumlah_uang_rp: null,
+              akun_uang: null,
+              jumlah_uang_dibayar_rp: null,
+              petugas_penerima: user.id,
               created_by: user.id,
             }).select().single();
 
