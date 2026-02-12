@@ -96,6 +96,7 @@ export function useCreatePemasukanBeras() {
         updated_at: new Date().toISOString(),
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.from('pemasukan_beras').insert as any)(payload)
         .select('*')
         .single();

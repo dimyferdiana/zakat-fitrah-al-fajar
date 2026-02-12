@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Users, Heart, Send, TrendingUp, Package, Coins, RefreshCw, HandHeart, Gift, Banknote } from 'lucide-react';
+import { Users, Heart, Send, TrendingUp, Package, Coins, RefreshCw, HandHeart, Gift, Banknote, Wheat } from 'lucide-react';
 
 export function Dashboard() {
   const { user } = useAuth();
@@ -156,6 +156,12 @@ export function Dashboard() {
           value={formatCurrency(stats?.totalPemasukanUangRp || 0)}
           description="Zakat Uang + Fidyah + Infak/Sedekah + Maal + Rekonsiliasi"
           icon={Banknote}
+        />
+        <StatCard
+          title="Total Pemasukan Beras"
+          value={`${formatNumber(stats?.totalPemasukanBerasKg || 0)} kg`}
+          description="Zakat Beras + Fidyah + Infak/Sedekah"
+          icon={Wheat}
         />
       </div>
 

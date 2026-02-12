@@ -20,6 +20,9 @@ interface DashboardStats {
   sisaUangAfterAmilRp: number;
   // Phase 2.2: Pemasukan Beras (Sedekah)
   infakSedekahBerasKg: number;
+  fidyahBerasKg: number;
+  zakatFitrahBerasKg: number;
+  totalPemasukanBerasKg: number; // Including zakat fitrah + fidyah + infak/sedekah
 }
 
 interface PembayaranData {
@@ -67,6 +70,9 @@ export function useDashboardStats(tahunZakatId?: string) {
           hakAmilUangRp: 0,
           sisaUangAfterAmilRp: 0,
           infakSedekahBerasKg: 0,
+          fidyahBerasKg: 0,
+          zakatFitrahBerasKg: 0,
+          totalPemasukanBerasKg: 0,
         };
       }
 
@@ -154,6 +160,21 @@ export function useDashboardStats(tahunZakatId?: string) {
         .filter((p: any) => p.kategori === 'infak_sedekah_beras')
         .reduce((sum: number, p: any) => sum + (Number(p.jumlah_beras_kg) || 0), 0);
 
+      const fidyahBerasKg = (pemasukanBerasData || [])
+        .filter((p: any) => p.kategori === 'fidyah_beras')
+        .reduce((sum: number, p: any) => sum + (Number(p.jumlah_beras_kg) || 0), 0);
+
+      const zakatFitrahBerasKg = (pemasukanBerasData || [])
+        .filter((p: any) => p.kategori === 'zakat_fitrah_beras')
+        .reduce((sum: number, p: any) => sum + (Number(p.jumlah_beras_kg) || 0), 0);
+
+      // Total pemasukan beras (dashboard card) includes zakat beras + other categories
+      const totalPemasukanBerasKg =
+        totalBerasKg + // zakat fitrah beras from pembayaran_zakat
+        fidyahBerasKg +
+        infakSedekahBerasKg +
+        zakatFitrahBerasKg; // in case there's direct zakat fitrah beras in pemasukan_beras
+
       // Phase 2: Get rekonsiliasi adjustments
       const { data: rekonsiliasiData } = await supabase
         .from('rekonsiliasi')
@@ -205,6 +226,9 @@ export function useDashboardStats(tahunZakatId?: string) {
         hakAmilUangRp,
         sisaUangAfterAmilRp,
         infakSedekahBerasKg,
+        fidyahBerasKg,
+        zakatFitrahBerasKg,
+        totalPemasukanBerasKg,
       };
     },
     refetchInterval: 30000, // Auto-refresh every 30 seconds

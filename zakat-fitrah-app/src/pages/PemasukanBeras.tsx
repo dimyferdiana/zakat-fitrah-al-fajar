@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { PageHeader } from '@/components/common/PageHeader';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -28,19 +28,13 @@ const kategoriLabels: Record<string, string> = {
 };
 
 export function PemasukanBeras() {
-  const [selectedTahun, setSelectedTahun] = useState<string | undefined>();
   const [kategori, setKategori] = useState<'semua' | 'fidyah_beras' | 'infak_sedekah_beras' | 'zakat_fitrah_beras'>('semua');
   const [formOpen, setFormOpen] = useState(false);
   const [page, setPage] = useState(1);
 
   const { data: tahunList, isLoading: tahunLoading } = useTahunZakatList();
   const activeTahun = useMemo(() => tahunList?.find((t) => t.is_active), [tahunList]);
-
-  useEffect(() => {
-    if (activeTahun && !selectedTahun) {
-      setSelectedTahun(activeTahun.id);
-    }
-  }, [activeTahun, selectedTahun]);
+  const [selectedTahun, setSelectedTahun] = useState<string | undefined>(() => activeTahun?.id);
 
   const {
     data: pemasukan,
