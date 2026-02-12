@@ -184,7 +184,7 @@ export function usePembayaranList(params: PembayaranListParams) {
               .ilike('catatan', `%Kelebihan pembayaran dari ${namaKk}%`)
               .maybeSingle();
             
-            sedekahUang = pemasukanUang?.jumlah_uang_rp || null;
+            sedekahUang = (pemasukanUang as any)?.jumlah_uang_rp || null;
           }
 
           // Query pemasukan_beras for sedekah (jenis_zakat = 'beras')
@@ -200,7 +200,7 @@ export function usePembayaranList(params: PembayaranListParams) {
               .ilike('catatan', `%Kelebihan pembayaran dari ${namaKk}%`)
               .maybeSingle();
             
-            sedekahBeras = pemasukanBeras?.jumlah_beras_kg || null;
+            sedekahBeras = (pemasukanBeras as any)?.jumlah_beras_kg || null;
           }
 
           return {
@@ -384,7 +384,7 @@ export function useCreatePembayaran() {
         return data;
       }
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['pembayaran-list'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       

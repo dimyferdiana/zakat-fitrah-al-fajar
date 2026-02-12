@@ -43,7 +43,6 @@ interface BuktiPembayaranProps {
 export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [sedekahAmount, setSedekahAmount] = useState<number | null>(null);
-  const [isLoadingSedekah, setIsLoadingSedekah] = useState(false);
 
   // Check for related sedekah record when dialog opens
   useEffect(() => {
