@@ -41,12 +41,12 @@ export function PemasukanChart({ data }: PemasukanChartProps) {
               tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
             />
             <Tooltip 
-              formatter={(value: number | undefined, name: string) => {
-                if (!value) return ['0', name];
-                if (name.includes('(kg)')) {
+              formatter={(value: number | undefined, name: string | undefined) => {
+                if (!value) return ['0', name || ''];
+                if (name && name.includes('(kg)')) {
                   return [`${value.toFixed(2)} kg`, name];
                 }
-                return [formatCurrency(value), name];
+                return [formatCurrency(value), name || ''];
               }}
             />
             <Legend />
