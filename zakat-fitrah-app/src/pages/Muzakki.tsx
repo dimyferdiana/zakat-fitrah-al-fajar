@@ -53,6 +53,8 @@ interface PembayaranZakat {
   jumlah_uang_dibayar_rp?: number | null;
   created_at: string;
   updated_at: string;
+  sedekah_uang?: number | null;
+  sedekah_beras?: number | null;
 }
 
 interface FormData {

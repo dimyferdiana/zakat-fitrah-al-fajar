@@ -52,6 +52,8 @@ interface PembayaranZakat {
   jumlah_uang_dibayar_rp?: number | null;
   created_at: string;
   updated_at: string;
+  sedekah_uang?: number | null;
+  sedekah_beras?: number | null;
 }
 
 interface MuzakkiTableProps {
@@ -190,58 +192,87 @@ export function MuzakkiTable({
                 </TableCell>
               </TableRow>
             ) : (
-              data.map((pembayaran) => (
-                <TableRow key={pembayaran.id}>
-                  <TableCell className="font-medium">{pembayaran.muzakki.nama_kk}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">
-                    {pembayaran.muzakki.alamat}
-                  </TableCell>
-                  <TableCell className="text-center">{pembayaran.jumlah_jiwa}</TableCell>
-                  <TableCell>
-                    <Badge variant={pembayaran.jenis_zakat === 'beras' ? 'default' : 'secondary'}>
-                      {pembayaran.jenis_zakat === 'beras' ? 'Beras' : 'Uang'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {pembayaran.jenis_zakat === 'beras'
-                      ? `${formatNumber(pembayaran.jumlah_beras_kg)} kg`
-                      : formatCurrency(pembayaran.jumlah_uang_rp)}
-                  </TableCell>
-                  <TableCell>
-                    {format(new Date(pembayaran.tanggal_bayar), 'dd MMM yyyy', {
-                      locale: idLocale,
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onPrint(pembayaran)}
-                        title="Print Bukti"
-                      >
-                        <Printer className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onEdit(pembayaran)}
-                        title="Edit"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeleteId(pembayaran.id)}
-                        title="Hapus"
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+              data.map((pembayaran) => {
+                const hasSedekah = pembayaran.jenis_zakat === 'beras' 
+                  ? (pembayaran.sedekah_beras && pembayaran.sedekah_beras > 0)
+                  : (pembayaran.sedekah_uang && pembayaran.sedekah_uang > 0);
+
+                return (
+                  <>
+                    <TableRow key={pembayaran.id}>
+                      <TableCell className="font-medium">{pembayaran.muzakki.nama_kk}</TableCell>
+                      <TableCell className="max-w-[200px] truncate">
+                        {pembayaran.muzakki.alamat}
+                      </TableCell>
+                      <TableCell className="text-center">{pembayaran.jumlah_jiwa}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1">
+                            <Badge variant={pembayaran.jenis_zakat === 'beras' ? 'default' : 'secondary'}>
+                              {pembayaran.jenis_zakat === 'beras' ? 'Beras' : 'Uang'}
+                            </Badge>
+                            <Badge variant="outline">Zakat</Badge>
+                          </div>
+                          {hasSedekah && (
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                              + Sedekah
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex flex-col gap-1">
+                          <div>
+                            {pembayaran.jenis_zakat === 'beras'
+                              ? `${formatNumber(pembayaran.jumlah_beras_kg)} kg`
+                              : formatCurrency(pembayaran.jumlah_uang_rp)}
+                          </div>
+                          {hasSedekah && (
+                            <div className="text-sm text-green-600">
+                              + {pembayaran.jenis_zakat === 'beras' 
+                                ? `${formatNumber(pembayaran.sedekah_beras)} kg`
+                                : formatCurrency(pembayaran.sedekah_uang)}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(pembayaran.tanggal_bayar), 'dd MMM yyyy', {
+                          locale: idLocale,
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onPrint(pembayaran)}
+                            title="Print Bukti"
+                          >
+                            <Printer className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onEdit(pembayaran)}
+                            title="Edit"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleteId(pembayaran.id)}
+                            title="Hapus"
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  </>
+                );
+              })
             )}
           </TableBody>
         </Table>

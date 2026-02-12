@@ -36,6 +36,8 @@ interface PembayaranZakat {
   jumlah_uang_dibayar_rp?: number | null;
   created_at: string;
   updated_at: string;
+  sedekah_uang?: number | null;
+  sedekah_beras?: number | null;
 }
 
 interface PembayaranListParams {
@@ -163,8 +165,54 @@ export function usePembayaranList(params: PembayaranListParams) {
 
       if (error) throw error;
 
+      // Fetch related sedekah records
+      const pembayaranWithSedekah = await Promise.all(
+        (data || []).map(async (pembayaran: any) => {
+          const tanggalBayar = new Date(pembayaran.tanggal_bayar).toISOString().split('T')[0];
+          const namaKk = pembayaran.muzakki?.nama_kk || '';
+
+          // Query pemasukan_uang for sedekah (jenis_zakat = 'uang')
+          let sedekahUang = null;
+          if (namaKk) {
+            const { data: pemasukanUang } = await supabase
+              .from('pemasukan_uang')
+              .select('jumlah_uang_rp')
+              .eq('muzakki_id', pembayaran.muzakki_id)
+              .eq('kategori', 'infak_sedekah_uang')
+              .gte('tanggal', tanggalBayar)
+              .lte('tanggal', tanggalBayar)
+              .ilike('catatan', `%Kelebihan pembayaran dari ${namaKk}%`)
+              .maybeSingle();
+            
+            sedekahUang = pemasukanUang?.jumlah_uang_rp || null;
+          }
+
+          // Query pemasukan_beras for sedekah (jenis_zakat = 'beras')
+          let sedekahBeras = null;
+          if (namaKk) {
+            const { data: pemasukanBeras } = await supabase
+              .from('pemasukan_beras')
+              .select('jumlah_beras_kg')
+              .eq('muzakki_id', pembayaran.muzakki_id)
+              .eq('kategori', 'infak_sedekah_beras')
+              .gte('tanggal', tanggalBayar)
+              .lte('tanggal', tanggalBayar)
+              .ilike('catatan', `%Kelebihan pembayaran dari ${namaKk}%`)
+              .maybeSingle();
+            
+            sedekahBeras = pemasukanBeras?.jumlah_beras_kg || null;
+          }
+
+          return {
+            ...pembayaran,
+            sedekah_uang: sedekahUang,
+            sedekah_beras: sedekahBeras,
+          };
+        })
+      );
+
       return {
-        data: (data || []) as unknown as PembayaranZakat[],
+        data: pembayaranWithSedekah as unknown as PembayaranZakat[],
         count: count || 0,
       };
     },
