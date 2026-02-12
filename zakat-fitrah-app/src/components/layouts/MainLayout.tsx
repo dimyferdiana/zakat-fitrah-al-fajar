@@ -24,6 +24,7 @@ import {
   User,
   Wallet,
   Receipt,
+  Wheat,
 } from 'lucide-react';
 
 interface MainLayoutProps {
@@ -53,6 +54,12 @@ const navItems: NavItem[] = [
     label: 'Pemasukan Uang',
     path: '/pemasukan',
     icon: Wallet,
+    roles: ['admin', 'petugas'],
+  },
+  {
+    label: 'Pemasukan Beras',
+    path: '/pemasukan-beras',
+    icon: Wheat,
     roles: ['admin', 'petugas'],
   },
   {

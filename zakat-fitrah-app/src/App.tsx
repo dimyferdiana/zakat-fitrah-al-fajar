@@ -14,6 +14,7 @@ import { Login } from '@/pages/Login';
 const Dashboard = lazy(() => import('@/pages/Dashboard').then(m => ({ default: m.Dashboard })));
 const Muzakki = lazy(() => import('@/pages/Muzakki').then(m => ({ default: m.Muzakki })));
 const PemasukanUang = lazy(() => import('@/pages/PemasukanUang').then(m => ({ default: m.PemasukanUang })));
+const PemasukanBeras = lazy(() => import('@/pages/PemasukanBeras').then(m => ({ default: m.PemasukanBeras })));
 const Mustahik = lazy(() => import('@/pages/Mustahik'));
 const Distribusi = lazy(() => import('@/pages/Distribusi'));
 const Laporan = lazy(() => import('@/pages/Laporan'));
@@ -63,6 +64,16 @@ function App() {
                   <ProtectedRoute allowedRoles={['admin', 'petugas']}>
                     <MainLayout>
                       <PemasukanUang />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/pemasukan-beras"
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'petugas']}>
+                    <MainLayout>
+                      <PemasukanBeras />
                     </MainLayout>
                   </ProtectedRoute>
                 }
