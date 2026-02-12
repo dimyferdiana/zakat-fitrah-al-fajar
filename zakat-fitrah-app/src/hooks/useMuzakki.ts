@@ -307,6 +307,7 @@ export function useCreatePembayaran() {
               tanggal_bayar: input.tanggal_bayar,
               jumlah_jiwa: input.jumlah_jiwa,
               jenis_zakat: 'uang',
+              nilai_per_orang: typedTahunZakat.nilai_uang_rp,
               jumlah_uang_rp: split.zakatAmount,
               akun_uang: akunUang,
               jumlah_uang_dibayar_rp: split.zakatAmount,
@@ -339,6 +340,7 @@ export function useCreatePembayaran() {
               tanggal_bayar: input.tanggal_bayar,
               jumlah_jiwa: input.jumlah_jiwa,
               jenis_zakat: 'beras',
+              nilai_per_orang: typedTahunZakat.nilai_beras_kg,
               jumlah_beras_kg: split.zakatAmount,
               created_by: user.id,
             }).select().single();
