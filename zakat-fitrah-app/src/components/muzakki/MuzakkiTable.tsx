@@ -230,8 +230,8 @@ export function MuzakkiTable({
                           {hasSedekah && (
                             <div className="text-sm text-green-600">
                               + {pembayaran.jenis_zakat === 'beras' 
-                                ? `${formatNumber(pembayaran.sedekah_beras)} kg`
-                                : formatCurrency(pembayaran.sedekah_uang)}
+                                ? `${formatNumber(pembayaran.sedekah_beras || 0)} kg`
+                                : formatCurrency(pembayaran.sedekah_uang || 0)}
                             </div>
                           )}
                         </div>
