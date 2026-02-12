@@ -18,6 +18,8 @@ interface DashboardStats {
   totalPemasukanUangRp: number; // Including fitrah + fidyah + infak + maal + rekonsiliasi
   hakAmilUangRp: number;
   sisaUangAfterAmilRp: number;
+  // Phase 2.2: Pemasukan Beras (Sedekah)
+  infakSedekahBerasKg: number;
 }
 
 interface PembayaranData {
@@ -64,6 +66,7 @@ export function useDashboardStats(tahunZakatId?: string) {
           totalPemasukanUangRp: 0,
           hakAmilUangRp: 0,
           sisaUangAfterAmilRp: 0,
+          infakSedekahBerasKg: 0,
         };
       }
 
@@ -141,6 +144,16 @@ export function useDashboardStats(tahunZakatId?: string) {
         .filter((p: any) => p.kategori === 'maal_penghasilan_uang')
         .reduce((sum: number, p: any) => sum + (Number(p.jumlah_uang_rp) || 0), 0);
 
+      // Phase 2.2: Get pemasukan_beras (infak/sedekah beras)
+      const { data: pemasukanBerasData } = await supabase
+        .from('pemasukan_beras')
+        .select('kategori, jumlah_beras_kg')
+        .eq('tahun_zakat_id', activeTahunId);
+
+      const infakSedekahBerasKg = (pemasukanBerasData || [])
+        .filter((p: any) => p.kategori === 'infak_sedekah_beras')
+        .reduce((sum: number, p: any) => sum + (Number(p.jumlah_beras_kg) || 0), 0);
+
       // Phase 2: Get rekonsiliasi adjustments
       const { data: rekonsiliasiData } = await supabase
         .from('rekonsiliasi')
@@ -191,6 +204,7 @@ export function useDashboardStats(tahunZakatId?: string) {
         totalPemasukanUangRp,
         hakAmilUangRp,
         sisaUangAfterAmilRp,
+        infakSedekahBerasKg,
       };
     },
     refetchInterval: 30000, // Auto-refresh every 30 seconds

@@ -140,6 +140,12 @@ export function Dashboard() {
           icon={Gift}
         />
         <StatCard
+          title="Infak/Sedekah Beras"
+          value={`${formatNumber(stats?.infakSedekahBerasKg || 0)} kg`}
+          description="Pemasukan infak/sedekah beras"
+          icon={Gift}
+        />
+        <StatCard
           title="Maal/Penghasilan Uang"
           value={formatCurrency(stats?.maalPenghasilanUangRp || 0)}
           description="Pemasukan maal/penghasilan"

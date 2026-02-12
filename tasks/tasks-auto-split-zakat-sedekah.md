@@ -58,39 +58,39 @@ Update the file after completing each sub-task, not just after completing an ent
   - [x] 3.7 Format displayed amounts with proper decimal places and currency (kg/Rp)
   - [x] 3.8 Add Info icon (from lucide-react) to make breakdown visually clear
 
-- [ ] 4.0 Implement Split Payment Logic with Transaction Handling
-  - [ ] 4.1 Read current payment submission logic in `src/hooks/useMuzakki.ts`
-  - [ ] 4.2 Create helper function `shouldSplitPayment()` to determine if splitting is needed
-  - [ ] 4.3 Create helper function `calculatePaymentSplit()` to return zakat and sedekah amounts
-  - [ ] 4.4 Implement Uang split logic: insert pembayaran_zakat + pemasukan_uang in transaction
-  - [ ] 4.5 Implement Beras split logic: insert pembayaran_zakat + pemasukan_beras in transaction
-  - [ ] 4.6 Generate auto-catatan: "Kelebihan pembayaran dari [nama_kk]"
-  - [ ] 4.7 Add confirmation dialog before save: show breakdown and ask "Lanjutkan dengan pembagian ini?"
-  - [ ] 4.8 Wrap both inserts in try-catch with proper error handling
-  - [ ] 4.9 Update success message to indicate split payment was recorded
-  - [ ] 4.10 Update error message to clearly indicate transaction failure
+- [x] 4.0 Implement Split Payment Logic with Transaction Handling
+  - [x] 4.1 Read current payment submission logic in `src/hooks/useMuzakki.ts`
+  - [x] 4.2 Create helper function `shouldSplitPayment()` to determine if splitting is needed
+  - [x] 4.3 Create helper function `calculatePaymentSplit()` to return zakat and sedekah amounts
+  - [x] 4.4 Implement Uang split logic: insert pembayaran_zakat + pemasukan_uang in transaction
+  - [x] 4.5 Implement Beras split logic: insert pembayaran_zakat + pemasukan_beras in transaction
+  - [x] 4.6 Generate auto-catatan: "Kelebihan pembayaran dari [nama_kk]"
+  - [x] 4.7 Add confirmation dialog before save: show breakdown and ask "Lanjutkan dengan pembagian ini?"
+  - [x] 4.8 Wrap both inserts in try-catch with proper error handling
+  - [x] 4.9 Update success message to indicate split payment was recorded
+  - [x] 4.10 Update error message to clearly indicate transaction failure
 
-- [ ] 5.0 Update Receipt Display for Split Payments
-  - [ ] 5.1 Read `src/utils/sedekahReceipt.ts` and `src/pages/SedekahReceipt.tsx`
-  - [ ] 5.2 Modify receipt data query to check for related sedekah record (by muzakki_id and tanggal)
-  - [ ] 5.3 Update receipt interface/type to include optional sedekah amount
-  - [ ] 5.4 Update receipt template to conditionally show split line items
-  - [ ] 5.5 Add line item: "Zakat Fitrah: [amount] [kg/Rp]"
-  - [ ] 5.6 Add line item: "Sedekah/Infak: [amount] [kg/Rp]" (if split exists)
-  - [ ] 5.7 Add separator line and "Total Pembayaran: [total] [kg/Rp]"
-  - [ ] 5.8 Add thank-you message: "Terima kasih atas kontribusi sedekah Anda"
-  - [ ] 5.9 Test receipt generation with mock split payment data
+- [x] 5.0 Update Receipt Display for Split Payments
+  - [x] 5.1 Read `src/utils/sedekahReceipt.ts` and `src/pages/SedekahReceipt.tsx`
+  - [x] 5.2 Modify receipt data query to check for related sedekah record (by muzakki_id and tanggal)
+  - [x] 5.3 Update receipt interface/type to include optional sedekah amount
+  - [x] 5.4 Update receipt template to conditionally show split line items
+  - [x] 5.5 Add line item: "Zakat Fitrah: [amount] [kg/Rp]"
+  - [x] 5.6 Add line item: "Sedekah/Infak: [amount] [kg/Rp]" (if split exists)
+  - [x] 5.7 Add separator line and "Total Pembayaran: [total] [kg/Rp]"
+  - [x] 5.8 Add thank-you message: "Terima kasih atas kontribusi sedekah Anda"
+  - [x] 5.9 Test receipt generation with mock split payment data
 
-- [ ] 6.0 Integrate Sedekah Categories in Dashboard Keuangan
-  - [ ] 6.1 Read `src/hooks/useDashboard.ts` to understand current query structure
-  - [ ] 6.2 Add query for SUM of pemasukan_uang where kategori = 'infak_sedekah_uang'
-  - [ ] 6.3 Add query for SUM of pemasukan_beras where kategori = 'infak_sedekah_beras'
-  - [ ] 6.4 Update return type to include infakSedekahUang and infakSedekahBeras totals
-  - [ ] 6.5 Locate and read KeuanganCard or similar dashboard display component
-  - [ ] 6.6 Add display section for "Infak/Sedekah Uang" with formatted amount
-  - [ ] 6.7 Add display section for "Infak/Sedekah Beras" with formatted amount
-  - [ ] 6.8 Ensure proper number formatting with separators (e.g., Rp 1.000.000 or 100 kg)
-  - [ ] 6.9 Test dashboard loads and displays correct totals
+- [x] 6.0 Integrate Sedekah Categories in Dashboard Keuangan
+  - [x] 6.1 Read `src/hooks/useDashboard.ts` to understand current query structure
+  - [x] 6.2 Add query for SUM of pemasukan_uang where kategori = 'infak_sedekah_uang'
+  - [x] 6.3 Add query for SUM of pemasukan_beras where kategori = 'infak_sedekah_beras'
+  - [x] 6.4 Update return type to include infakSedekahUang and infakSedekahBeras totals
+  - [x] 6.5 Locate and read KeuanganCard or similar dashboard display component
+  - [x] 6.6 Add display section for "Infak/Sedekah Uang" with formatted amount
+  - [x] 6.7 Add display section for "Infak/Sedekah Beras" with formatted amount
+  - [x] 6.8 Ensure proper number formatting with separators (e.g., Rp 1.000.000 or 100 kg)
+  - [x] 6.9 Test dashboard loads and displays correct totals
 
 - [ ] 7.0 Update Payment History Display
   - [ ] 7.1 Locate muzakki detail/payment history component
