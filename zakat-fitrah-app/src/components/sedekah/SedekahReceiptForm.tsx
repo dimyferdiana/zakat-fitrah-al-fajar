@@ -101,9 +101,10 @@ export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
 
     let lastError: Error | null = null;
     for (let i = 0; i < attempts; i += 1) {
-      const { data, error } = mode === 'peek'
-        ? await rpc('peek_bukti_sedekah_number', { p_category_key: categoryKey })
-        : await rpc('next_bukti_sedekah_number', { p_category_key: categoryKey });
+      const rpcFn = mode === 'peek'
+        ? 'peek_bukti_sedekah_number'
+        : 'next_bukti_sedekah_number';
+      const { data, error } = await rpc.call(supabase, rpcFn, { p_category_key: categoryKey });
       if (!error && data) {
         return data;
       }
