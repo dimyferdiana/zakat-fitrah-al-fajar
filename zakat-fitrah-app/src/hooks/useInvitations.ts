@@ -3,8 +3,6 @@ import { supabase } from '@/lib/supabase';
 import type { UserInvitation, InvitationStatus } from '@/types/database.types';
 import { toast } from 'sonner';
 
-const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invitation-manager`;
-
 // Helper function to calculate invitation status
 export function getInvitationStatus(invitation: UserInvitation): InvitationStatus {
   if (invitation.revoked_at) return 'revoked';
@@ -55,29 +53,19 @@ export function useCreateInvitation() {
 
   return useMutation({
     mutationFn: async ({ email, role }: CreateInvitationParams) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-
-      const response = await fetch(EDGE_FUNCTION_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('invitation-manager', {
+        body: {
           action: 'createInvitation',
           email,
           role,
-        }),
+        },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create invitation');
+      if (error) {
+        throw new Error(error.message || 'Failed to create invitation');
       }
 
-      const data: CreateInvitationResponse = await response.json();
-      return data;
+      return data as CreateInvitationResponse;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invitations'] });
@@ -130,22 +118,17 @@ export function useReInvite() {
 
 // Query: Validate invitation token
 export async function validateInvitationToken(token: string) {
-  const response = await fetch(EDGE_FUNCTION_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
+  const { data, error } = await supabase.functions.invoke('invitation-manager', {
+    body: {
       action: 'validateInvitation',
       token,
-    }),
+    },
   });
 
-  if (!response.ok) {
-    throw new Error('Failed to validate invitation');
+  if (error) {
+    throw new Error(error.message || 'Failed to validate invitation');
   }
 
-  const data = await response.json();
   return data;
 }
 
@@ -157,24 +140,18 @@ interface RegisterUserParams {
 }
 
 export async function registerUserWithInvitation({ token, email, password }: RegisterUserParams) {
-  const response = await fetch(EDGE_FUNCTION_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
+  const { data, error } = await supabase.functions.invoke('invitation-manager', {
+    body: {
       action: 'registerUser',
       token,
       email,
       password,
-    }),
+    },
   });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Registration failed');
+  if (error) {
+    throw new Error(error.message || 'Registration failed');
   }
 
-  const data = await response.json();
   return data;
 }
