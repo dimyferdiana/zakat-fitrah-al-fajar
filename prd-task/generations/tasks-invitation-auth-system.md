@@ -166,7 +166,8 @@ Update the file after completing each sub-task, not just after completing an ent
   - [X] 8.8 Add RLS policies for `user_invitations` table: admin-only read/write (check role = 'admin' AND is_active = true)
   - [X] 8.9 Update RLS policies for `users` table: all users can read their own profile, only admin can read all, only admin can update roles
   - [X] 8.10 Apply migration to remote database
-  - [ ] 8.11 Test RLS policies: attempt to query mustahik as anon (should fail), as authenticated active user (should succeed), as deactivated user (should fail)
+  - [X] 8.11 Hotfix applied: Migration 017 fixed circular reference in users table RLS (was causing 500 error on login)
+  - [ ] 8.12 Test RLS policies: attempt to query mustahik as anon (should fail), as authenticated active user (should succeed), as deactivated user (should fail)
 - [X] 9.0 Update authentication logic and routing
 
   - [X] 9.1 Update `auth.tsx` in `fetchUserData` function to check `is_active` field
