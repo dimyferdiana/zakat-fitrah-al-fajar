@@ -444,7 +444,7 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
                 </div>
               </div>
               <div className="text-center">
-                <p className="text-xs mb-12">Penerima,</p>
+                <p className="text-xs mb-12">Penyetor,</p>
                 <div className="border-t border-foreground pt-1 inline-block min-w-[120px]">
                   <p className="text-[10px]">Nama & Tanda Tangan</p>
                 </div>
