@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -23,10 +23,12 @@ type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
 export function ResetPassword() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSession, setHasSession] = useState(false);
+  const [checkingLink, setCheckingLink] = useState(true);
 
   const {
     register,
@@ -37,15 +39,49 @@ export function ResetPassword() {
   });
 
   useEffect(() => {
-    // Check if user has a valid session from the reset link
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setHasSession(true);
-      } else {
-        setError('Invalid or expired reset link. Please request a new one.');
+    const initializeResetSession = async () => {
+      try {
+        const tokenHash = searchParams.get('token_hash') ?? searchParams.get('token');
+        const type = searchParams.get('type');
+
+        if (tokenHash && (type === 'recovery' || !type)) {
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: 'recovery',
+          });
+
+          if (verifyError) {
+            setError('Invalid or expired reset link. Please request a new one.');
+            return;
+          }
+        }
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setHasSession(true);
+        } else {
+          setError('Invalid or expired reset link. Please request a new one.');
+        }
+      } finally {
+        setCheckingLink(false);
       }
-    });
-  }, []);
+    };
+
+    initializeResetSession();
+  }, [searchParams]);
+
+  if (checkingLink) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6 flex flex-col items-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">Verifying reset link...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     setSubmitting(true);

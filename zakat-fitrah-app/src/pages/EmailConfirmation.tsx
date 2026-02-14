@@ -14,11 +14,11 @@ export function EmailConfirmation() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = searchParams.get('token');
+    const tokenHash = searchParams.get('token_hash') ?? searchParams.get('token');
     const type = searchParams.get('type');
 
     const confirmEmail = async () => {
-      if (!token || type !== 'signup') {
+      if (!tokenHash || (type !== 'signup' && type !== 'email')) {
         setError('Invalid confirmation link');
         setConfirming(false);
         return;
@@ -26,7 +26,7 @@ export function EmailConfirmation() {
 
       try {
         const { error: verifyError } = await supabase.auth.verifyOtp({
-          token_hash: token,
+          token_hash: tokenHash,
           type: 'signup',
         });
         if (verifyError) {
