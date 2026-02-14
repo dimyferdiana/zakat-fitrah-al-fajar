@@ -128,7 +128,7 @@ export function BuktiPemasukanUang({ open, onOpenChange, data }: BuktiPemasukanU
     yPosition += 4;
     doc.text(ORGANIZATION_SERVICE, pageWidth / 2, yPosition, { align: 'center' });
 
-    yPosition += LOGO_SIZE + SECTION_GAP;
+    yPosition += SECTION_GAP;
 
     // Header line (2px divider)
     doc.setLineWidth(DIVIDER_HEIGHT);
@@ -139,7 +139,7 @@ export function BuktiPemasukanUang({ open, onOpenChange, data }: BuktiPemasukanU
     doc.setFontSize(12);
     doc.setFont('Helvetica', 'bold');
     doc.text('BUKTI PEMASUKAN UANG', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += SECTION_GAP + 2;
+    yPosition += SECTION_GAP;
 
     // Receipt number and date
     doc.setFontSize(9);

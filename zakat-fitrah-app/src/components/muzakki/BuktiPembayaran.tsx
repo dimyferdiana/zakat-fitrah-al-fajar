@@ -157,7 +157,7 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
     yPosition += 4;
     doc.text(ORGANIZATION_SERVICE, pageWidth / 2, yPosition, { align: 'center' });
 
-    yPosition += LOGO_SIZE + SECTION_GAP;
+    yPosition += SECTION_GAP;
 
     // Header line (2px divider)
     doc.setLineWidth(DIVIDER_HEIGHT);
