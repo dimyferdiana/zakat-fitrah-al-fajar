@@ -61,17 +61,6 @@ export function Login() {
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
     try {
-      // Handle specific error codes
-      let errorMessage = 'Login gagal. Periksa email dan password Anda.';
-      
-      if (values.email?.includes('Email not confirmed')) {
-        errorMessage = 'Silakan konfirmasi email Anda terlebih dahulu. Cek inbox email Anda.';
-      } else if (values.email?.includes('Invalid login credentials')) {
-        errorMessage = 'Email atau password salah.';
-      } else if (values.email?.includes('deactivated')) {
-        errorMessage = 'Akun Anda telah dinonaktifkan. Silakan hubungi administrator.';
-      }
-      
       setError(null);
       await login(values.email, values.password);
       navigate(from, { replace: true });
@@ -163,14 +152,6 @@ export function Login() {
               />
               <Button
                 type="submit"
-              <div className="text-center mt-4">
-                <Link 
-                  to="/forgot-password" 
-                  className="text-sm text-primary hover:underline"
-                >
-                  Lupa password?
-                </Link>
-              </div>
                 className="w-full"
                 disabled={isLoading}
               >
@@ -183,6 +164,14 @@ export function Login() {
                   'Login'
                 )}
               </Button>
+              <div className="text-center mt-4">
+                <Link 
+                  to="/forgot-password" 
+                  className="text-sm text-primary hover:underline"
+                >
+                  Lupa password?
+                </Link>
+              </div>
             </form>
           </Form>
         </CardContent>

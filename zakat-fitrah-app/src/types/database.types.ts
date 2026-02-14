@@ -53,7 +53,6 @@ export interface Database {
           nama_lengkap?: string;
           email?: string;
           address?: string | null;
-          address?: string | null;
           phone?: string | null;
           role?: UserRole;
           is_active?: boolean;

@@ -19,8 +19,11 @@ export function useUpdateProfile() {
 
       const { data, error } = await supabase
         .from('users')
+        // @ts-expect-error - Supabase type inference issue with users table update
         .update({
-          ...updates,
+          nama_lengkap: updates.nama_lengkap,
+          address: updates.address,
+          phone: updates.phone,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id)
