@@ -391,7 +391,6 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
                 
                 {hasSplitPayment ? (
                   <>
-                  <>
                     <div className="flex items-center">
                       <span className="w-32 text-muted-foreground">Zakat Fitrah:</span>
                       <span className="text-sm font-semibold">
