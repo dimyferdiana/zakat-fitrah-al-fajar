@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { PageHeader } from '@/components/common/PageHeader';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -38,22 +38,15 @@ const kategoriLabels: Record<string, string> = {
 };
 
 export function PemasukanUang() {
-  const [selectedTahun, setSelectedTahun] = useState<string | undefined>();
+  const { data: tahunList, isLoading: tahunLoading } = useTahunZakatList();
+  const activeTahun = useMemo(() => tahunList?.find((t) => t.is_active), [tahunList]);
+  const [selectedTahun, setSelectedTahun] = useState<string | undefined>(() => activeTahun?.id);
   const [kategori, setKategori] = useState<'semua' | 'fidyah_uang' | 'maal_penghasilan_uang' | 'infak_sedekah_uang' | 'zakat_fitrah_uang'>('semua');
   const [akun, setAkun] = useState<'semua' | 'kas' | 'bank'>('semua');
   const [formOpen, setFormOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [buktiOpen, setBuktiOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<PemasukanUang | null>(null);
-
-  const { data: tahunList, isLoading: tahunLoading } = useTahunZakatList();
-  const activeTahun = useMemo(() => tahunList?.find((t) => t.is_active), [tahunList]);
-
-  useEffect(() => {
-    if (activeTahun && !selectedTahun) {
-      setSelectedTahun(activeTahun.id);
-    }
-  }, [activeTahun, selectedTahun]);
 
   const {
     data: pemasukan,
@@ -126,7 +119,7 @@ export function PemasukanUang() {
               </SelectContent>
             </Select>
 
-            <Select value={kategori} onValueChange={(val) => { setKategori(val as any); setPage(1); }}>
+            <Select value={kategori} onValueChange={(val) => { setKategori(val as 'semua' | 'fidyah_uang' | 'maal_penghasilan_uang' | 'infak_sedekah_uang' | 'zakat_fitrah_uang'); setPage(1); }}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Kategori" />
               </SelectTrigger>
@@ -139,7 +132,7 @@ export function PemasukanUang() {
               </SelectContent>
             </Select>
 
-            <Select value={akun} onValueChange={(val) => { setAkun(val as any); setPage(1); }}>
+            <Select value={akun} onValueChange={(val) => { setAkun(val as 'semua' | 'kas' | 'bank'); setPage(1); }}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Akun" />
               </SelectTrigger>

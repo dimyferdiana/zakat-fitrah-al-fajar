@@ -102,67 +102,60 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
   });
 
   const handleDownloadPDF = () => {
-    // Create landscape PDF (A5: 210x148mm) matching standard receipt format
+    // Create portrait PDF (A5: 148x210mm) matching standard receipt format
     const doc = new jsPDF({
-      orientation: 'landscape',
+      orientation: 'portrait',
       unit: 'mm',
       format: 'a5',
     });
 
-    // Layout constants matching receipt-design.pen frame specs
-    const SCALE_FACTOR = 210 / 800; // A5 width / design width
-    const MARGIN = 80 * SCALE_FACTOR; // 80px padding = 21mm
-    const LOGO_SIZE = 80 * SCALE_FACTOR; // 80px = 21mm
-    const SECTION_GAP = 20 * SCALE_FACTOR; // 20px main gap = 5.25mm
-    const HEADER_GAP = 16 * SCALE_FACTOR; // 16px header gap = 4.2mm
-    const DIVIDER_HEIGHT = 2 * SCALE_FACTOR; // 2px = 0.525mm
-    const TOP_SHIFT = -8; // shift content up by 8mm
+    // Layout constants for A5 portrait
+    const MARGIN = 15; // 15mm margin
+    const LOGO_SIZE = 20; // 20mm logo
+    const SECTION_GAP = 5; // 5mm gap between sections
+    const HEADER_GAP = 4; // 4mm header gap
+    const DIVIDER_HEIGHT = 0.5; // 0.5mm divider
     const ORGANIZATION_NAME = 'YAYASAN AL-FAJAR PERMATA PAMULANG';
     const ORGANIZATION_ADDRESS = 'Jl. Bukit Permata VII Blok E20/16 Bakti Jaya Setu Tangerang Selatan';
     const ORGANIZATION_EMAIL = 'permataalfajar@gmail.com';
     const ORGANIZATION_SERVICE = 'Layanan Al Fajar 0877-1335-9800 (WA Only)';
 
-    const pageWidth = doc.internal.pageSize.getWidth(); // 210mm
-    const pageHeight = doc.internal.pageSize.getHeight(); // 148mm
+    const pageWidth = doc.internal.pageSize.getWidth(); // 148mm
+    const pageHeight = doc.internal.pageSize.getHeight(); // 210mm
 
     // Set white background
     doc.setFillColor(255, 255, 255);
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
-    let yPosition = MARGIN + TOP_SHIFT;
+    let yPosition = MARGIN;
     const leftX = MARGIN;
 
     // ============ HEADER SECTION ============
-    // Calculate centered group position (logo + gap + text)
-    const headerGapPx = 5; // 16px gap ≈ 5mm
-    const textGroupWidth = 90; // Approximate width of organization text
-    const totalHeaderWidth = LOGO_SIZE + headerGapPx + textGroupWidth;
-    const headerStartX = (pageWidth - totalHeaderWidth) / 2; // Center the entire group
-
-    // Logo (left side of centered group)
+    // Logo centered
+    const logoX = (pageWidth - LOGO_SIZE) / 2;
     try {
-      doc.addImage('/logo-al-fajar.png', 'PNG', headerStartX, yPosition, LOGO_SIZE, LOGO_SIZE);
+      doc.addImage('/logo-al-fajar.png', 'PNG', logoX, yPosition, LOGO_SIZE, LOGO_SIZE);
     } catch (error) {
       console.warn('Could not embed logo image:', error);
     }
 
-    // Text positioned right of logo with gap
-    const headerTextX = headerStartX + LOGO_SIZE + HEADER_GAP;
-    const headerTextGap = 4 * SCALE_FACTOR; // 4px gap between lines
+    yPosition += LOGO_SIZE + HEADER_GAP;
 
-    // Organization name (16px, bold)
-    doc.setFontSize(16 * 0.75); // Convert px to pt (16px ≈ 12pt)
+    // Organization details - centered
+    doc.setFontSize(12);
     doc.setFont('Helvetica', 'bold');
-    const orgNameY = yPosition + (LOGO_SIZE / 2) - 2; // Vertically center with logo
-    doc.text(ORGANIZATION_NAME, headerTextX, orgNameY);
+    doc.text(ORGANIZATION_NAME, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 5;
 
-    // Organization details (11px, normal, 4px gap)
-    doc.setFontSize(11 * 0.75); // 11px ≈ 8.25pt
+    doc.setFontSize(8);
     doc.setFont('Helvetica', 'normal');
-    const addressY = orgNameY + 4 + headerTextGap;
-    doc.text(ORGANIZATION_ADDRESS, headerTextX, addressY);
-    doc.text(`Email : ${ORGANIZATION_EMAIL}`, headerTextX, addressY + 3 + headerTextGap);
-    doc.text(ORGANIZATION_SERVICE, headerTextX, addressY + 6 + headerTextGap * 2);
+    const addressLines = doc.splitTextToSize(ORGANIZATION_ADDRESS, pageWidth - (MARGIN * 2));
+    doc.text(addressLines, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 4 * addressLines.length;
+    
+    doc.text(`Email: ${ORGANIZATION_EMAIL}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 4;
+    doc.text(ORGANIZATION_SERVICE, pageWidth / 2, yPosition, { align: 'center' });
 
     yPosition += LOGO_SIZE + SECTION_GAP;
 
@@ -172,62 +165,66 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
     yPosition += SECTION_GAP;
 
     // ============ TITLE SECTION ============
-    doc.setFontSize(14 * 0.75); // 14px ≈ 10.5pt
+    doc.setFontSize(12);
     doc.setFont('Helvetica', 'bold');
     doc.text('BUKTI PEMBAYARAN ZAKAT FITRAH', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += SECTION_GAP;
+    yPosition += SECTION_GAP + 2;
 
     // Receipt number and date
-    doc.setFontSize(11 * 0.75);
+    doc.setFontSize(9);
     doc.setFont('Helvetica', 'normal');
     doc.text(`No. Bukti: ${data.id.slice(0, 8).toUpperCase()}`, leftX, yPosition);
+    yPosition += 4;
     doc.text(
       `Tanggal: ${format(new Date(data.tanggal_bayar), 'dd MMMM yyyy', { locale: idLocale })}`,
-      pageWidth - MARGIN,
-      yPosition,
-      { align: 'right' }
+      leftX,
+      yPosition
     );
     yPosition += SECTION_GAP;
 
     // Muzakki details
     const detailLabelX = leftX;
-    const detailValueX = leftX + 50; // Value column position
+    const detailValueX = leftX + 45; // Value column position
 
     doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(10);
     doc.text('DATA MUZAKKI', detailLabelX, yPosition);
-    yPosition += 7;
+    yPosition += 5;
 
     doc.setFont('Helvetica', 'normal');
-    doc.text(`Nama Kepala Keluarga:`, detailLabelX, yPosition);
+    doc.setFontSize(9);
+    doc.text(`Nama KK:`, detailLabelX, yPosition);
     doc.text(data.muzakki.nama_kk, detailValueX, yPosition);
-    yPosition += 6;
+    yPosition += 5;
 
     doc.text(`Alamat:`, detailLabelX, yPosition);
-    const alamatLines = doc.splitTextToSize(data.muzakki.alamat, pageWidth - MARGIN - detailValueX - 5);
+    const alamatLines = doc.splitTextToSize(data.muzakki.alamat, pageWidth - MARGIN - detailValueX - 2);
     doc.text(alamatLines, detailValueX, yPosition);
-    yPosition += 6 * alamatLines.length;
+    yPosition += 4 * alamatLines.length;
 
     if (data.muzakki.no_telp) {
-      doc.text(`No. Telepon:`, detailLabelX, yPosition);
+      doc.text(`No. Telp:`, detailLabelX, yPosition);
       doc.text(data.muzakki.no_telp, detailValueX, yPosition);
-      yPosition += 6;
+      yPosition += 5;
     }
 
-    yPosition += 5;
+    yPosition += 3;
 
     // Payment details
     doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(10);
     doc.text('DETAIL PEMBAYARAN', detailLabelX, yPosition);
-    yPosition += 7;
+    yPosition += 5;
 
     doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(9);
     doc.text(`Jumlah Jiwa:`, detailLabelX, yPosition);
     doc.text(`${data.jumlah_jiwa} jiwa`, detailValueX, yPosition);
-    yPosition += 6;
+    yPosition += 5;
 
     doc.text(`Jenis Zakat:`, detailLabelX, yPosition);
     doc.text(data.jenis_zakat === 'beras' ? 'Beras' : 'Uang', detailValueX, yPosition);
-    yPosition += 6;
+    yPosition += 5;
 
     doc.text(`Total:`, detailLabelX, yPosition );
     doc.setFont('Helvetica', 'bold');
@@ -322,18 +319,24 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
           </DialogHeader>
 
           {/* Print Content */}
-          <div ref={contentRef} id="print-content" className="space-y-6 py-4">
+          <div ref={contentRef} id="print-content" className="space-y-4 py-4">
             {/* Header */}
-            <div className="text-center">
-              <h1 className="text-2xl font-bold">BUKTI PEMBAYARAN ZAKAT FITRAH</h1>
-              <p className="text-lg font-medium mt-2">Masjid Al-Fajar</p>
-              <p className="text-sm text-muted-foreground">Jl. Contoh Alamat No. 123</p>
+            <div className="text-center space-y-2">
+              <div className="flex justify-center mb-3">
+                <img src="/logo-al-fajar.png" alt="Logo" className="h-16 w-16" />
+              </div>
+              <h2 className="text-lg font-bold">YAYASAN AL-FAJAR PERMATA PAMULANG</h2>
+              <p className="text-xs">Jl. Bukit Permata VII Blok E20/16 Bakti Jaya Setu Tangerang Selatan</p>
+              <p className="text-xs">Email: permataalfajar@gmail.com</p>
+              <p className="text-xs">Layanan Al Fajar 0877-1335-9800 (WA Only)</p>
             </div>
 
             <Separator />
 
+            <h1 className="text-center text-lg font-bold">BUKTI PEMBAYARAN ZAKAT FITRAH</h1>
+
             {/* Receipt Info */}
-            <div className="flex justify-between text-sm">
+            <div className="text-xs space-y-1">
               <div>
                 <span className="text-muted-foreground">No. Bukti:</span>
                 <span className="ml-2 font-medium">{data.id.slice(0, 8).toUpperCase()}</span>
@@ -349,20 +352,20 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
             <Separator />
 
             {/* Muzakki Details */}
-            <div className="space-y-3">
-              <h3 className="font-semibold text-lg">Data Muzakki</h3>
-              <div className="grid gap-2 text-sm">
+            <div className="space-y-2">
+              <h3 className="font-semibold text-sm">Data Muzakki</h3>
+              <div className="grid gap-1 text-xs">
                 <div className="flex">
-                  <span className="w-40 text-muted-foreground">Nama Kepala Keluarga:</span>
+                  <span className="w-32 text-muted-foreground">Nama KK:</span>
                   <span className="font-medium">{data.muzakki.nama_kk}</span>
                 </div>
                 <div className="flex">
-                  <span className="w-40 text-muted-foreground">Alamat:</span>
+                  <span className="w-32 text-muted-foreground">Alamat:</span>
                   <span className="font-medium">{data.muzakki.alamat}</span>
                 </div>
                 {data.muzakki.no_telp && (
                   <div className="flex">
-                    <span className="w-40 text-muted-foreground">No. Telepon:</span>
+                    <span className="w-32 text-muted-foreground">No. Telp:</span>
                     <span className="font-medium">{data.muzakki.no_telp}</span>
                   </div>
                 )}
@@ -372,15 +375,15 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
             <Separator />
 
             {/* Payment Details */}
-            <div className="space-y-3">
-              <h3 className="font-semibold text-lg">Detail Pembayaran</h3>
-              <div className="grid gap-2 text-sm">
+            <div className="space-y-2">
+              <h3 className="font-semibold text-sm">Detail Pembayaran</h3>
+              <div className="grid gap-1 text-xs">
                 <div className="flex">
-                  <span className="w-40 text-muted-foreground">Jumlah Jiwa:</span>
+                  <span className="w-32 text-muted-foreground">Jumlah Jiwa:</span>
                   <span className="font-medium">{data.jumlah_jiwa} jiwa</span>
                 </div>
                 <div className="flex">
-                  <span className="w-40 text-muted-foreground">Jenis Zakat:</span>
+                  <span className="w-32 text-muted-foreground">Jenis Zakat:</span>
                   <span className="font-medium">
                     {data.jenis_zakat === 'beras' ? 'Beras' : 'Uang'}
                   </span>
@@ -388,26 +391,27 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
                 
                 {hasSplitPayment ? (
                   <>
+                  <>
                     <div className="flex items-center">
-                      <span className="w-40 text-muted-foreground">Zakat Fitrah:</span>
-                      <span className="text-lg font-semibold">
+                      <span className="w-32 text-muted-foreground">Zakat Fitrah:</span>
+                      <span className="text-sm font-semibold">
                         {data.jenis_zakat === 'beras'
                           ? `${formatNumber(data.jumlah_beras_kg)} kg`
                           : formatCurrency(data.jumlah_uang_rp)}
                       </span>
                     </div>
                     <div className="flex items-center">
-                      <span className="w-40 text-muted-foreground">Sedekah/Infak:</span>
-                      <span className="text-lg font-semibold text-green-700">
+                      <span className="w-32 text-muted-foreground">Sedekah/Infak:</span>
+                      <span className="text-sm font-semibold text-green-700">
                         {data.jenis_zakat === 'beras'
                           ? `${sedekahAmount.toFixed(2)} kg`
                           : formatCurrency(sedekahAmount)}
                       </span>
                     </div>
-                    <Separator className="my-2" />
+                    <Separator className="my-1" />
                     <div className="flex items-center">
-                      <span className="w-40 text-muted-foreground font-semibold">Total Pembayaran:</span>
-                      <span className="text-xl font-bold">
+                      <span className="w-32 text-muted-foreground font-semibold">Total Pembayaran:</span>
+                      <span className="text-base font-bold">
                         {data.jenis_zakat === 'beras'
                           ? `${(totalPayment || 0).toFixed(2)} kg`
                           : formatCurrency(totalPayment || 0)}
@@ -419,8 +423,8 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
                   </>
                 ) : (
                   <div className="flex items-center">
-                    <span className="w-40 text-muted-foreground">Total:</span>
-                    <span className="text-xl font-bold">
+                    <span className="w-32 text-muted-foreground">Total:</span>
+                    <span className="text-base font-bold">
                       {data.jenis_zakat === 'beras'
                         ? `${formatNumber(data.jumlah_beras_kg)} kg`
                         : formatCurrency(data.jumlah_uang_rp)}
@@ -433,23 +437,23 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
             <Separator />
 
             {/* Signature Section */}
-            <div className="grid grid-cols-2 gap-8 pt-8">
+            <div className="grid grid-cols-2 gap-8 pt-6">
               <div className="text-center">
-                <p className="text-sm mb-16">Petugas,</p>
-                <div className="border-t border-foreground pt-1 inline-block min-w-[150px]">
-                  <p className="text-xs">Nama & Tanda Tangan</p>
+                <p className="text-xs mb-12">Petugas,</p>
+                <div className="border-t border-foreground pt-1 inline-block min-w-[120px]">
+                  <p className="text-[10px]">Nama & Tanda Tangan</p>
                 </div>
               </div>
               <div className="text-center">
-                <p className="text-sm mb-16">Penerima,</p>
-                <div className="border-t border-foreground pt-1 inline-block min-w-[150px]">
-                  <p className="text-xs">Nama & Tanda Tangan</p>
+                <p className="text-xs mb-12">Penerima,</p>
+                <div className="border-t border-foreground pt-1 inline-block min-w-[120px]">
+                  <p className="text-[10px]">Nama & Tanda Tangan</p>
                 </div>
               </div>
             </div>
 
             {/* Footer Note */}
-            <div className="text-center text-xs text-muted-foreground pt-4">
+            <div className="text-center text-[10px] text-muted-foreground pt-2">
               <p>Simpan bukti ini sebagai tanda terima yang sah</p>
             </div>
           </div>

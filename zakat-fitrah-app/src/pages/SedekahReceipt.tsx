@@ -5,6 +5,16 @@ import { Button } from '@/components/ui/button';
 import { formatRupiah } from '@/lib/terbilang';
 import { supabase } from '@/lib/supabase';
 
+interface SedekahReceipt {
+  id: string;
+  receipt_number: string;
+  category: string;
+  donor_name: string;
+  amount: number;
+  tanggal: string;
+  created_at: string;
+}
+
 export function SedekahReceiptPage() {
   const formRef = useRef<HTMLDivElement | null>(null);
 
@@ -63,7 +73,7 @@ export function SedekahReceiptPage() {
                 </tr>
               </thead>
               <tbody>
-                {receipts.map((receipt: any) => (
+                {receipts.map((receipt: SedekahReceipt) => (
                   <tr key={receipt.id} className="border-b last:border-b-0">
                     <td className="py-2 pr-4 font-medium">{receipt.receipt_number}</td>
                     <td className="py-2 pr-4">{receipt.tanggal}</td>
