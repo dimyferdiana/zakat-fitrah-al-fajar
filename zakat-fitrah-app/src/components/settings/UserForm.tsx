@@ -33,7 +33,7 @@ import { Switch } from '@/components/ui/switch.tsx';
 const formSchema = z.object({
   nama_lengkap: z.string().min(3, { message: 'Nama lengkap minimal 3 karakter' }),
   email: z.string().email({ message: 'Format email tidak valid' }),
-  role: z.enum(['admin', 'petugas', 'viewer'], {
+  role: z.enum(['admin', 'petugas'], {
     message: 'Pilih salah satu role',
   }),
   password: z
@@ -50,7 +50,7 @@ interface User {
   id: string;
   email: string;
   nama_lengkap: string;
-  role: 'admin' | 'petugas' | 'viewer';
+  role: 'admin' | 'petugas';
   is_active: boolean;
 }
 
@@ -74,7 +74,7 @@ export function UserForm({
     defaultValues: {
       nama_lengkap: '',
       email: '',
-      role: 'viewer',
+      role: 'petugas',
       password: '',
       is_active: true,
     },
@@ -93,7 +93,7 @@ export function UserForm({
       form.reset({
         nama_lengkap: '',
         email: '',
-        role: 'viewer',
+        role: 'petugas',
         password: '',
         is_active: true,
       });
@@ -178,11 +178,10 @@ export function UserForm({
                     <SelectContent>
                       <SelectItem value="admin">Admin</SelectItem>
                       <SelectItem value="petugas">Petugas</SelectItem>
-                      <SelectItem value="viewer">Viewer</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Admin: Akses penuh | Petugas: Input data | Viewer: Lihat saja
+                    Admin: Akses penuh | Petugas: Input data
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

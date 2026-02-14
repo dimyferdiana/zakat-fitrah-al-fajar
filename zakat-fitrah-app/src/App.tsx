@@ -10,6 +10,12 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 // Eager load Login page (needed immediately)
 import { Login } from '@/pages/Login';
 
+// Eager load auth pages
+import { Register } from '@/pages/Register';
+import { EmailConfirmation } from '@/pages/EmailConfirmation';
+import { ForgotPassword } from '@/pages/ForgotPassword';
+import { ResetPassword } from '@/pages/ResetPassword';
+
 // Lazy load all other pages for code splitting
 const Dashboard = lazy(() => import('@/pages/Dashboard').then(m => ({ default: m.Dashboard })));
 const Muzakki = lazy(() => import('@/pages/Muzakki').then(m => ({ default: m.Muzakki })));
@@ -38,6 +44,10 @@ function App() {
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/email-confirmation" element={<EmailConfirmation />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route
                 path="/dashboard"
                 element={

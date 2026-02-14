@@ -6,7 +6,7 @@ interface User {
   id: string;
   email: string;
   nama_lengkap: string;
-  role: 'admin' | 'petugas' | 'viewer';
+  role: 'admin' | 'petugas';
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -15,14 +15,14 @@ interface User {
 interface CreateUserInput {
   email: string;
   nama_lengkap: string;
-  role: 'admin' | 'petugas' | 'viewer';
+  role: 'admin' | 'petugas';
   password: string;
 }
 
 interface UpdateUserInput {
   id: string;
   nama_lengkap: string;
-  role: 'admin' | 'petugas' | 'viewer';
+  role: 'admin' | 'petugas';
   is_active: boolean;
 }
 

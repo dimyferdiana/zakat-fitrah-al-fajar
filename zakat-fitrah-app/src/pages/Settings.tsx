@@ -8,6 +8,9 @@ import { NilaiZakatTable } from '@/components/settings/NilaiZakatTable';
 import { NilaiZakatForm } from '@/components/settings/NilaiZakatForm';
 import { UserTable } from '@/components/settings/UserTable';
 import { UserForm } from '@/components/settings/UserForm';
+import { InvitationForm } from '@/components/settings/InvitationForm';
+import { InvitationTable } from '@/components/settings/InvitationTable';
+import { ProfileForm } from '@/components/settings/ProfileForm';
 import { RekonsiliasiForm } from '@/components/settings/RekonsiliasiForm';
 import { RekonsiliasiTable } from '@/components/settings/RekonsiliasiTable';
 import { Input } from '@/components/ui/input';
@@ -47,7 +50,7 @@ interface User {
   id: string;
   email: string;
   nama_lengkap: string;
-  role: 'admin' | 'petugas' | 'viewer';
+  role: 'admin' | 'petugas';
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -66,7 +69,7 @@ export default function Settings() {
   const queryClient = useQueryClient();
   const isAdmin = user?.role === 'admin';
 
-  const [activeTab, setActiveTab] = useState('nilai-zakat');
+  const [activeTab, setActiveTab] = useState('profile');
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -84,6 +87,9 @@ export default function Settings() {
   // User Management state
   const [userFormOpen, setUserFormOpen] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
+
+  // Invitation state
+  const [invitationFormOpen, setInvitationFormOpen] = useState(false);
 
   // Rekonsiliasi & Hak Amil state
   const [selectedTahun, setSelectedTahun] = useState<string>('');
@@ -262,23 +268,32 @@ export default function Settings() {
         {isMobile ? (
           <Select value={activeTab} onValueChange={setActiveTab}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Pilih menu" />
+              <SelectValue placeholder="Select a tab" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="profile">Profile</SelectItem>
               <SelectItem value="nilai-zakat">Nilai Zakat</SelectItem>
               {isAdmin && <SelectItem value="users">User Management</SelectItem>}
+              {isAdmin && <SelectItem value="invitations">Invitations</SelectItem>}
               {isAdmin && <SelectItem value="rekonsiliasi">Rekonsiliasi</SelectItem>}
               {isAdmin && <SelectItem value="hak-amil">Hak Amil</SelectItem>}
             </SelectContent>
           </Select>
         ) : (
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="nilai-zakat">Nilai Zakat</TabsTrigger>
             {isAdmin && <TabsTrigger value="users">User Management</TabsTrigger>}
+            {isAdmin && <TabsTrigger value="invitations">Invitations</TabsTrigger>}
             {isAdmin && <TabsTrigger value="rekonsiliasi">Rekonsiliasi</TabsTrigger>}
             {isAdmin && <TabsTrigger value="hak-amil">Hak Amil</TabsTrigger>}
           </TabsList>
         )}
+
+        {/* Profile Tab */}
+        <TabsContent value="profile" className="space-y-4">
+          <ProfileForm />
+        </TabsContent>
 
         {/* Nilai Zakat Tab */}
         <TabsContent value="nilai-zakat" className="space-y-4">
@@ -344,6 +359,36 @@ export default function Settings() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+        )}
+
+        {/* Invitations Tab (Admin Only) */}
+        {isAdmin && (
+          <TabsContent value="invitations" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Manage Invitations</CardTitle>
+                    <CardDescription>
+                      Send invitation links to new users. Invitations expire after 24 hours.
+                    </CardDescription>
+                  </div>
+                  <Button onClick={() => setInvitationFormOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Invitation
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <InvitationTable />
+              </CardContent>
+            </Card>
+            
+            <InvitationForm 
+              open={invitationFormOpen} 
+              onClose={() => setInvitationFormOpen(false)} 
+            />
           </TabsContent>
         )}
 

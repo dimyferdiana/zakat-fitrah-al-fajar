@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type UserRole = 'admin' | 'petugas' | 'viewer';
+export type UserRole = 'admin' | 'petugas';
 
 export type JenisZakat = 'beras' | 'uang';
 
@@ -32,6 +32,8 @@ export interface Database {
           email: string;
           role: UserRole;
           is_active: boolean;
+          address: string | null;
+          phone: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -41,6 +43,8 @@ export interface Database {
           email: string;
           role?: UserRole;
           is_active?: boolean;
+          address?: string | null;
+          phone?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -48,8 +52,49 @@ export interface Database {
           id?: string;
           nama_lengkap?: string;
           email?: string;
+          address?: string | null;
+          address?: string | null;
+          phone?: string | null;
           role?: UserRole;
           is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      user_invitations: {
+        Row: {
+          id: string;
+          email: string;
+          role: UserRole;
+          token_hash: string;
+          expires_at: string;
+          used_at: string | null;
+          revoked_at: string | null;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          role: UserRole;
+          token_hash: string;
+          expires_at: string;
+          used_at?: string | null;
+          revoked_at?: string | null;
+          created_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          role?: UserRole;
+          token_hash?: string;
+          expires_at?: string;
+          used_at?: string | null;
+          revoked_at?: string | null;
+          created_by?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -516,6 +561,7 @@ export interface Database {
 }
 
 export type User = Database['public']['Tables']['users']['Row'];
+export type UserInvitation = Database['public']['Tables']['user_invitations']['Row'];
 export type TahunZakat = Database['public']['Tables']['tahun_zakat']['Row'];
 export type KategoriMustahik = Database['public']['Tables']['kategori_mustahik']['Row'];
 export type Muzakki = Database['public']['Tables']['muzakki']['Row'];
@@ -527,3 +573,6 @@ export type Rekonsiliasi = Database['public']['Tables']['rekonsiliasi']['Row'];
 export type Mustahik = Database['public']['Tables']['mustahik']['Row'];
 export type DistribusiZakat = Database['public']['Tables']['distribusi_zakat']['Row'];
 export type AuditLog = Database['public']['Tables']['audit_logs']['Row'];
+
+// Helper types for invitation status
+export type InvitationStatus = 'pending' | 'used' | 'expired' | 'revoked';

@@ -286,7 +286,7 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
     doc.setFont('Helvetica', 'normal');
     doc.setFontSize(9);
     doc.text('Petugas,', leftX, yPosition);
-    doc.text('Penerima,', pageWidth - MARGIN - 40, yPosition);
+    doc.text('Penyetor,', pageWidth - MARGIN - 40, yPosition);
     yPosition += 20;
 
     doc.text('(_________________)', leftX, yPosition);

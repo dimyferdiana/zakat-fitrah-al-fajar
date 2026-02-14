@@ -41,6 +41,12 @@ ALTER TABLE public.pemasukan_beras ENABLE ROW LEVEL SECURITY;
 -- RLS POLICIES
 -- =========================================
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "All can view pemasukan_beras" ON public.pemasukan_beras;
+DROP POLICY IF EXISTS "Admin and Petugas can create pemasukan_beras" ON public.pemasukan_beras;
+DROP POLICY IF EXISTS "Admin and Petugas can update pemasukan_beras" ON public.pemasukan_beras;
+DROP POLICY IF EXISTS "Admin can delete pemasukan_beras" ON public.pemasukan_beras;
+
 -- All authenticated: Read
 CREATE POLICY "All can view pemasukan_beras"
     ON public.pemasukan_beras

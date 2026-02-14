@@ -24,6 +24,11 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // Check if user is active
+  if (!user.is_active) {
+    return <Navigate to="/login" state={{ from: location, error: 'deactivated' }} replace />;
+  }
+
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     return (
       <div className="flex h-screen items-center justify-center">

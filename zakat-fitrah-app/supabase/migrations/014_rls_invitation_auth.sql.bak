@@ -1,0 +1,246 @@
+-- Migration: RLS Policies for Invitation Auth System
+-- Description: Update RLS policies to block anonymous access and enforce is_active checks
+-- Date: 2026-02-14
+
+-- ============================================
+-- Drop existing policies that allow anon access
+-- ============================================
+
+-- Mustahik policies
+DROP POLICY IF EXISTS "mustahik_select_policy" ON public.mustahik;
+DROP POLICY IF EXISTS "mustahik_insert_policy" ON public.mustahik;
+DROP POLICY IF EXISTS "mustahik_update_policy" ON public.mustahik;
+
+-- Muzakki policies
+DROP POLICY IF EXISTS "muzakki_select_policy" ON public.muzakki;
+DROP POLICY IF EXISTS "muzakki_insert_policy" ON public.muzakki;
+DROP POLICY IF EXISTS "muzakki_update_policy" ON public.muzakki;
+
+-- Pembayaran policies
+DROP POLICY IF EXISTS "pembayaran_uang_select_policy" ON public.pembayaran_uang;
+DROP POLICY IF EXISTS "pembayaran_uang_insert_policy" ON public.pembayaran_uang;
+DROP POLICY IF EXISTS "pembayaran_uang_update_policy" ON public.pembayaran_uang;
+
+DROP POLICY IF EXISTS "pembayaran_beras_select_policy" ON public.pembayaran_beras;
+DROP POLICY IF EXISTS "pembayaran_beras_insert_policy" ON public.pembayaran_beras;
+DROP POLICY IF EXISTS "pembayaran_beras_update_policy" ON public.pembayaran_beras;
+
+-- Distribusi policies
+DROP POLICY IF EXISTS "distribusi_select_policy" ON public.distribusi;
+DROP POLICY IF EXISTS "distribusi_insert_policy" ON public.distribusi;
+DROP POLICY IF EXISTS "distribusi_update_policy" ON public.distribusi;
+
+-- Laporan distribusi policies
+DROP POLICY IF EXISTS "laporan_distribusi_select_policy" ON public.laporan_distribusi;
+DROP POLICY IF EXISTS "laporan_distribusi_insert_policy" ON public.laporan_distribusi;
+DROP POLICY IF EXISTS "laporan_distribusi_update_policy" ON public.laporan_distribusi;
+
+-- ============================================
+-- Create helper function to check if user is active
+-- ============================================
+
+CREATE OR REPLACE FUNCTION public.is_active_user()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 
+    FROM public.users 
+    WHERE id = auth.uid() 
+    AND is_active = true
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION public.is_admin_user()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 
+    FROM public.users 
+    WHERE id = auth.uid() 
+    AND role = 'admin'
+    AND is_active = true
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ============================================
+-- Mustahik: Authenticated active users only
+-- ============================================
+
+CREATE POLICY "mustahik_select_policy" ON public.mustahik
+FOR SELECT
+USING (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "mustahik_insert_policy" ON public.mustahik
+FOR INSERT
+WITH CHECK (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "mustahik_update_policy" ON public.mustahik
+FOR UPDATE
+USING (auth.role() = 'authenticated' AND public.is_active_user())
+WITH CHECK (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "mustahik_delete_policy" ON public.mustahik
+FOR DELETE
+USING (auth.role() = 'authenticated' AND public.is_active_user());
+
+-- ============================================
+-- Muzakki: Authenticated active users only
+-- ============================================
+
+CREATE POLICY "muzakki_select_policy" ON public.muzakki
+FOR SELECT
+USING (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "muzakki_insert_policy" ON public.muzakki
+FOR INSERT
+WITH CHECK (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "muzakki_update_policy" ON public.muzakki
+FOR UPDATE
+USING (auth.role() = 'authenticated' AND public.is_active_user())
+WITH CHECK (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "muzakki_delete_policy" ON public.muzakki
+FOR DELETE
+USING (auth.role() = 'authenticated' AND public.is_active_user());
+
+-- ============================================
+-- Pembayaran Uang: Authenticated active users only
+-- ============================================
+
+CREATE POLICY "pembayaran_uang_select_policy" ON public.pembayaran_uang
+FOR SELECT
+USING (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "pembayaran_uang_insert_policy" ON public.pembayaran_uang
+FOR INSERT
+WITH CHECK (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "pembayaran_uang_update_policy" ON public.pembayaran_uang
+FOR UPDATE
+USING (auth.role() = 'authenticated' AND public.is_active_user())
+WITH CHECK (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "pembayaran_uang_delete_policy" ON public.pembayaran_uang
+FOR DELETE
+USING (auth.role() = 'authenticated' AND public.is_active_user());
+
+-- ============================================
+-- Pembayaran Beras: Authenticated active users only
+-- ============================================
+
+CREATE POLICY "pembayaran_beras_select_policy" ON public.pembayaran_beras
+FOR SELECT
+USING (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "pembayaran_beras_insert_policy" ON public.pembayaran_beras
+FOR INSERT
+WITH CHECK (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "pembayaran_beras_update_policy" ON public.pembayaran_beras
+FOR UPDATE
+USING (auth.role() = 'authenticated' AND public.is_active_user())
+WITH CHECK (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "pembayaran_beras_delete_policy" ON public.pembayaran_beras
+FOR DELETE
+USING (auth.role() = 'authenticated' AND public.is_active_user());
+
+-- ============================================
+-- Distribusi: Authenticated active users only
+-- ============================================
+
+CREATE POLICY "distribusi_select_policy" ON public.distribusi
+FOR SELECT
+USING (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "distribusi_insert_policy" ON public.distribusi
+FOR INSERT
+WITH CHECK (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "distribusi_update_policy" ON public.distribusi
+FOR UPDATE
+USING (auth.role() = 'authenticated' AND public.is_active_user())
+WITH CHECK (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "distribusi_delete_policy" ON public.distribusi
+FOR DELETE
+USING (auth.role() = 'authenticated' AND public.is_active_user());
+
+-- ============================================
+-- Laporan Distribusi: Authenticated active users only
+-- ============================================
+
+CREATE POLICY "laporan_distribusi_select_policy" ON public.laporan_distribusi
+FOR SELECT
+USING (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "laporan_distribusi_insert_policy" ON public.laporan_distribusi
+FOR INSERT
+WITH CHECK (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "laporan_distribusi_update_policy" ON public.laporan_distribusi
+FOR UPDATE
+USING (auth.role() = 'authenticated' AND public.is_active_user())
+WITH CHECK (auth.role() = 'authenticated' AND public.is_active_user());
+
+CREATE POLICY "laporan_distribusi_delete_policy" ON public.laporan_distribusi
+FOR DELETE
+USING (auth.role() = 'authenticated' AND public.is_active_user());
+
+-- ============================================
+-- User Invitations: Admin only
+-- ============================================
+
+CREATE POLICY "user_invitations_select_policy" ON public.user_invitations
+FOR SELECT
+USING (public.is_admin_user());
+
+CREATE POLICY "user_invitations_insert_policy" ON public.user_invitations
+FOR INSERT
+WITH CHECK (public.is_admin_user());
+
+CREATE POLICY "user_invitations_update_policy" ON public.user_invitations
+FOR UPDATE
+USING (public.is_admin_user())
+WITH CHECK (public.is_admin_user());
+
+-- ============================================
+-- Users: Self-read, admin full access
+-- ============================================
+
+DROP POLICY IF EXISTS "users_select_policy" ON public.users;
+DROP POLICY IF EXISTS "users_update_policy" ON public.users;
+
+-- All authenticated users can read their own profile
+CREATE POLICY "users_select_own_policy" ON public.users
+FOR SELECT
+USING (auth.uid() = id AND is_active = true);
+
+-- Admins can read all user profiles
+CREATE POLICY "users_select_admin_policy" ON public.users
+FOR SELECT
+USING (public.is_admin_user());
+
+-- Users can update their own profile (except role and is_active)
+CREATE POLICY "users_update_own_policy" ON public.users
+FOR UPDATE
+USING (auth.uid() = id AND is_active = true)
+WITH CHECK (
+  auth.uid() = id 
+  AND is_active = true
+  -- Prevent self-modification of role and is_active
+  AND role = (SELECT role FROM public.users WHERE id = auth.uid())
+  AND is_active = (SELECT is_active FROM public.users WHERE id = auth.uid())
+);
+
+-- Admins can update any user
+CREATE POLICY "users_update_admin_policy" ON public.users
+FOR UPDATE
+USING (public.is_admin_user())
+WITH CHECK (public.is_admin_user());
+
+COMMENT ON FUNCTION public.is_active_user IS 'Helper function to check if current user is active';
+COMMENT ON FUNCTION public.is_admin_user IS 'Helper function to check if current user is an active admin';
