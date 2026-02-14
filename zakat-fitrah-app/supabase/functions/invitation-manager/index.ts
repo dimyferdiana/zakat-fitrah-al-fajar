@@ -46,12 +46,14 @@ serve(async (req: RequestEvent) => {
   }
 
   try {
+    const authHeader = req.headers.get('Authorization');
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: authHeader ? { Authorization: authHeader } : {},
         },
       }
     );
@@ -68,6 +70,13 @@ serve(async (req: RequestEvent) => {
     // CREATE INVITATION
     // ============================================
     if (action === 'createInvitation') {
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized: missing access token' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       if (!email || !role) {
         return new Response(
           JSON.stringify({ error: 'Email and role are required' }),
