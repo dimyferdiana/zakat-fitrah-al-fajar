@@ -168,7 +168,7 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
     doc.setFontSize(12);
     doc.setFont('Helvetica', 'bold');
     doc.text('BUKTI PEMBAYARAN ZAKAT FITRAH', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += SECTION_GAP + 2;
+    yPosition += SECTION_GAP;
 
     // Receipt number and date
     doc.setFontSize(9);
