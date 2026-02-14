@@ -44,13 +44,6 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
   const contentRef = useRef<HTMLDivElement>(null);
   const [sedekahAmount, setSedekahAmount] = useState<number | null>(null);
 
-  // Check for related sedekah record when dialog opens
-  useEffect(() => {
-    if (open && data) {
-      checkForSedekahRecord();
-    }
-  }, [open, data]);
-
   const checkForSedekahRecord = async () => {
     try {
       const tableName = data.jenis_zakat === 'uang' ? 'pemasukan_uang' : 'pemasukan_beras';
@@ -73,6 +66,14 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
       setSedekahAmount(null);
     }
   };
+
+  // Check for related sedekah record when dialog opens
+  useEffect(() => {
+    if (open && data) {
+      checkForSedekahRecord();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, data]);
 
   const hasSplitPayment = sedekahAmount !== null && sedekahAmount > 0;
   const totalPayment = hasSplitPayment
@@ -101,116 +102,171 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
   });
 
   const handleDownloadPDF = () => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    let yPosition = 20;
+    // Create landscape PDF (A5: 210x148mm) matching standard receipt format
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a5',
+    });
 
-    // Header
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
+    // Layout constants matching receipt-design.pen frame specs
+    const SCALE_FACTOR = 210 / 800; // A5 width / design width
+    const MARGIN = 80 * SCALE_FACTOR; // 80px padding = 21mm
+    const LOGO_SIZE = 80 * SCALE_FACTOR; // 80px = 21mm
+    const SECTION_GAP = 20 * SCALE_FACTOR; // 20px main gap = 5.25mm
+    const HEADER_GAP = 16 * SCALE_FACTOR; // 16px header gap = 4.2mm
+    const DIVIDER_HEIGHT = 2 * SCALE_FACTOR; // 2px = 0.525mm
+    const TOP_SHIFT = -8; // shift content up by 8mm
+    const ORGANIZATION_NAME = 'YAYASAN AL-FAJAR PERMATA PAMULANG';
+    const ORGANIZATION_ADDRESS = 'Jl. Bukit Permata VII Blok E20/16 Bakti Jaya Setu Tangerang Selatan';
+    const ORGANIZATION_EMAIL = 'permataalfajar@gmail.com';
+    const ORGANIZATION_SERVICE = 'Layanan Al Fajar 0877-1335-9800 (WA Only)';
+
+    const pageWidth = doc.internal.pageSize.getWidth(); // 210mm
+    const pageHeight = doc.internal.pageSize.getHeight(); // 148mm
+
+    // Set white background
+    doc.setFillColor(255, 255, 255);
+    doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+    let yPosition = MARGIN + TOP_SHIFT;
+    const leftX = MARGIN;
+
+    // ============ HEADER SECTION ============
+    // Calculate centered group position (logo + gap + text)
+    const headerGapPx = 5; // 16px gap ≈ 5mm
+    const textGroupWidth = 90; // Approximate width of organization text
+    const totalHeaderWidth = LOGO_SIZE + headerGapPx + textGroupWidth;
+    const headerStartX = (pageWidth - totalHeaderWidth) / 2; // Center the entire group
+
+    // Logo (left side of centered group)
+    try {
+      doc.addImage('/logo-al-fajar.png', 'PNG', headerStartX, yPosition, LOGO_SIZE, LOGO_SIZE);
+    } catch (error) {
+      console.warn('Could not embed logo image:', error);
+    }
+
+    // Text positioned right of logo with gap
+    const headerTextX = headerStartX + LOGO_SIZE + HEADER_GAP;
+    const headerTextGap = 4 * SCALE_FACTOR; // 4px gap between lines
+
+    // Organization name (16px, bold)
+    doc.setFontSize(16 * 0.75); // Convert px to pt (16px ≈ 12pt)
+    doc.setFont('Helvetica', 'bold');
+    const orgNameY = yPosition + (LOGO_SIZE / 2) - 2; // Vertically center with logo
+    doc.text(ORGANIZATION_NAME, headerTextX, orgNameY);
+
+    // Organization details (11px, normal, 4px gap)
+    doc.setFontSize(11 * 0.75); // 11px ≈ 8.25pt
+    doc.setFont('Helvetica', 'normal');
+    const addressY = orgNameY + 4 + headerTextGap;
+    doc.text(ORGANIZATION_ADDRESS, headerTextX, addressY);
+    doc.text(`Email : ${ORGANIZATION_EMAIL}`, headerTextX, addressY + 3 + headerTextGap);
+    doc.text(ORGANIZATION_SERVICE, headerTextX, addressY + 6 + headerTextGap * 2);
+
+    yPosition += LOGO_SIZE + SECTION_GAP;
+
+    // Header line (2px divider)
+    doc.setLineWidth(DIVIDER_HEIGHT);
+    doc.line(leftX, yPosition, pageWidth - MARGIN, yPosition);
+    yPosition += SECTION_GAP;
+
+    // ============ TITLE SECTION ============
+    doc.setFontSize(14 * 0.75); // 14px ≈ 10.5pt
+    doc.setFont('Helvetica', 'bold');
     doc.text('BUKTI PEMBAYARAN ZAKAT FITRAH', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 7;
-
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Masjid Al-Fajar', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 5;
-
-    doc.setFontSize(10);
-    doc.text('Jl. Contoh Alamat No. 123', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 10;
-
-    // Separator line
-    doc.setLineWidth(0.5);
-    doc.line(20, yPosition, pageWidth - 20, yPosition);
-    yPosition += 10;
+    yPosition += SECTION_GAP;
 
     // Receipt number and date
-    doc.setFontSize(10);
-    doc.text(`No. Bukti: ${data.id.slice(0, 8).toUpperCase()}`, 20, yPosition);
+    doc.setFontSize(11 * 0.75);
+    doc.setFont('Helvetica', 'normal');
+    doc.text(`No. Bukti: ${data.id.slice(0, 8).toUpperCase()}`, leftX, yPosition);
     doc.text(
       `Tanggal: ${format(new Date(data.tanggal_bayar), 'dd MMMM yyyy', { locale: idLocale })}`,
-      pageWidth - 20,
+      pageWidth - MARGIN,
       yPosition,
       { align: 'right' }
     );
-    yPosition += 15;
+    yPosition += SECTION_GAP;
 
     // Muzakki details
-    doc.setFont('helvetica', 'bold');
-    doc.text('DATA MUZAKKI', 20, yPosition);
+    const detailLabelX = leftX;
+    const detailValueX = leftX + 50; // Value column position
+
+    doc.setFont('Helvetica', 'bold');
+    doc.text('DATA MUZAKKI', detailLabelX, yPosition);
     yPosition += 7;
 
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Nama Kepala Keluarga:`, 20, yPosition);
-    doc.text(data.muzakki.nama_kk, 70, yPosition);
+    doc.setFont('Helvetica', 'normal');
+    doc.text(`Nama Kepala Keluarga:`, detailLabelX, yPosition);
+    doc.text(data.muzakki.nama_kk, detailValueX, yPosition);
     yPosition += 6;
 
-    doc.text(`Alamat:`, 20, yPosition);
-    const alamatLines = doc.splitTextToSize(data.muzakki.alamat, pageWidth - 90);
-    doc.text(alamatLines, 70, yPosition);
+    doc.text(`Alamat:`, detailLabelX, yPosition);
+    const alamatLines = doc.splitTextToSize(data.muzakki.alamat, pageWidth - MARGIN - detailValueX - 5);
+    doc.text(alamatLines, detailValueX, yPosition);
     yPosition += 6 * alamatLines.length;
 
     if (data.muzakki.no_telp) {
-      doc.text(`No. Telepon:`, 20, yPosition);
-      doc.text(data.muzakki.no_telp, 70, yPosition);
+      doc.text(`No. Telepon:`, detailLabelX, yPosition);
+      doc.text(data.muzakki.no_telp, detailValueX, yPosition);
       yPosition += 6;
     }
 
     yPosition += 5;
 
     // Payment details
-    doc.setFont('helvetica', 'bold');
-    doc.text('DETAIL PEMBAYARAN', 20, yPosition);
+    doc.setFont('Helvetica', 'bold');
+    doc.text('DETAIL PEMBAYARAN', detailLabelX, yPosition);
     yPosition += 7;
 
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Jumlah Jiwa:`, 20, yPosition);
-    doc.text(`${data.jumlah_jiwa} jiwa`, 70, yPosition);
+    doc.setFont('Helvetica', 'normal');
+    doc.text(`Jumlah Jiwa:`, detailLabelX, yPosition);
+    doc.text(`${data.jumlah_jiwa} jiwa`, detailValueX, yPosition);
     yPosition += 6;
 
-    doc.text(`Jenis Zakat:`, 20, yPosition);
-    doc.text(data.jenis_zakat === 'beras' ? 'Beras' : 'Uang', 70, yPosition);
+    doc.text(`Jenis Zakat:`, detailLabelX, yPosition);
+    doc.text(data.jenis_zakat === 'beras' ? 'Beras' : 'Uang', detailValueX, yPosition);
     yPosition += 6;
 
-    doc.text(`Total:`, 20, yPosition );
-    doc.setFont('helvetica', 'bold');
+    doc.text(`Total:`, detailLabelX, yPosition );
+    doc.setFont('Helvetica', 'bold');
     
     if (hasSplitPayment) {
       // Show split payment details
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Zakat Fitrah:`, 30, yPosition);
+      doc.setFont('Helvetica', 'normal');
+      doc.text(`Zakat Fitrah:`, detailLabelX + 10, yPosition);
       const zakatText =
         data.jenis_zakat === 'beras'
           ? `${formatNumber(data.jumlah_beras_kg)} kg`
           : formatCurrency(data.jumlah_uang_rp);
-      doc.text(zakatText, 70, yPosition);
+      doc.text(zakatText, detailValueX, yPosition);
       yPosition += 6;
 
-      doc.text(`Sedekah/Infak:`, 30, yPosition);
+      doc.text(`Sedekah/Infak:`, detailLabelX + 10, yPosition);
       const sedekahText =
         data.jenis_zakat === 'beras'
           ? `${sedekahAmount.toFixed(2)} kg`
           : formatCurrency(sedekahAmount);
-      doc.text(sedekahText, 70, yPosition);
+      doc.text(sedekahText, detailValueX, yPosition);
       yPosition += 6;
 
       // Separator line
       doc.setLineWidth(0.1);
-      doc.line(30, yPosition, 90, yPosition);
+      doc.line(detailLabelX + 10, yPosition, detailValueX + 40, yPosition);
       yPosition += 4;
 
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Total Pembayaran:`, 30, yPosition);
+      doc.setFont('Helvetica', 'bold');
+      doc.text(`Total Pembayaran:`, detailLabelX + 10, yPosition);
       const totalText =
         data.jenis_zakat === 'beras'
           ? `${(totalPayment || 0).toFixed(2)} kg`
           : formatCurrency(totalPayment || 0);
-      doc.text(totalText, 70, yPosition);
+      doc.text(totalText, detailValueX, yPosition);
       yPosition += 10;
 
       // Thank you message
-      doc.setFont('helvetica', 'italic');
+      doc.setFont('Helvetica', 'italic');
       doc.setFontSize(9);
       const thankYouMsg = 'Terima kasih atas kontribusi sedekah Anda';
       doc.text(thankYouMsg, pageWidth / 2, yPosition, { align: 'center' });
@@ -220,24 +276,24 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
         data.jenis_zakat === 'beras'
           ? `${formatNumber(data.jumlah_beras_kg)} kg`
           : formatCurrency(data.jumlah_uang_rp);
-      doc.text(totalText, 70, yPosition);
+      doc.text(totalText, detailValueX, yPosition);
       yPosition += 15;
     }
 
     // Separator line
     doc.setLineWidth(0.3);
-    doc.line(20, yPosition, pageWidth - 20, yPosition);
+    doc.line(leftX, yPosition, pageWidth - MARGIN, yPosition);
     yPosition += 10;
 
     // Footer - Signature
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Helvetica', 'normal');
     doc.setFontSize(9);
-    doc.text('Petugas,', 20, yPosition);
-    doc.text('Penerima,', pageWidth - 60, yPosition);
+    doc.text('Petugas,', leftX, yPosition);
+    doc.text('Penerima,', pageWidth - MARGIN - 40, yPosition);
     yPosition += 20;
 
-    doc.text('(_________________)', 20, yPosition);
-    doc.text('(_________________)', pageWidth - 60, yPosition);
+    doc.text('(_________________)', leftX, yPosition);
+    doc.text('(_________________)', pageWidth - MARGIN - 40, yPosition);
     yPosition += 10;
 
     // Footer note

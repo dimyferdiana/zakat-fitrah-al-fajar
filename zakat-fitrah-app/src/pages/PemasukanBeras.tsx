@@ -13,13 +13,14 @@ import {
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { PemasukanBerasForm } from '@/components/pemasukan/PemasukanBerasForm';
+import { BuktiPemasukanBeras } from '@/components/pemasukan/BuktiPemasukanBeras';
 import {
   useCreatePemasukanBeras,
   usePemasukanBerasList,
 } from '@/hooks/usePemasukanBeras';
 import type { PemasukanBeras } from '@/hooks/usePemasukanBeras';
 import { useTahunZakatList } from '@/hooks/useDashboard';
-import { Plus } from 'lucide-react';
+import { Plus, Receipt } from 'lucide-react';
 
 const kategoriLabels: Record<string, string> = {
   fidyah_beras: 'Fidyah Beras',
@@ -31,6 +32,8 @@ export function PemasukanBeras() {
   const [kategori, setKategori] = useState<'semua' | 'fidyah_beras' | 'infak_sedekah_beras' | 'zakat_fitrah_beras'>('semua');
   const [formOpen, setFormOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [buktiOpen, setBuktiOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<PemasukanBeras | null>(null);
 
   const { data: tahunList, isLoading: tahunLoading } = useTahunZakatList();
   const activeTahun = useMemo(() => tahunList?.find((t) => t.is_active), [tahunList]);
@@ -60,6 +63,11 @@ export function PemasukanBeras() {
     await createMutation.mutateAsync(values);
     setFormOpen(false);
     refetch();
+  };
+
+  const handleShowBukti = (item: PemasukanBeras) => {
+    setSelectedItem(item);
+    setBuktiOpen(true);
   };
 
   const tahunOptions = tahunList || [];
@@ -140,7 +148,8 @@ export function PemasukanBeras() {
                     <th className="py-2 pr-4">Kategori</th>
                     <th className="py-2 pr-4">Jumlah (Kg)</th>
                     <th className="py-2 pr-4">Muzakki</th>
-                    <th className="py-2">Catatan</th>
+                    <th className="py-2 pr-4">Catatan</th>
+                    <th className="py-2">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -152,7 +161,17 @@ export function PemasukanBeras() {
                       <td className="py-2 pr-4">{kategoriLabels[item.kategori] || item.kategori}</td>
                       <td className="py-2 pr-4 font-medium">{Number(item.jumlah_beras_kg).toFixed(2)} Kg</td>
                       <td className="py-2 pr-4">{item.muzakki?.nama_kk || '-'}</td>
-                      <td className="py-2 text-muted-foreground">{item.catatan || '-'}</td>
+                      <td className="py-2 pr-4 text-muted-foreground">{item.catatan || '-'}</td>
+                      <td className="py-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleShowBukti(item)}
+                        >
+                          <Receipt className="mr-1 h-4 w-4" />
+                          Bukti
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -170,6 +189,14 @@ export function PemasukanBeras() {
         isSubmitting={createMutation.isPending}
         onSubmit={(values) => handleSubmit(values)}
       />
+
+      {selectedItem && (
+        <BuktiPemasukanBeras
+          open={buktiOpen}
+          onOpenChange={setBuktiOpen}
+          data={selectedItem}
+        />
+      )}
 
       {tahunDisplay && (
         <p className="text-xs text-muted-foreground">
