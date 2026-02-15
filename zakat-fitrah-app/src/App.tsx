@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Suspense, lazy } from 'react';
 import { Toaster } from '@/components/ui/sonner';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from '@/lib/auth';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { MainLayout } from '@/components/layouts/MainLayout';
@@ -143,6 +144,7 @@ function App() {
           </Suspense>
         </BrowserRouter>
         <Toaster />
+        <Analytics />
       </AuthProvider>
     </QueryClientProvider>
   );
