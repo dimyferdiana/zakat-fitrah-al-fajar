@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Undangan Bergabung - Zakat Fitrah Al Fajar</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f5f5f5;">
+        <tr>
+            <td style="padding: 40px 20px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+                    
+                    <!-- Header with brand -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 40px 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
+                                🌙 Zakat Fitrah Al Fajar
+                            </h1>
+                            <p style="margin: 8px 0 0; color: rgba(255, 255, 255, 0.9); font-size: 14px;">
+                                Sistem Manajemen Zakat & Sedekah
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Main content -->
+                    <tr>
+                        <td style="padding: 40px 40px 20px;">
+                            <h2 style="margin: 0 0 20px; color: #1f2937; font-size: 24px; font-weight: 600;">
+                                Anda Diundang! 🎉
+                            </h2>
+                            
+                            <p style="margin: 0 0 16px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                                Selamat! Anda telah diundang untuk bergabung dengan <strong>Zakat Fitrah Al Fajar</strong> sebagai administrator sistem.
+                            </p>
+                            
+                            <p style="margin: 0 0 16px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                                Sistem ini membantu Anda mengelola data muzakki, mustahik, distribusi zakat, dan laporan keuangan dengan mudah dan efisien.
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- CTA Button -->
+                    <tr>
+                        <td style="padding: 0 40px 30px;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <a href="{{ .ConfirmationURL }}" style="display: inline-block; padding: 16px 48px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                                            Terima Undangan
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Invitation details -->
+                    <tr>
+                        <td style="padding: 0 40px 30px;">
+                            <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 20px; border-radius: 4px;">
+                                <p style="margin: 0 0 12px; color: #1e40af; font-size: 14px; font-weight: 700;">
+                                    Detail Undangan:
+                                </p>
+                                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                    <tr>
+                                        <td style="padding: 4px 0; color: #4b5563; font-size: 14px;">📧 Email:</td>
+                                        <td style="padding: 4px 0; color: #1f2937; font-size: 14px; font-weight: 600;">{{ .Email }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 4px 0; color: #4b5563; font-size: 14px;">👤 Role:</td>
+                                        <td style="padding: 4px 0; color: #1f2937; font-size: 14px; font-weight: 600;">Administrator</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Alternative link section -->
+                    <tr>
+                        <td style="padding: 0 40px 30px;">
+                            <div style="background-color: #f9fafb; border-left: 4px solid #3b82f6; padding: 16px; border-radius: 4px;">
+                                <p style="margin: 0 0 12px; color: #6b7280; font-size: 14px; font-weight: 600;">
+                                    Jika tombol tidak berfungsi, salin dan tempel tautan ini ke browser Anda:
+                                </p>
+                                <p style="margin: 0; color: #3b82f6; font-size: 13px; word-break: break-all; font-family: 'Courier New', monospace;">
+                                    {{ .ConfirmationURL }}
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Important info -->
+                    <tr>
+                        <td style="padding: 0 40px 30px;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-top: 1px solid #e5e7eb; padding-top: 24px;">
+                                <tr>
+                                    <td>
+                                        <p style="margin: 0 0 12px; color: #6b7280; font-size: 14px; line-height: 1.5;">
+                                            ⏱️ <strong>Tautan undangan ini akan kedaluwarsa dalam 7 hari.</strong>
+                                        </p>
+                                        <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.5;">
+                                            🔒 Jika Anda tidak mengenal pengirim undangan ini, Anda dapat mengabaikan email ini dengan aman.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 30px 40px 40px; border-top: 1px solid #e5e7eb;">
+                            <p style="margin: 0 0 8px; color: #1f2937; font-size: 14px; font-weight: 600;">
+                                Salam hormat,
+                            </p>
+                            <p style="margin: 0 0 20px; color: #3b82f6; font-size: 16px; font-weight: 700;">
+                                Tim Zakat Fitrah Al Fajar
+                            </p>
+                            <p style="margin: 0; color: #9ca3af; font-size: 12px; line-height: 1.5;">
+                                Email ini dikirim secara otomatis. Mohon jangan membalas email ini.
+                            </p>
+                        </td>
+                    </tr>
+                    
+                </table>
+                
+                <!-- Copyright footer -->
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 600px; margin: 20px auto 0;">
+                    <tr>
+                        <td style="text-align: center; padding: 0 20px;">
+                            <p style="margin: 0; color: #9ca3af; font-size: 12px; line-height: 1.5;">
+                                © 2026 Zakat Fitrah Al Fajar. Semua hak dilindungi.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -4,6 +4,27 @@ This guide walks you through configuring email templates in your Supabase Dashbo
 
 ---
 
+## 🎨 New! Professional Email Templates
+
+**We've created beautiful, production-ready email templates for you!**
+
+Located in: `email-templates/` folder
+- ✅ `confirm-signup.html` - Email confirmation (Green theme)
+- ✅ `reset-password.html` - Password reset (Red theme)
+- ✅ `magic-link.html` - Passwordless login (Indigo theme)
+- ✅ `invite-user.html` - User invitation (Blue theme)
+
+**Features:**
+- 📱 Mobile-responsive design
+- 🎨 Beautiful gradient headers
+- 🔘 Clear call-to-action buttons
+- ✉️ Professional branding
+- 🌐 Works across all email clients (Gmail, Outlook, Apple Mail)
+
+**See:** `email-templates/README.md` for full documentation and implementation guide.
+
+---
+
 ## Prerequisites
 
 ✅ **Completed:**
@@ -64,35 +85,45 @@ This email is sent when a new user registers via invitation.
    ```
 
 2. **Message Body (HTML):**
+   
+   📧 **Professional template available:** Copy the full HTML from `email-templates/confirm-signup.html`
+   
+   This template includes:
+   - 🎨 Beautiful gradient header with brand colors (Green theme)
+   - 📱 Mobile-responsive design
+   - 🔘 Prominent CTA button
+   - 📋 Alternative text link for compatibility
+   - ⏱️ Clear expiry information (24 hours)
+   - 🔒 Security messaging
+   - ✉️ Professional footer
+
+   **Quick Start (Basic HTML):**
    ```html
    <h2>Welcome to Zakat Fitrah Al Fajar!</h2>
    
    <p>Thank you for registering. Please confirm your email address to activate your account.</p>
    
-   <p><a href="{{ .SiteURL }}/email-confirmation?token_hash={{ .TokenHash }}&type=signup">Confirm Email Address</a></p>
+   <p><a href="{{ .ConfirmationURL }}" style="display: inline-block; padding: 12px 24px; background-color: #10b981; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">Confirm Email Address</a></p>
    
    <p>Or copy and paste this link into your browser:</p>
-   <p>{{ .SiteURL }}/email-confirmation?token_hash={{ .TokenHash }}&type=signup</p>
+   <p style="color: #10b981;">{{ .SiteURL }}/email-confirmation?token_hash={{ .TokenHash }}&type=signup</p>
    
    <p>This link will expire in 24 hours.</p>
    
    <p>If you didn't register for this account, you can safely ignore this email.</p>
    
    <br>
-   <p>Best regards,<br>Zakat Fitrah Al Fajar Team</p>
+   <p>Best regards,<br><strong>Zakat Fitrah Al Fajar Team</strong></p>
    ```
 
 3. Click **Save**
 
 ### Template Variables Used:
+- `{{ .ConfirmationURL }}` - Pre-built confirmation URL (recommended - most reliable)
 - `{{ .SiteURL }}` - Your frontend URL (set in URL Configuration)
 - `{{ .TokenHash }}` - Email confirmation token hash used by `verifyOtp`
-- `{{ .ConfirmationURL }}` - Alternative: use this instead of manually constructing the URL
 
-**Alternative (using ConfirmationURL macro):**
-```html
-<p><a href="{{ .ConfirmationURL }}">Confirm Email Address</a></p>
-```
+> **💡 Pro Tip:** Use the professional template from `email-templates/confirm-signup.html` for a polished, mobile-responsive design that works across all email clients.
 
 ---
 
@@ -111,22 +142,36 @@ This email is sent when a user requests a password reset.
    ```
 
 2. **Message Body (HTML):**
+   
+   📧 **Professional template available:** Copy the full HTML from `email-templates/reset-password.html`
+   
+   This template includes:
+   - 🎨 Beautiful gradient header with brand colors (Red theme for urgency)
+   - 📱 Mobile-responsive design
+   - 🔘 Prominent CTA button
+   - 📋 Alternative text link for compatibility
+   - ⏱️ Clear expiry information (1 hour)
+   - 🔒 Enhanced security messaging and tips
+   - ⚠️ Security warning box
+   - ✉️ Professional footer
+
+   **Quick Start (Basic HTML):**
    ```html
    <h2>Reset Your Password</h2>
    
    <p>You requested to reset your password for Zakat Fitrah Al Fajar.</p>
    
-   <p><a href="{{ .SiteURL }}/reset-password?token_hash={{ .TokenHash }}&type=recovery">Reset Password</a></p>
+   <p><a href="{{ .SiteURL }}/reset-password?token_hash={{ .TokenHash }}&type=recovery" style="display: inline-block; padding: 12px 24px; background-color: #ef4444; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">Reset Password</a></p>
    
    <p>Or copy and paste this link into your browser:</p>
-   <p>{{ .SiteURL }}/reset-password?token_hash={{ .TokenHash }}&type=recovery</p>
+   <p style="color: #ef4444;">{{ .SiteURL }}/reset-password?token_hash={{ .TokenHash }}&type=recovery</p>
    
-   <p>This link will expire in 1 hour.</p>
+   <p><strong>This link will expire in 1 hour.</strong></p>
    
    <p>If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
    
    <br>
-   <p>Best regards,<br>Zakat Fitrah Al Fajar Team</p>
+   <p>Best regards,<br><strong>Zakat Fitrah Al Fajar Team</strong></p>
    ```
 
 3. Click **Save**
@@ -135,12 +180,15 @@ This email is sent when a user requests a password reset.
 - `{{ .SiteURL }}` - Your frontend URL
 - `{{ .TokenHash }}` - Password reset token hash
 
+> **💡 Pro Tip:** Use the professional template from `email-templates/reset-password.html` for enhanced security messaging and better user experience.
+
 ---
 
-## Step 5: Configure "Magic Link" Email Template (Optional)
+## Step 5: Configure "Magic Link" Email Template
 
-This is optional - only needed if you want to support passwordless login.
-Note: Your current app does **not** include `/auth/callback`, so keep this disabled unless you add that route.
+This email is sent when a user requests passwordless login via magic link.
+
+> **Note:** Magic link requires proper route configuration in your app. Only enable if you have implemented magic link authentication.
 
 ### Navigation:
 - **Authentication** → **Email Templates** → **Magic Link**
@@ -149,29 +197,49 @@ Note: Your current app does **not** include `/auth/callback`, so keep this disab
 
 1. **Subject Line:**
    ```
-   Sign In to Zakat Fitrah Al Fajar
+   Your Login Link - Zakat Fitrah Al Fajar
    ```
 
 2. **Message Body (HTML):**
+   
+   📧 **Professional template available:** Copy the full HTML from `email-templates/magic-link.html`
+   
+   This template includes:
+   - 🎨 Beautiful gradient header with brand colors (Indigo/Purple theme)
+   - 📱 Mobile-responsive design
+   - 🔘 Prominent CTA button
+   - ⚡ Benefits section explaining magic link advantages
+   - 📋 Alternative text link for compatibility
+   - ⏱️ Clear expiry information (5 minutes)
+   - 🔒 Enhanced security warnings (one-time use)
+   - ⚠️ Security notice about link sharing
+   - ✉️ Professional footer
+
+   **Quick Start (Basic HTML):**
    ```html
-   <h2>Sign In to Zakat Fitrah Al Fajar</h2>
+   <h2>Magic Link Login</h2>
    
-   <p>Click the link below to sign in to your account:</p>
+   <p>Follow this link to login to your Zakat Fitrah Al Fajar account:</p>
    
-   <p><a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink">Sign In</a></p>
+   <p><a href="{{ .ConfirmationURL }}" style="display: inline-block; padding: 12px 24px; background-color: #6366f1; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600;">Log In</a></p>
    
    <p>Or copy and paste this link into your browser:</p>
-   <p>{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=magiclink</p>
+   <p style="color: #6366f1;">{{ .ConfirmationURL }}</p>
    
-   <p>This link will expire in 1 hour.</p>
+   <p><strong>This link will expire in 5 minutes</strong> and can only be used once.</p>
    
    <p>If you didn't request this link, you can safely ignore this email.</p>
    
    <br>
-   <p>Best regards,<br>Zakat Fitrah Al Fajar Team</p>
+   <p>Best regards,<br><strong>Zakat Fitrah Al Fajar Team</strong></p>
    ```
 
 3. Click **Save**
+
+### Template Variables Used:
+- `{{ .ConfirmationURL }}` - Pre-built magic link URL (recommended - includes all necessary parameters)
+
+> **💡 Pro Tip:** Use the professional template from `email-templates/magic-link.html` for a modern passwordless login experience with clear security messaging.
 
 ---
 
