@@ -235,14 +235,14 @@ Update the file after completing each sub-task, not just after completing an ent
 
 ### Testing Checklist
 
-- [ ] Anonymous users cannot access any protected data (test with direct Supabase queries)
-- [ ] Deactivated users are immediately logged out
-- [ ] Invitations expire after 24 hours
-- [ ] Tokens are single-use (cannot register twice with same token)
-- [ ] Email confirmation is required before login
+- [X] Anonymous users cannot access any protected data (test with direct Supabase queries)
+- [X] Deactivated users are immediately logged out
+- [X] Invitations expire after 24 hours
+- [X] Tokens are single-use (cannot register twice with same token)
+- [X] Email confirmation is required before login
 - [X] Last admin cannot be deactivated
-- [ ] Profile updates work for all user roles
-- [ ] Password reset works end-to-end
+- [X] Profile updates work for all user roles
+- [X] Password reset works end-to-end
 
 ---
 
