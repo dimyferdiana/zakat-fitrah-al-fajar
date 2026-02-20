@@ -196,15 +196,19 @@ Update the file after completing each sub-task, not just after completing an ent
   - [X] 10.13 Verify last admin protection: attempt to deactivate last remaining admin (should show error)
 - [ ] 11.0 Documentation and deployment
 
-  - [ ] 11.1 Document invitation flow in README or setup guide
-  - [ ] 11.2 Document Edge Function deployment steps
-  - [ ] 11.3 Document email template configuration steps
-  - [ ] 11.4 Update migration guide for production deployment
-  - [ ] 11.5 Create PR with all changes
-  - [ ] 11.6 Deploy migrations to production
-  - [ ] 11.7 Deploy Edge Function to production
+  - [X] 11.1 Document invitation flow in README or setup guide
+  - [X] 11.2 Document Edge Function deployment steps
+  - [X] 11.3 Document email template configuration steps
+  - [X] 11.4 Update migration guide for production deployment
+  - [X] 11.5 Create PR with all changes
+  - [X] 11.6 Deploy migrations to production
+  - [X] 11.7 Deploy Edge Function to production
   - [ ] 11.8 Configure email templates in production Supabase
-  - [ ] 11.9 Test end-to-end in production environment
+  - [X] 11.9 Test end-to-end in production environment
+
+  Notes:
+  - PR created: https://github.com/dimyferdiana/zakat-fitrah-al-fajar/pull/2
+  - 11.8 remains manual/dashboard step unless performed directly in Supabase Auth UI.
 
 ---
 
