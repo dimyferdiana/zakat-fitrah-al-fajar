@@ -725,6 +725,29 @@ curl -X POST 'https://YOUR_PROJECT.supabase.co/functions/v1/invitation-manager' 
 
 ---
 
+### Test 7.5: Verify Last Admin Protection (Task 10.13)
+
+**Purpose:** Ensure the system blocks deactivating/demoting the last remaining active admin.
+
+**One-command automated regression:**
+```bash
+python3 scripts/test_10_13_last_admin_protection.py
+```
+
+**Expected JSON pass criteria:**
+- ✅ `fetch_admins_ok: true`
+- ✅ `active_admin_count_before_last_attempt: 1`
+- ✅ `last_admin_deactivate_blocked: true`
+- ✅ `status_last_admin_attempt: 400`
+- ✅ `raw_last_admin_response` contains `Cannot deactivate or demote the last active admin` (code `P0001`)
+
+**Notes:**
+- Script temporarily deactivates extra active admins to create a single-admin condition.
+- Script automatically restores previously deactivated admins at the end.
+- DB-level guard is enforced by migration `021_protect_last_active_admin.sql`.
+
+---
+
 ## Test Suite 8: Security
 
 ### Test 8.1: Token Hashing
@@ -830,11 +853,11 @@ Review and mark each category as complete:
 - [ ] **Suite 4:** Authentication Flow (8 tests)
 - [ ] **Suite 5:** Row-Level Security (5 tests)
 - [ ] **Suite 6:** Edge Function (3 tests)
-- [ ] **Suite 7:** User Management (4 tests)
+- [ ] **Suite 7:** User Management (5 tests)
 - [ ] **Suite 8:** Security (3 tests)
 - [ ] **Suite 9:** Edge Cases (4 tests)
 
-**Total Tests:** 44
+**Total Tests:** 45
 
 ## Bug Reporting Template
 
@@ -867,7 +890,7 @@ If a test fails, use this template:
 
 Before marking feature complete, verify:
 
-- [ ] All 44 tests pass
+- [ ] All 45 tests pass
 - [ ] No console errors in browser
 - [ ] No errors in Edge Function logs
 - [ ] Database migrations applied successfully

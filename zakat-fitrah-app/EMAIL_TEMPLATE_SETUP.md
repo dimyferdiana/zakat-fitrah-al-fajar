@@ -259,6 +259,24 @@ This email is sent when a user requests passwordless login via magic link.
 
 ### Test Password Reset:
 
+---
+
+## Production Completion Checklist
+
+Use this when closing Task 11.8:
+
+- [ ] Site URL set to production frontend domain in Supabase Auth URL Configuration
+- [ ] Redirect URLs include production and local development entries
+- [ ] Confirm Signup template saved and tested
+- [ ] Reset Password template saved and tested
+- [ ] Magic Link template reviewed (if used)
+- [ ] Invitation email content verified (if invite emails are enabled in your flow)
+- [ ] Real mailbox test completed for confirmation and reset flows
+
+Recommended final verification:
+- Register user from invitation and confirm email link lands on `/email-confirmation`
+- Trigger reset password and confirm link lands on `/reset-password`
+
 1. Go to `/forgot-password` on your app
 2. Enter your email address
 3. Submit the form

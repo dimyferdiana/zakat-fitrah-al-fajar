@@ -26,6 +26,21 @@ interface UpdateUserInput {
   is_active: boolean;
 }
 
+function mapUserMutationError(error: Error): string {
+  const raw = error.message || '';
+  const normalized = raw.toLowerCase();
+
+  if (
+    normalized.includes('last active admin') ||
+    normalized.includes('cannot deactivate or demote the last active admin') ||
+    normalized.includes('cannot delete the last active admin')
+  ) {
+    return 'Tidak dapat menonaktifkan atau menurunkan role admin terakhir. Tambahkan/aktifkan admin lain terlebih dahulu.';
+  }
+
+  return raw;
+}
+
 // Fetch users list
 export function useUsersList() {
   return useQuery({
@@ -127,7 +142,7 @@ export function useUpdateUser() {
       toast.success('User berhasil diperbarui');
     },
     onError: (error: Error) => {
-      toast.error(`Gagal memperbarui user: ${error.message}`);
+      toast.error(`Gagal memperbarui user: ${mapUserMutationError(error)}`);
     },
   });
 }
@@ -153,7 +168,7 @@ export function useToggleUserActive() {
       );
     },
     onError: (error: Error) => {
-      toast.error(`Gagal mengubah status user: ${error.message}`);
+      toast.error(`Gagal mengubah status user: ${mapUserMutationError(error)}`);
     },
   });
 }

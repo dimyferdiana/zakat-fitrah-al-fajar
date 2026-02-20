@@ -192,8 +192,8 @@ Update the file after completing each sub-task, not just after completing an ent
   - [X] 10.9 Test password reset flow
   - [X] 10.10 Test deactivated user: toggle user to inactive in admin panel, verify they can't access app
   - [X] 10.11 Test RLS: attempt to access mustahik data as anon (should fail via direct Supabase query)
-  - [ ] 10.12 Test user management: change role, deactivate/reactivate user
-  - [ ] 10.13 Verify last admin protection: attempt to deactivate last remaining admin (should show error)
+  - [X] 10.12 Test user management: change role, deactivate/reactivate user
+  - [X] 10.13 Verify last admin protection: attempt to deactivate last remaining admin (should show error)
 - [ ] 11.0 Documentation and deployment
 
   - [ ] 11.1 Document invitation flow in README or setup guide
@@ -236,7 +236,7 @@ Update the file after completing each sub-task, not just after completing an ent
 - [ ] Invitations expire after 24 hours
 - [ ] Tokens are single-use (cannot register twice with same token)
 - [ ] Email confirmation is required before login
-- [ ] Last admin cannot be deactivated
+- [X] Last admin cannot be deactivated
 - [ ] Profile updates work for all user roles
 - [ ] Password reset works end-to-end
 

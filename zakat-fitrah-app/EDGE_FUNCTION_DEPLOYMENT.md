@@ -7,7 +7,7 @@ This guide explains how to deploy the `invitation-manager` Edge Function to Supa
 - Supabase CLI installed (`npm install -g supabase`)
 - Supabase project created
 - Admin access to Supabase Dashboard
-- Migrations 013 and 014 applied successfully
+- Invitation-auth migration baseline applied (013, 015, 016, 017, 018, 019, 020, 021)
 
 ## Edge Function Overview
 
@@ -74,6 +74,13 @@ Add these variables:
 ```bash
 cd zakat-fitrah-app
 supabase functions deploy invitation-manager
+```
+
+For production, verify you are linked to the correct project before deploy:
+
+```bash
+supabase projects list
+supabase link --project-ref YOUR_PROJECT_REF
 ```
 
 **Expected Output:**
@@ -176,6 +183,19 @@ curl -X POST 'https://YOUR_PROJECT.supabase.co/functions/v1/invitation-manager' 
 ```bash
 supabase functions logs invitation-manager
 ```
+
+### Step 7.1: Production Deploy Verification (Required)
+
+After deployment, run this smoke request and confirm non-500 response:
+
+```bash
+curl -X POST 'https://YOUR_PROJECT.supabase.co/functions/v1/invitation-manager' \
+  -H 'Authorization: Bearer YOUR_ANON_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{"action":"validateInvitation","token":"invalid-token-smoke"}'
+```
+
+Expected: HTTP `4xx` with validation error (not `5xx`).
 
 **Via Dashboard:**
 1. Go to **Edge Functions** → `invitation-manager`

@@ -1,6 +1,32 @@
 # Migration Guide: Invitation Auth System
 
-This guide explains how to manually apply the invitation authentication system migrations to your Supabase database.
+This guide explains how to apply invitation-auth migrations to Supabase for production.
+
+## Current Production Baseline
+
+For the invitation-auth feature set, ensure these migrations are present in remote history:
+
+- `013_user_invitations_schema.sql`
+- `015_rls_user_invitations_only.sql`
+- `016_rls_invitation_auth.sql`
+- `017_fix_users_rls_circular_reference.sql`
+- `018_fix_users_rls_with_security_definer.sql`
+- `019_fix_domain_table_rls_with_security_definer.sql`
+- `020_remove_old_permissive_rls_policies.sql`
+- `021_protect_last_active_admin.sql`
+
+Recommended deployment method:
+
+```bash
+cd zakat-fitrah-app
+supabase db push
+```
+
+Then verify:
+
+```bash
+supabase migration list
+```
 
 ## Prerequisites
 
@@ -10,9 +36,8 @@ This guide explains how to manually apply the invitation authentication system m
 
 ## Migration Files
 
-Two migration files need to be applied in order:
-1. `013_user_invitations_schema.sql` - Creates the user_invitations table and extends users table
-2. `014_rls_invitation_auth.sql` - Updates RLS policies to enforce invitation-only access
+Primary invitation-auth migrations are listed in **Current Production Baseline** above.
+If you are on an older environment, apply all pending migrations in order via `supabase db push`.
 
 ## Step-by-Step Instructions
 
@@ -53,28 +78,29 @@ AND table_name = 'users'
 AND column_name IN ('address', 'phone');
 ```
 
-### Step 3: Apply Migration 014 (RLS Policies)
+### Step 3: Apply RLS & Security Fix Migrations
 
 1. In Supabase Dashboard → **SQL Editor**
 2. Click **New Query** (or clear the previous query)
-3. Copy the contents of `supabase/migrations/014_rls_invitation_auth.sql`
+3. Apply all pending RLS/security migrations in order (`016` through `021`)
 4. Paste into the SQL Editor
 5. Click **Run** or press `Ctrl+Enter` / `Cmd+Enter`
 6. Verify success message appears
 
 **Expected Results:**
-- Old anonymous-access policies dropped
-- Helper functions `is_active_user()` and `is_admin_user()` created
-- New RLS policies created for all tables requiring authenticated active users
-- user_invitations accessible only by admins
+- Anonymous access blocked on protected domain tables
+- Users table RLS no longer has circular-reference policy errors
+- Domain-table RLS aligned to active-user checks
+- Old permissive policies removed
+- Last active admin cannot be deactivated/demoted/deleted
 
 **Verification Query:**
 ```sql
--- Check if helper functions exist
+-- Check if helper functions exist (security definer)
 SELECT routine_name 
 FROM information_schema.routines 
 WHERE routine_schema = 'public' 
-AND routine_name IN ('is_active_user', 'is_admin_user');
+AND routine_name IN ('get_current_user_role', 'get_current_user_is_active', 'prevent_last_active_admin_change');
 
 -- Check RLS is enabled on user_invitations
 SELECT tablename, rowsecurity 
@@ -132,23 +158,34 @@ WITH migration_check AS (
   UNION ALL
   
   SELECT 
-    'is_active_user function exists',
+    'get_current_user_role function exists',
     EXISTS (
       SELECT 1 
       FROM information_schema.routines 
       WHERE routine_schema = 'public' 
-      AND routine_name = 'is_active_user'
+      AND routine_name = 'get_current_user_role'
     )
   
   UNION ALL
   
   SELECT 
-    'is_admin_user function exists',
+    'get_current_user_is_active function exists',
     EXISTS (
       SELECT 1 
       FROM information_schema.routines 
       WHERE routine_schema = 'public' 
-      AND routine_name = 'is_admin_user'
+      AND routine_name = 'get_current_user_is_active'
+    )
+
+  UNION ALL
+
+  SELECT 
+    'prevent_last_active_admin_change function exists',
+    EXISTS (
+      SELECT 1 
+      FROM information_schema.routines 
+      WHERE routine_schema = 'public' 
+      AND routine_name = 'prevent_last_active_admin_change'
     )
   
   UNION ALL
@@ -223,7 +260,7 @@ DROP POLICY IF EXISTS "mustahik_select_policy" ON public.mustahik;
 
 ### Error: "Function does not exist"
 
-Ensure migration 013 completed successfully before running migration 014. The helper functions are created in migration 014.
+Ensure all pending migrations are applied (`supabase db push`) and confirm function presence with the verification queries above.
 
 ### Testing Active User Check
 
@@ -251,7 +288,7 @@ WHERE email = 'test@example.com';
 After successfully applying migrations:
 
 1. ✅ Deploy Edge Function (see [EDGE_FUNCTION_DEPLOYMENT.md](EDGE_FUNCTION_DEPLOYMENT.md))
-2. ✅ Configure Email Templates (see Step 12 in main task list)
+2. ✅ Configure Email Templates (see [EMAIL_TEMPLATE_SETUP.md](EMAIL_TEMPLATE_SETUP.md))
 3. ✅ Test invitation creation as admin
 4. ✅ Test user registration with invitation
 5. ✅ Test profile updates

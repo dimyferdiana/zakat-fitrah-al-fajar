@@ -1,5 +1,34 @@
 # React + TypeScript + Vite
 
+## Invitation Auth Flow (Production)
+
+High-level flow used in this project:
+
+1. Admin creates invitation via `invitation-manager` Edge Function (`createInvitation`)
+2. User opens `/register?token=...` and app validates token (`validateInvitation`)
+3. User submits registration and account is created (`registerUser`)
+4. User confirms email via `/email-confirmation`
+5. User logs in and app enforces `users.is_active` on session bootstrap
+
+Core references:
+- Migration deployment: [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md)
+- Edge Function deployment: [EDGE_FUNCTION_DEPLOYMENT.md](EDGE_FUNCTION_DEPLOYMENT.md)
+- Email templates setup: [EMAIL_TEMPLATE_SETUP.md](EMAIL_TEMPLATE_SETUP.md)
+- Invitation-auth test plan: [TESTING_CHECKLIST_INVITATION_AUTH.md](TESTING_CHECKLIST_INVITATION_AUTH.md)
+
+## Quick Security Regression (Task 10.13)
+
+Run this command from the `zakat-fitrah-app` folder to verify last-admin protection:
+
+```bash
+python3 scripts/test_10_13_last_admin_protection.py
+```
+
+Pass criteria in output:
+- `last_admin_deactivate_blocked: true`
+- `status_last_admin_attempt: 400`
+- response contains `Cannot deactivate or demote the last active admin` (code `P0001`)
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
