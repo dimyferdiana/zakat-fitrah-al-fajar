@@ -8,13 +8,13 @@
 
 | Metric | Value |
 |---|---|
-| **Total Features** | 5 |
+| **Total Features** | 6 |
 | **Completed** | 4 |
-| **In Progress** | 1 |
-| **Overall Task Completion** | 794 / 861 (92%) |
+| **In Progress** | 2 |
+| **Overall Task Completion** | 951 / 1024 (93%) |
 
 ```
-███████████████████████░░  92% Overall
+███████████████████████░  93% Overall
 ```
 
 ---
@@ -24,6 +24,7 @@
 ### Active
 
 - `tasks-zakat-fitrah-app.md`
+- `tasks-hak-amil-uang-beras.md`
 - `task-status-report.md`
 
 ### Completed
@@ -112,6 +113,34 @@
 ████████████████████  100%
 ```
 
+
+### 6) Hak Amil (Uang & Beras)
+
+**File:** `active/tasks-hak-amil-uang-beras.md`  
+**Status:** `IN_PROGRESS` (Wave 4 QA Complete)  
+**Progress:** 157 / 163 (96%)
+
+```
+███████████████████░  96%
+```
+
+**Recent completion:**
+- ✅ Wave 4 QA validation completed (Tasks 8.2-8.8)
+- ✅ All unit tests passing (6/6)
+- ✅ Security validation complete (RLS + role gating)
+- ✅ Formula correctness verified
+- ✅ Snapshot immutability confirmed
+- ✅ Export functions validated
+- ✅ Documentation created (`hak-amil-feature-guide.md`)
+
+**Open items (6 total):**
+- User acceptance testing in staging environment
+- Production data migration (if backfill chosen)
+- Final admin training on configuration workflow
+
+**Status:** Ready for deployment after UAT sign-off
+
+---
 ---
 
 ## Updated Overall Status

@@ -17,6 +17,14 @@ const formatNumber = (value: number) => {
   return value.toFixed(2);
 };
 
+const formatPercentage = (value: number) => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'decimal',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value) + '%';
+};
+
 const formatDate = (date: string) => {
   return format(new Date(date), 'dd/MM/yyyy', { locale: localeId });
 };
@@ -330,4 +338,182 @@ export const exportMustahikExcel = (groupedData: any[], summary: any) => {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Mustahik');
   XLSX.writeFile(wb, `Laporan-Mustahik-${Date.now()}.xlsx`);
+};
+
+// ============================================================================
+// HAK AMIL EXPORTS
+// ============================================================================
+
+// Helper: Map kategori to Indonesian labels
+const getKategoriLabel = (kategori: string): string => {
+  const labels: Record<string, string> = {
+    'zakat_fitrah': 'Zakat Fitrah',
+    'zakat_maal': 'Zakat Maal',
+    'infak': 'Infak',
+    'fidyah': 'Fidyah',
+    'beras': 'Beras',
+  };
+  return labels[kategori] || kategori;
+};
+
+// Helper: Map basis mode to Indonesian labels
+const getBasisModeLabel = (basisMode: string): string => {
+  const labels: Record<string, string> = {
+    'net_after_reconciliation': 'Neto Setelah Rekonsiliasi',
+    'gross_before_reconciliation': 'Bruto Sebelum Rekonsiliasi',
+  };
+  return labels[basisMode] || basisMode;
+};
+
+// HAK AMIL Summary interface (matching useHakAmil.ts)
+export interface HakAmilSummary {
+  categories: Array<{
+    kategori: 'zakat_fitrah' | 'zakat_maal' | 'infak' | 'fidyah' | 'beras';
+    total_bruto: number;
+    total_rekonsiliasi: number;
+    total_neto: number;
+    persen_hak_amil: number;
+    nominal_hak_amil: number;
+  }>;
+  grand_total_bruto: number;
+  grand_total_rekonsiliasi: number;
+  grand_total_neto: number;
+  grand_total_hak_amil: number;
+}
+
+export interface HakAmilExportFilters {
+  periode: string; // e.g., "Januari 2026" or "Tahun 2026"
+  tahunZakatNama: string; // e.g., "1445 H / 2024 M"
+  basisMode: string; // e.g., "net_after_reconciliation"
+}
+
+export const exportHakAmilPDF = (
+  summary: HakAmilSummary,
+  filters: HakAmilExportFilters
+) => {
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  
+  addPDFHeader(pdf, 'LAPORAN HAK AMIL');
+  
+  let y = 45;
+  
+  // Filter metadata
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Periode:', 20, y);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(filters.periode, 45, y);
+  y += 6;
+  
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Tahun Zakat:', 20, y);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(filters.tahunZakatNama, 45, y);
+  y += 6;
+  
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Basis Kalkulasi:', 20, y);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(getBasisModeLabel(filters.basisMode), 45, y);
+  y += 10;
+  
+  // Category table
+  const tableData = summary.categories.map((cat) => [
+    getKategoriLabel(cat.kategori),
+    formatCurrency(cat.total_bruto),
+    formatCurrency(cat.total_rekonsiliasi),
+    formatCurrency(cat.total_neto),
+    formatPercentage(cat.persen_hak_amil),
+    formatCurrency(cat.nominal_hak_amil),
+  ]);
+  
+  // Add grand total row
+  tableData.push([
+    'TOTAL',
+    formatCurrency(summary.grand_total_bruto),
+    formatCurrency(summary.grand_total_rekonsiliasi),
+    formatCurrency(summary.grand_total_neto),
+    '-',
+    formatCurrency(summary.grand_total_hak_amil),
+  ]);
+  
+  autoTable(pdf, {
+    startY: y,
+    head: [['Kategori', 'Bruto', 'Rekonsiliasi', 'Neto', 'Persen (%)', 'Nominal Hak Amil']],
+    body: tableData,
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [59, 130, 246] },
+    footStyles: { fillColor: [229, 231, 235], fontStyle: 'bold' },
+    columnStyles: {
+      0: { cellWidth: 30 },
+      1: { halign: 'right', cellWidth: 28 },
+      2: { halign: 'right', cellWidth: 28 },
+      3: { halign: 'right', cellWidth: 28 },
+      4: { halign: 'center', cellWidth: 20 },
+      5: { halign: 'right', cellWidth: 28 },
+    },
+    didParseCell: function(data) {
+      // Make the last row (TOTAL) bold
+      if (data.row.index === tableData.length - 1) {
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [229, 231, 235];
+      }
+    },
+  });
+  
+  addPDFFooter(pdf);
+  pdf.save(`Laporan-Hak-Amil-${Date.now()}.pdf`);
+};
+
+export const exportHakAmilExcel = (
+  summary: HakAmilSummary,
+  filters: HakAmilExportFilters
+) => {
+  const rows: any[] = [
+    ['LAPORAN HAK AMIL'],
+    ['Masjid Al-Fajar'],
+    [],
+    ['Periode', filters.periode],
+    ['Tahun Zakat', filters.tahunZakatNama],
+    ['Basis Kalkulasi', getBasisModeLabel(filters.basisMode)],
+    [],
+    ['Kategori', 'Bruto', 'Rekonsiliasi', 'Neto', 'Persen (%)', 'Nominal Hak Amil'],
+  ];
+  
+  // Add category rows
+  summary.categories.forEach((cat) => {
+    rows.push([
+      getKategoriLabel(cat.kategori),
+      formatCurrency(cat.total_bruto),
+      formatCurrency(cat.total_rekonsiliasi),
+      formatCurrency(cat.total_neto),
+      formatPercentage(cat.persen_hak_amil),
+      formatCurrency(cat.nominal_hak_amil),
+    ]);
+  });
+  
+  // Add grand total row
+  rows.push([
+    'TOTAL',
+    formatCurrency(summary.grand_total_bruto),
+    formatCurrency(summary.grand_total_rekonsiliasi),
+    formatCurrency(summary.grand_total_neto),
+    '-',
+    formatCurrency(summary.grand_total_hak_amil),
+  ]);
+  
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  
+  // Add styling for header rows (bold)
+  if (!ws['!cols']) ws['!cols'] = [];
+  ws['!cols'][0] = { width: 20 };
+  ws['!cols'][1] = { width: 18 };
+  ws['!cols'][2] = { width: 18 };
+  ws['!cols'][3] = { width: 18 };
+  ws['!cols'][4] = { width: 12 };
+  ws['!cols'][5] = { width: 20 };
+  
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Hak Amil');
+  XLSX.writeFile(wb, `Laporan-Hak-Amil-${Date.now()}.xlsx`);
 };
