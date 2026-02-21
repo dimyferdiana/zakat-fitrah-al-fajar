@@ -60,42 +60,42 @@ As you complete each task, change `- [ ]` to `- [x]` in this file. Update after 
   - [x] 3.5 Return `BulkResult`: `success: true` if all pass; `success: false` with `errors[]` if any row fails (partial saves are kept).
   - [x] 3.6 Write unit tests: all valid rows submit, zero-value row is skipped, partial failure collects errors without blocking other rows.
 
-- [ ] 4.0 `BulkPemasukanForm` component
-  - [ ] 4.1 Create `src/components/pemasukan/BulkPemasukanForm.tsx`.
-  - [ ] 4.2 Render spreadsheet-style table with columns: No | Nama Muzakki | Zakat Fitrah (Beras KG / Uang RP) | Zakat Maal (Beras KG / Uang RP) | Infak/Sedekah (Beras KG / Uang RP) | Hapus.
-  - [ ] 4.3 Add multi-select typeahead at top to search existing muzakki; selecting one appends a new row.
-  - [ ] 4.4 Add "Tambah Muzakki Baru" button: open mini popover with nama-only input, on save create muzakki via `useMuzakki` mutation and add row.
-  - [ ] 4.5 Show summary bar below table: Jumlah Muzakki | Total Uang (all uang summed) | Total Beras KG (all beras summed).
-  - [ ] 4.6 Validate on submit: no negative numbers; rows where all 6 values are null/zero are rejected with inline error.
-  - [ ] 4.7 Wire submit to `submitBulk`; show row-level or global spinner while submitting.
-  - [ ] 4.8 On success: show success toast + "Lihat Tanda Terima" button that renders `BulkTandaTerima`.
-  - [ ] 4.9 Write unit tests: empty state, adding a row, deleting a row, validation failure, successful submit.
+- [x] 4.0 `BulkPemasukanForm` component
+  - [x] 4.1 Create `src/components/pemasukan/BulkPemasukanForm.tsx`.
+  - [x] 4.2 Render spreadsheet-style table with columns: No | Nama Muzakki | Zakat Fitrah (Beras KG / Uang RP) | Zakat Maal (Beras KG / Uang RP) | Infak/Sedekah (Beras KG / Uang RP) | Hapus.
+  - [x] 4.3 Add multi-select typeahead at top to search existing muzakki; selecting one appends a new row.
+  - [x] 4.4 Add "Tambah Muzakki Baru" button: open mini popover with nama-only input, on save create muzakki via `useMuzakki` mutation and add row.
+  - [x] 4.5 Show summary bar below table: Jumlah Muzakki | Total Uang (all uang summed) | Total Beras KG (all beras summed).
+  - [x] 4.6 Validate on submit: no negative numbers; rows where all 6 values are null/zero are rejected with inline error.
+  - [x] 4.7 Wire submit to `submitBulk`; show row-level or global spinner while submitting.
+  - [x] 4.8 On success: show success toast + "Lihat Tanda Terima" button that renders `BulkTandaTerima`.
+  - [x] 4.9 Write unit tests: empty state, adding a row, deleting a row, validation failure, successful submit.
 
-- [ ] 5.0 `BulkTandaTerima` receipt component
-  - [ ] 5.1 Create `src/components/pemasukan/BulkTandaTerima.tsx`.
-  - [ ] 5.2 Wrap with `ReceiptShell` passing `receiptNo` and title `"TANDA TERIMA ZAKAT (FITRAH/MAL)"`.
-  - [ ] 5.3 Render header fields: Nama (e.g. "Penerimaan Massal — {n} Muzakki"), Jumlah Orang, Jumlah RP, label Perincian.
-  - [ ] 5.4 Render receipt table matching the reference photo exactly: No | Nama/Muzakki | Zakat Fitrah Beras (KG) | Zakat Fitrah Uang (RP) | Zakat Maal Beras (KG) | Zakat Maal Uang (RP) | Infak/Shadaqah/Fidyah Beras (KG) | Infak/Shadaqah/Fidyah Uang (RP).
-  - [ ] 5.5 Sequence numbers (1, 2, 3…) in No column reference the single document `receiptNo`; no separate per-muzakki receipt number.
-  - [ ] 5.6 Add totals row at bottom of table.
-  - [ ] 5.7 Print CSS: compact font, all columns fit A4 landscape, no browser chrome on print.
-  - [ ] 5.8 Add "Cetak / Print" button using `window.print()` or existing PDF export pattern.
+- [x] 5.0 `BulkTandaTerima` receipt component
+  - [x] 5.1 Create `src/components/pemasukan/BulkTandaTerima.tsx`.
+  - [x] 5.2 Wrap with `ReceiptShell` passing `receiptNo` and title `"TANDA TERIMA ZAKAT (FITRAH/MAL)"`.
+  - [x] 5.3 Render header fields: Nama (e.g. "Penerimaan Massal — {n} Muzakki"), Jumlah Orang, Jumlah RP, label Perincian.
+  - [x] 5.4 Render receipt table matching the reference photo exactly: No | Nama/Muzakki | Zakat Fitrah Beras (KG) | Zakat Fitrah Uang (RP) | Zakat Maal Beras (KG) | Zakat Maal Uang (RP) | Infak/Shadaqah/Fidyah Beras (KG) | Infak/Shadaqah/Fidyah Uang (RP).
+  - [x] 5.5 Sequence numbers (1, 2, 3…) in No column reference the single document `receiptNo`; no separate per-muzakki receipt number.
+  - [x] 5.6 Add totals row at bottom of table.
+  - [x] 5.7 Print CSS: compact font, all columns fit A4 landscape, no browser chrome on print.
+  - [x] 5.8 Add "Cetak / Print" button using `window.print()` or existing PDF export pattern.
 
-- [ ] 6.0 Bulk mode toggle in existing pages
-  - [ ] 6.1 Add "Mode Bulk" tab to `PemasukanUang.tsx`: shows `BulkPemasukanForm` when active, existing `PemasukanForm` when inactive.
-  - [ ] 6.2 Add same tab to `PemasukanBeras.tsx` (or create a unified `BulkPembayaran.tsx` page if cleaner).
-  - [ ] 6.3 Row limit reads from admin settings; falls back to 10.
-  - [ ] 6.4 Show responsive notice on small screens: "Mode bulk lebih nyaman digunakan pada layar yang lebih besar."
+- [x] 6.0 Bulk mode toggle in existing pages
+  - [x] 6.1 Add "Mode Bulk" tab to `PemasukanUang.tsx`: shows `BulkPemasukanForm` when active, existing `PemasukanForm` when inactive.
+  - [x] 6.2 Add same tab to `PemasukanBeras.tsx` (or create a unified `BulkPembayaran.tsx` page if cleaner).
+  - [x] 6.3 Row limit reads from admin settings; falls back to 10.
+  - [x] 6.4 Show responsive notice on small screens: "Mode bulk lebih nyaman digunakan pada layar yang lebih besar."
 
 - [ ] 7.0 Build, test, and deploy
-  - [ ] 7.1 Run `npm run build` — fix all TypeScript and lint errors.
-  - [ ] 7.2 Run `npm test` — confirm all new tests pass, 0 failures.
+  - [x] 7.1 Run `npm run build` — fix all TypeScript and lint errors.
+  - [x] 7.2 Run `npm test` — confirm all new tests pass, 0 failures.
   - [ ] 7.3 Manual QA: submit 5 muzakki with mixed types → verify 5 individual records in `pemasukan_uang`/`pemasukan_beras`.
   - [ ] 7.4 Manual QA: verify receipt table layout matches reference photo.
   - [ ] 7.5 Manual QA: create new muzakki inline → confirm DB record has only `nama` set.
   - [ ] 7.6 Manual QA: confirm `hak_amil_snapshots` rows created for each inserted transaction.
-  - [ ] 7.7 Apply migration `026_bulk_submission_log.sql` to production Supabase.
-  - [ ] 7.8 Commit and push branch `feature/bulk-pembayaran-transaksi`.
+  - [x] 7.7 Apply migration `026_bulk_submission_log.sql` to production Supabase.
+  - [x] 7.8 Commit and push branch `feature/bulk-pembayaran-transaksi`.
 
 ---
 

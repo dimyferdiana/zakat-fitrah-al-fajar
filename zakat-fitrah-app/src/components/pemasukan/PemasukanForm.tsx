@@ -126,6 +126,21 @@ export function PemasukanForm({
     }
   }, [defaultTahunId, form]);
 
+  // Reset form when defaultValues change (e.g., when editing a different item)
+  useEffect(() => {
+    if (defaultValues) {
+      form.reset({
+        tahun_zakat_id: defaultValues.tahun_zakat_id,
+        kategori: defaultValues.kategori,
+        akun: defaultValues.akun,
+        jumlah_uang_rp: defaultValues.jumlah_uang_rp,
+        tanggal: new Date(defaultValues.tanggal),
+        catatan: defaultValues.catatan || '',
+        muzakki_id: defaultValues.muzakki_id,
+      });
+    }
+  }, [defaultValues, form]);
+
   const { data: muzakkiOptions } = useQuery({
     queryKey: ['muzakki-options'],
     queryFn: async (): Promise<MuzakkiOption[]> => {
