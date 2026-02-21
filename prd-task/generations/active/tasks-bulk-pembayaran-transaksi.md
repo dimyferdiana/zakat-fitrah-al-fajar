@@ -38,27 +38,27 @@ As you complete each task, change `- [ ]` to `- [x]` in this file. Update after 
 - [x] 0.0 Create feature branch
   - [x] 0.1 Checkout and create branch: `git checkout -b feature/bulk-pembayaran-transaksi`
 
-- [ ] 1.0 Shared receipt header/footer extraction
-  - [ ] 1.1 Read `BuktiPembayaran.tsx` and `BuktiPemasukanUang.tsx` and catalogue shared header/footer markup (mosque name, address, title, footer signature lines).
-  - [ ] 1.2 Create `ReceiptShell.tsx` under `src/components/pemasukan/` accepting `{title, noUrut, children}` props; renders header, `{children}`, then footer unchanged.
-  - [ ] 1.3 Refactor `BuktiPembayaran.tsx` and `BuktiPemasukanUang.tsx` to use `ReceiptShell` so existing receipts look identical to before.
+- [x] 1.0 Shared receipt header/footer extraction
+  - [x] 1.1 Read `BuktiPembayaran.tsx` and `BuktiPemasukanUang.tsx` and catalogue shared header/footer markup (mosque name, address, title, footer signature lines).
+  - [x] 1.2 Create `ReceiptShell.tsx` under `src/components/pemasukan/` accepting `{title, noUrut, children}` props; renders header, `{children}`, then footer unchanged.
+  - [x] 1.3 Refactor `BuktiPembayaran.tsx` and `BuktiPemasukanUang.tsx` to use `ReceiptShell` so existing receipts look identical to before.
 
-- [ ] 2.0 Data contract and TypeScript types
+- [x] 2.0 Data contract and TypeScript types
   - [x] 2.1 Create `src/types/bulk.ts` with:
     - `BulkRow` — `{ muzakkiId: string | null; muzakkiNama: string; zakatFitrahBeras: number | null; zakatFitrahUang: number | null; zakatMaalBeras: number | null; zakatMaalUang: number | null; infakBeras: number | null; infakUang: number | null; }`
     - `BulkSubmissionMeta` — `{ operatorId: string; tahunZakatId: string; receiptNo: string; rowLimit: number; }`
     - `BulkResult` — `{ success: boolean; receiptNo: string; rows: BulkRow[]; errors: string[]; }`
-  - [ ] 2.2 Create `026_bulk_submission_log.sql` with table `bulk_submission_logs`: `id uuid PK`, `operator_id uuid FK users`, `tahun_zakat_id uuid FK tahun_zakat`, `receipt_no text unique`, `row_count int`, `created_at timestamptz default now()`.
-  - [ ] 2.3 Add RLS: admin full CRUD, petugas insert + read own rows only.
-  - [ ] 2.4 Register `bulk_submission_logs` type in `src/types/database.types.ts`.
+  - [x] 2.2 Create `026_bulk_submission_log.sql` with table `bulk_submission_logs`: `id uuid PK`, `operator_id uuid FK users`, `tahun_zakat_id uuid FK tahun_zakat`, `receipt_no text unique`, `row_count int`, `created_at timestamptz default now()`.
+  - [x] 2.3 Add RLS: admin full CRUD, petugas insert + read own rows only.
+  - [x] 2.4 Register `bulk_submission_logs` type in `src/types/database.types.ts`.
 
-- [ ] 3.0 `useBulkPembayaran` hook
-  - [ ] 3.1 Create `src/hooks/useBulkPembayaran.ts`.
-  - [ ] 3.2 Implement `submitBulk(rows: BulkRow[], meta: BulkSubmissionMeta): Promise<BulkResult>` — for each row, call `createPemasukanUang` and/or `createPemasukanBeras` for each non-null/non-zero value.
-  - [ ] 3.3 After each successful insert, call `createHakAmilSnapshot` from `hakAmilSnapshot.ts` for auto-split.
-  - [ ] 3.4 After all rows succeed, insert one row into `bulk_submission_logs`.
-  - [ ] 3.5 Return `BulkResult`: `success: true` if all pass; `success: false` with `errors[]` if any row fails (partial saves are kept).
-  - [ ] 3.6 Write unit tests: all valid rows submit, zero-value row is skipped, partial failure collects errors without blocking other rows.
+- [x] 3.0 `useBulkPembayaran` hook
+  - [x] 3.1 Create `src/hooks/useBulkPembayaran.ts`.
+  - [x] 3.2 Implement `submitBulk(rows: BulkRow[], meta: BulkSubmissionMeta): Promise<BulkResult>` — for each row, call `createPemasukanUang` and/or `createPemasukanBeras` for each non-null/non-zero value.
+  - [x] 3.3 After each successful insert, call `createHakAmilSnapshot` from `hakAmilSnapshot.ts` for auto-split.
+  - [x] 3.4 After all rows succeed, insert one row into `bulk_submission_logs`.
+  - [x] 3.5 Return `BulkResult`: `success: true` if all pass; `success: false` with `errors[]` if any row fails (partial saves are kept).
+  - [x] 3.6 Write unit tests: all valid rows submit, zero-value row is skipped, partial failure collects errors without blocking other rows.
 
 - [ ] 4.0 `BulkPemasukanForm` component
   - [ ] 4.1 Create `src/components/pemasukan/BulkPemasukanForm.tsx`.

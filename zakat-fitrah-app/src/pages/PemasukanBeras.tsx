@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { PemasukanBerasForm } from '@/components/pemasukan/PemasukanBerasForm';
 import { BuktiPemasukanBeras } from '@/components/pemasukan/BuktiPemasukanBeras';
+import { BulkPemasukanForm } from '@/components/pemasukan/BulkPemasukanForm';
 import {
   useCreatePemasukanBeras,
   useUpdatePemasukanBeras,
@@ -37,7 +38,7 @@ import {
 } from '@/hooks/usePemasukanBeras';
 import type { PemasukanBeras } from '@/hooks/usePemasukanBeras';
 import { useTahunZakatList } from '@/hooks/useDashboard';
-import { Plus, Receipt, Edit, Trash2, MoreVertical } from 'lucide-react';
+import { Plus, Receipt, Edit, Trash2, MoreVertical, Layers } from 'lucide-react';
 
 const kategoriLabels: Record<string, string> = {
   fidyah_beras: 'Fidyah Beras',
@@ -59,6 +60,7 @@ export function PemasukanBeras() {
   const { data: tahunList, isLoading: tahunLoading } = useTahunZakatList();
   const activeTahun = useMemo(() => tahunList?.find((t) => t.is_active), [tahunList]);
   const [selectedTahun, setSelectedTahun] = useState<string | undefined>(() => activeTahun?.id);
+  const [bulkMode, setBulkMode] = useState(false);
 
   const {
     data: pemasukan,
@@ -168,13 +170,28 @@ export function PemasukanBeras() {
             </Select>
           </div>
 
-          <Button onClick={() => setFormOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Tambah Pemasukan
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={bulkMode ? 'default' : 'outline'}
+              onClick={() => setBulkMode((m) => !m)}
+            >
+              <Layers className="mr-2 h-4 w-4" />
+              {bulkMode ? 'Mode Bulk (Aktif)' : 'Mode Bulk'}
+            </Button>
+            {!bulkMode && (
+              <Button onClick={() => setFormOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Tambah Pemasukan
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <Separator />
         <CardContent>
+          {bulkMode ? (
+            <BulkPemasukanForm tahunZakatId={selectedTahun || activeTahun?.id || ''} />
+          ) : (
+            <>
           {isLoading && <LoadingSpinner text="Memuat pemasukan..." />}
 
           {!isLoading && pemasukan?.data.length === 0 && (
@@ -246,6 +263,8 @@ export function PemasukanBeras() {
                 </tbody>
               </table>
             </div>
+          )}
+            </>
           )}
         </CardContent>
       </Card>

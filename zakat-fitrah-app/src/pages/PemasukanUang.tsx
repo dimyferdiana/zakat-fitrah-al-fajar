@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { PemasukanForm } from '@/components/pemasukan/PemasukanForm';
 import { BuktiPemasukanUang } from '@/components/pemasukan/BuktiPemasukanUang';
+import { BulkPemasukanForm } from '@/components/pemasukan/BulkPemasukanForm';
 import {
   useCreatePemasukanUang,
   useUpdatePemasukanUang,
@@ -37,7 +38,7 @@ import {
 } from '@/hooks/usePemasukanUang';
 import type { PemasukanUang } from '@/hooks/usePemasukanUang';
 import { useTahunZakatList } from '@/hooks/useDashboard';
-import { Plus, Receipt, Edit, Trash2, MoreVertical } from 'lucide-react';
+import { Plus, Receipt, Edit, Trash2, MoreVertical, Layers } from 'lucide-react';
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('id-ID', {
@@ -67,6 +68,7 @@ export function PemasukanUang() {
   const [editingItem, setEditingItem] = useState<PemasukanUang | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<PemasukanUang | null>(null);
+  const [bulkMode, setBulkMode] = useState(false);
 
   const {
     data: pemasukan,
@@ -190,13 +192,28 @@ export function PemasukanUang() {
             </Select>
           </div>
 
-          <Button onClick={() => setFormOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Tambah Pemasukan
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={bulkMode ? 'default' : 'outline'}
+              onClick={() => setBulkMode((m) => !m)}
+            >
+              <Layers className="mr-2 h-4 w-4" />
+              {bulkMode ? 'Mode Bulk (Aktif)' : 'Mode Bulk'}
+            </Button>
+            {!bulkMode && (
+              <Button onClick={() => setFormOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Tambah Pemasukan
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <Separator />
         <CardContent>
+          {bulkMode ? (
+            <BulkPemasukanForm tahunZakatId={selectedTahun || activeTahun?.id || ''} />
+          ) : (
+            <>
           {isLoading && <LoadingSpinner text="Memuat pemasukan..." />}
 
           {!isLoading && pemasukan?.data.length === 0 && (
@@ -270,6 +287,8 @@ export function PemasukanUang() {
                 </tbody>
               </table>
             </div>
+          )}
+            </>
           )}
         </CardContent>
       </Card>
