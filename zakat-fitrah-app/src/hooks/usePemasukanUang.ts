@@ -1,6 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import {
+  createHakAmilSnapshot,
+  fetchBasisModeForTahun,
+  mapKategoriToHakAmil,
+} from '@/lib/hakAmilSnapshot';
 
 export type PemasukanUangKategori =
   | 'zakat_fitrah_uang'
@@ -111,6 +116,30 @@ export function useCreatePemasukanUang() {
         .single();
 
       if (error) throw error;
+
+      // Create hak amil snapshot for this transaction
+      const hakAmilKategori = mapKategoriToHakAmil(input.kategori);
+      if (hakAmilKategori && data?.id) {
+        try {
+          const basisMode = await fetchBasisModeForTahun(input.tahun_zakat_id);
+          await createHakAmilSnapshot({
+            tahunZakatId: input.tahun_zakat_id,
+            kategori: hakAmilKategori,
+            tanggal: input.tanggal,
+            grossAmount: input.jumlah_uang_rp,
+            reconciliationAmount: 0,
+            basisMode,
+            sourceType: 'pemasukan_uang',
+            sourceId: data.id,
+            catatan: input.catatan,
+            createdBy: userId,
+          });
+        } catch (snapshotError) {
+          console.error('Failed to create hak amil snapshot:', snapshotError);
+          // Don't fail the entire transaction if snapshot fails
+        }
+      }
+
       return data as PemasukanUang;
     },
     onSuccess: () => {

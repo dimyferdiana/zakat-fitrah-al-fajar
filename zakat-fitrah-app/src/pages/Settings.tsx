@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Info } from 'lucide-react';
+import { Plus, Info, Lock } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,9 +8,14 @@ import { NilaiZakatTable } from '@/components/settings/NilaiZakatTable';
 import { NilaiZakatForm } from '@/components/settings/NilaiZakatForm';
 import { UserTable } from '@/components/settings/UserTable';
 import { UserForm } from '@/components/settings/UserForm';
+import { InvitationForm } from '@/components/settings/InvitationForm';
+import { InvitationTable } from '@/components/settings/InvitationTable';
+import { ProfileForm } from '@/components/settings/ProfileForm';
 import { RekonsiliasiForm } from '@/components/settings/RekonsiliasiForm';
 import { RekonsiliasiTable } from '@/components/settings/RekonsiliasiTable';
-import { Input } from '@/components/ui/input';
+import { HakAmilConfigForm } from '@/components/settings/HakAmilConfigForm';
+import { HakAmilConfigTable } from '@/components/settings/HakAmilConfigTable';
+import type { HakAmilConfigTableRow } from '@/components/settings/HakAmilConfigTable';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -47,7 +52,7 @@ interface User {
   id: string;
   email: string;
   nama_lengkap: string;
-  role: 'admin' | 'petugas' | 'viewer';
+  role: 'admin' | 'petugas';
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -66,7 +71,7 @@ export default function Settings() {
   const queryClient = useQueryClient();
   const isAdmin = user?.role === 'admin';
 
-  const [activeTab, setActiveTab] = useState('nilai-zakat');
+  const [activeTab, setActiveTab] = useState('profile');
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -85,9 +90,15 @@ export default function Settings() {
   const [userFormOpen, setUserFormOpen] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
 
-  // Rekonsiliasi & Hak Amil state
+  // Invitation state
+  const [invitationFormOpen, setInvitationFormOpen] = useState(false);
+
+  // Rekonsiliasi state
   const [selectedTahun, setSelectedTahun] = useState<string>('');
   const [hakAmilValue, setHakAmilValue] = useState<string>('');
+
+  // Hak Amil Config state
+  const [editHakAmilConfig, setEditHakAmilConfig] = useState<any>(null);
 
   // Nilai Zakat hooks
   const { data: tahunZakatList = [], isLoading: loadingTahunZakat } = useTahunZakatList();
@@ -101,7 +112,140 @@ export default function Settings() {
   const updateUserMutation = useUpdateUser();
   const toggleUserActiveMutation = useToggleUserActive();
 
-  // Rekonsiliasi & Hak Amil hooks
+  // Hak Amil Config queries
+  const { data: hakAmilConfigs = [], isLoading: loadingHakAmilConfigs } = useQuery<HakAmilConfigTableRow[]>({
+    queryKey: ['hak-amil-configs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('hak_amil_configs')
+        .select(`
+          id,
+          tahun_zakat_id,
+          basis_mode,
+          persen_zakat_fitrah,
+          persen_zakat_maal,
+          persen_infak,
+          persen_fidyah,
+          persen_beras,
+          updated_at,
+          updated_by,
+          tahun_zakat:tahun_zakat_id (
+            tahun_hijriah,
+            tahun_masehi
+          )
+        `)
+        .order('updated_at', { ascending: false });
+
+      // Graceful handling if table doesn't exist yet (migrations not run)
+      if (error) {
+        if (error.code === 'PGRST116' || error.message?.includes('relation') || error.message?.includes('does not exist')) {
+          console.warn('hak_amil_configs table not found - migrations 023/024 may not be applied yet');
+          return [];
+        }
+        throw error;
+      }
+
+      // Fetch user names for updated_by
+      const userIds = data.map((c: any) => c.updated_by).filter(Boolean);
+      const uniqueUserIds = [...new Set(userIds)];
+      
+      let userMap: Record<string, string> = {};
+      if (uniqueUserIds.length > 0) {
+        const { data: users } = await supabase
+          .from('users')
+          .select('id, nama_lengkap')
+          .in('id', uniqueUserIds);
+        
+        if (users) {
+          userMap = users.reduce((acc: Record<string, string>, u: any) => {
+            acc[u.id] = u.nama_lengkap;
+            return acc;
+          }, {});
+        }
+      }
+
+      return data.map((config: any) => ({
+        id: config.id,
+        tahun_label: `${config.tahun_zakat?.tahun_hijriah} H (${config.tahun_zakat?.tahun_masehi} M)`,
+        basis_mode: config.basis_mode,
+        zakat_fitrah_pct: config.persen_zakat_fitrah,
+        zakat_maal_pct: config.persen_zakat_maal,
+        infak_pct: config.persen_infak,
+        fidyah_pct: config.persen_fidyah,
+        beras_pct: config.persen_beras,
+        updated_at: config.updated_at,
+        updated_by_name: config.updated_by ? userMap[config.updated_by] : null,
+      }));
+    },
+  });
+
+  // Hak Amil Config mutation
+  const saveHakAmilConfigMutation = useMutation({
+    mutationFn: async (values: any) => {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error('User not authenticated');
+
+      const payload = {
+        tahun_zakat_id: values.tahun_zakat_id,
+        basis_mode: values.basis_mode,
+        persen_zakat_fitrah: values.zakat_fitrah_pct,
+        persen_zakat_maal: values.zakat_maal_pct,
+        persen_infak: values.infak_pct,
+        persen_fidyah: values.fidyah_pct,
+        persen_beras: values.beras_pct,
+        updated_by: authUser.id,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Check if config already exists for this tahun_zakat_id
+      const { data: existingConfig } = await supabase
+        .from('hak_amil_configs')
+        .select('id')
+        .eq('tahun_zakat_id', values.tahun_zakat_id)
+        .maybeSingle();
+
+      if (existingConfig) {
+        // Update existing config
+        const { data, error } = await supabase
+          .from('hak_amil_configs')
+          // @ts-expect-error - hak_amil_configs table exists but types not yet regenerated
+          .update(payload)
+          // @ts-expect-error - hak_amil_configs table exists but types not yet regenerated
+          .eq('id', existingConfig.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      } else {
+        // Insert new config
+        const { data, error } = await supabase
+          .from('hak_amil_configs')
+          // @ts-expect-error - hak_amil_configs table exists but types not yet regenerated
+          .insert({ ...payload, created_by: authUser.id })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['hak-amil-configs'] });
+      toast.success('Konfigurasi hak amil berhasil disimpan');
+      setEditHakAmilConfig(null);
+    },
+    onError: (error: any) => {
+      // Provide helpful message if table doesn't exist yet
+      if (error?.code === 'PGRST116' || error?.message?.includes('relation') || error?.message?.includes('does not exist')) {
+        toast.error('Fitur Hak Amil belum tersedia. Hubungi administrator untuk menjalankan migrasi database.');
+      } else {
+        toast.error(error.message || 'Gagal menyimpan konfigurasi hak amil');
+      }
+    },
+  });
+
+  // Rekonsiliasi & Old Hak Amil hooks (legacy, for backward compatibility with old tab)
   // Query: Get active tahun zakat
   const { data: activeTahun } = useQuery<TahunZakat | null>({
     queryKey: ['active-tahun'],
@@ -117,8 +261,9 @@ export default function Settings() {
     },
   });
 
-  // Query: Get current hak amil for selected tahun
-  const { data: currentHakAmil } = useQuery<{ jumlah_uang_rp?: number } | null>({
+  // Query: Get current hak amil for selected tahun (legacy - unused)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { data: _currentHakAmil } = useQuery<{ jumlah_uang_rp?: number } | null>({
     queryKey: ['hak-amil', selectedTahun || activeTahun?.id],
     queryFn: async () => {
       const tahunId = selectedTahun || activeTahun?.id;
@@ -228,7 +373,33 @@ export default function Settings() {
     });
   };
 
-  // Rekonsiliasi & Hak Amil handlers
+  // Hak Amil Config handlers
+  const handleSubmitHakAmilConfig = async (values: any) => {
+    await saveHakAmilConfigMutation.mutateAsync(values);
+  };
+
+  const handleEditHakAmilConfig = (row: HakAmilConfigTableRow) => {
+    // Find the tahun_zakat_id from the row
+    const tahunZakat = tahunZakatList.find(
+      t => `${t.tahun_hijriah} H (${t.tahun_masehi} M)` === row.tahun_label
+    );
+
+    setEditHakAmilConfig({
+      tahun_zakat_id: tahunZakat?.id || '',
+      basis_mode: row.basis_mode,
+      zakat_fitrah_pct: row.zakat_fitrah_pct,
+      zakat_maal_pct: row.zakat_maal_pct,
+      infak_pct: row.infak_pct,
+      fidyah_pct: row.fidyah_pct,
+      beras_pct: row.beras_pct,
+    });
+  };
+
+  const handleResetHakAmilConfigForm = () => {
+    setEditHakAmilConfig(null);
+  };
+
+  // Rekonsiliasi & Hak Amil handlers (legacy code - keeping for backward compatibility)
   const handleSaveHakAmil = () => {
     const tahunId = selectedTahun || activeTahun?.id;
     if (!tahunId) {
@@ -244,6 +415,9 @@ export default function Settings() {
 
     updateHakAmilMutation.mutate({ tahunId, jumlah });
   };
+
+  // Mark as used to avoid TypeScript warning (legacy handler kept for potential future use)
+  void handleSaveHakAmil;
 
   const tahunOptions =
     tahunZakatList?.map((t) => ({
@@ -262,23 +436,32 @@ export default function Settings() {
         {isMobile ? (
           <Select value={activeTab} onValueChange={setActiveTab}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Pilih menu" />
+              <SelectValue placeholder="Select a tab" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="profile">Profile</SelectItem>
               <SelectItem value="nilai-zakat">Nilai Zakat</SelectItem>
               {isAdmin && <SelectItem value="users">User Management</SelectItem>}
+              {isAdmin && <SelectItem value="invitations">Invitations</SelectItem>}
               {isAdmin && <SelectItem value="rekonsiliasi">Rekonsiliasi</SelectItem>}
-              {isAdmin && <SelectItem value="hak-amil">Hak Amil</SelectItem>}
+              <SelectItem value="hak-amil">Hak Amil</SelectItem>
             </SelectContent>
           </Select>
         ) : (
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="nilai-zakat">Nilai Zakat</TabsTrigger>
             {isAdmin && <TabsTrigger value="users">User Management</TabsTrigger>}
+            {isAdmin && <TabsTrigger value="invitations">Invitations</TabsTrigger>}
             {isAdmin && <TabsTrigger value="rekonsiliasi">Rekonsiliasi</TabsTrigger>}
-            {isAdmin && <TabsTrigger value="hak-amil">Hak Amil</TabsTrigger>}
+            <TabsTrigger value="hak-amil">Hak Amil</TabsTrigger>
           </TabsList>
         )}
+
+        {/* Profile Tab */}
+        <TabsContent value="profile" className="space-y-4">
+          <ProfileForm />
+        </TabsContent>
 
         {/* Nilai Zakat Tab */}
         <TabsContent value="nilai-zakat" className="space-y-4">
@@ -347,6 +530,36 @@ export default function Settings() {
           </TabsContent>
         )}
 
+        {/* Invitations Tab (Admin Only) */}
+        {isAdmin && (
+          <TabsContent value="invitations" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Manage Invitations</CardTitle>
+                    <CardDescription>
+                      Send invitation links to new users. Invitations expire after 24 hours.
+                    </CardDescription>
+                  </div>
+                  <Button onClick={() => setInvitationFormOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Invitation
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <InvitationTable />
+              </CardContent>
+            </Card>
+            
+            <InvitationForm 
+              open={invitationFormOpen} 
+              onClose={() => setInvitationFormOpen(false)} 
+            />
+          </TabsContent>
+        )}
+
         {/* Rekonsiliasi Tab (Admin Only) */}
         {isAdmin && (
           <TabsContent value="rekonsiliasi" className="space-y-4">
@@ -400,88 +613,77 @@ export default function Settings() {
           </TabsContent>
         )}
 
-        {/* Hak Amil Tab (Admin Only) */}
-        {isAdmin && (
-          <TabsContent value="hak-amil" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Hak Amil</CardTitle>
-                <CardDescription>
-                  Atur hak amil (bagian pengurus) dari total pemasukan uang per tahun
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    <strong>Catatan:</strong> Hak amil akan otomatis dikurangkan dari saldo uang di dashboard.
-                    Menurut syariat, hak amil maksimal 12.5% (1/8) dari total zakat.
-                  </AlertDescription>
-                </Alert>
+        {/* Hak Amil Tab (All users can view, Admin can edit, Petugas read-only) */}
+        <TabsContent value="hak-amil" className="space-y-4">
+          {/* Read-only badge for petugas (Task 5.6) */}
+          {user?.role === 'petugas' && (
+            <Alert className="border-blue-200 bg-blue-50">
+              <Lock className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                <strong>Mode Baca Saja:</strong> Anda dapat melihat konfigurasi hak amil, tetapi tidak dapat mengeditnya. 
+                Hanya admin yang dapat mengubah konfigurasi.
+              </AlertDescription>
+            </Alert>
+          )}
 
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <Label>Tahun Zakat</Label>
-                    <Select
-                      value={selectedTahun || activeTahun?.id || ''}
-                      onValueChange={(value) => {
-                        setSelectedTahun(value);
-                        setHakAmilValue('');
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih tahun zakat" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {tahunOptions.map((tahun) => (
-                          <SelectItem key={tahun.id} value={tahun.id}>
-                            {tahun.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Konfigurasi Hak Amil</CardTitle>
+              <CardDescription>
+                Atur perhitungan hak amil (bagian pengurus) per kategori penerimaan untuk setiap tahun zakat
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Catatan:</strong> Hak amil dihitung otomatis untuk setiap transaksi berdasarkan konfigurasi di bawah.
+                  Default sesuai PRD: Zakat Fitrah 12.5%, Zakat Maal 12.5%, Infak 20%, Fidyah 0%, Beras 0%.
+                </AlertDescription>
+              </Alert>
 
-                  {currentHakAmil && (
-                    <Alert>
-                      <AlertDescription>
-                        <strong>Hak Amil Saat Ini:</strong>{' '}
-                        {new Intl.NumberFormat('id-ID', {
-                          style: 'currency',
-                          currency: 'IDR',
-                          minimumFractionDigits: 0,
-                        }).format(Number(currentHakAmil.jumlah_uang_rp))}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  <div className="space-y-2">
-                    <Label htmlFor="hak-amil-input">Jumlah Hak Amil (Rp)</Label>
-                    <Input
-                      id="hak-amil-input"
-                      type="number"
-                      step="1000"
-                      placeholder="0"
-                      value={hakAmilValue}
-                      onChange={(e) => setHakAmilValue(e.target.value)}
+              {/* Hak Amil Config Form (Task 5.5 - Wave 1 component integration) - Admin only */}
+              {isAdmin && (
+                <>
+                  <div className="rounded-lg border p-4 bg-muted/30">
+                    <h3 className="text-sm font-semibold mb-4">
+                      {editHakAmilConfig ? 'Edit Konfigurasi' : 'Tambah Konfigurasi Baru'}
+                    </h3>
+                    <HakAmilConfigForm
+                      tahunOptions={tahunOptions}
+                      onSubmit={handleSubmitHakAmilConfig}
+                      isSubmitting={saveHakAmilConfigMutation.isPending}
+                      initialValues={editHakAmilConfig || undefined}
+                      submitLabel={editHakAmilConfig ? 'Update Konfigurasi' : 'Simpan Konfigurasi'}
                     />
-                    <p className="text-sm text-muted-foreground">
-                      Masukkan jumlah baru untuk mengganti nilai yang ada
-                    </p>
+                    {editHakAmilConfig && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleResetHakAmilConfigForm}
+                        className="mt-3"
+                      >
+                        Reset Form
+                      </Button>
+                    )}
                   </div>
+                  <Separator />
+                </>
+              )}
 
-                  <Button
-                    onClick={handleSaveHakAmil}
-                    disabled={!hakAmilValue || updateHakAmilMutation.isPending}
-                    className="w-full sm:w-auto"
-                  >
-                    {updateHakAmilMutation.isPending ? 'Menyimpan...' : 'Simpan Hak Amil'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
+              {/* Hak Amil Config Table with metadata (Task 5.7 - metadata already in component) */}
+              <div>
+                <h3 className="text-sm font-semibold mb-3">Konfigurasi Per Tahun</h3>
+                <HakAmilConfigTable
+                  data={hakAmilConfigs}
+                  isLoading={loadingHakAmilConfigs}
+                  onEdit={isAdmin ? handleEditHakAmilConfig : undefined}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Forms */}

@@ -211,7 +211,7 @@ Updated table display:
 3. Verify `pemasukan_beras` table exists in Supabase
 
 ### Test Coverage
-See: [`TESTING_CHECKLIST_AUTO_SPLIT.md`](./TESTING_CHECKLIST_AUTO_SPLIT.md)
+See: [`testing-checklist-auto-split.md`](../../qa/testing-checklist-auto-split.md)
 
 **10 Main Scenarios**:
 1. Exact payment (no split)
@@ -299,7 +299,7 @@ d461d6d feat: display split payments in history (task 7)
 ### For Local Development/Testing:
 1. ✅ All code implementation complete
 2. ⏳ Apply migration `012_pemasukan_beras.sql`
-3. ⏳ Execute test plan from `TESTING_CHECKLIST_AUTO_SPLIT.md`
+3. ⏳ Execute test plan from `testing-checklist-auto-split.md`
 4. ⏳ Fix any bugs found during testing
 5. ⏳ Merge to main branch after successful testing
 
@@ -323,10 +323,10 @@ d461d6d feat: display split payments in history (task 7)
 
 ## Support Documentation
 
-- **PRD**: `tasks/prd-auto-split-zakat-sedekah.md`
-- **Task List**: `tasks/tasks-auto-split-zakat-sedekah.md`
-- **Test Plan**: `tasks/TESTING_CHECKLIST_AUTO_SPLIT.md`
-- **This Summary**: `tasks/IMPLEMENTATION_SUMMARY_AUTO_SPLIT.md`
+- **PRD**: `prd-task/generations/active/prd-auto-split-zakat-sedekah.md`
+- **Task List**: `prd-task/generations/active/tasks-auto-split-zakat-sedekah.md`
+- **Test Plan**: `prd-task/generations/qa/testing-checklist-auto-split.md`
+- **This Summary**: `prd-task/generations/notes/archive/implementation-summary-auto-split.md`
 
 ---
 

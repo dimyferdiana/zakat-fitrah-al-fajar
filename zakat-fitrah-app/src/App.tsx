@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Suspense, lazy } from 'react';
 import { Toaster } from '@/components/ui/sonner';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from '@/lib/auth';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { MainLayout } from '@/components/layouts/MainLayout';
@@ -9,6 +10,12 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 // Eager load Login page (needed immediately)
 import { Login } from '@/pages/Login';
+
+// Eager load auth pages
+import { Register } from '@/pages/Register';
+import { EmailConfirmation } from '@/pages/EmailConfirmation';
+import { ForgotPassword } from '@/pages/ForgotPassword';
+import { ResetPassword } from '@/pages/ResetPassword';
 
 // Lazy load all other pages for code splitting
 const Dashboard = lazy(() => import('@/pages/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -38,6 +45,10 @@ function App() {
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/email-confirmation" element={<EmailConfirmation />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route
                 path="/dashboard"
                 element={
@@ -133,6 +144,7 @@ function App() {
           </Suspense>
         </BrowserRouter>
         <Toaster />
+        <Analytics />
       </AuthProvider>
     </QueryClientProvider>
   );

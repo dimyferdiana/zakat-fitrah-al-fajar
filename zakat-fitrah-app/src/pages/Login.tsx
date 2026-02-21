@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -37,11 +37,18 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export function Login() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = (location.state as any)?.from?.pathname || '/dashboard';
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -52,16 +59,23 @@ export function Login() {
   });
 
   const onSubmit = async (values: LoginFormValues) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       setError(null);
       await login(values.email, values.password);
       navigate(from, { replace: true });
-    } catch (err: any) {
-      console.error('Login error:', err);
-      setError(
-        err.message || 'Login gagal. Periksa email dan password Anda.'
-      );
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'Login gagal. Periksa email dan password Anda.';
+      
+      if (errorMsg?.includes('Email not confirmed')) {
+        setError('Silakan konfirmasi email Anda terlebih dahulu. Cek inbox email Anda.');
+      } else if (errorMsg?.includes('Invalid login credentials')) {
+        setError('Email atau password salah.');
+      } else if (errorMsg?.includes('deactivated')) {
+        setError('Akun Anda telah dinonaktifkan. Silakan hubungi administrator.');
+      } else {
+        setError(errorMsg || 'Login gagal. Periksa email dan password Anda.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -150,6 +164,14 @@ export function Login() {
                   'Login'
                 )}
               </Button>
+              <div className="text-center mt-4">
+                <Link 
+                  to="/forgot-password" 
+                  className="text-sm text-primary hover:underline"
+                >
+                  Lupa password?
+                </Link>
+              </div>
             </form>
           </Form>
         </CardContent>

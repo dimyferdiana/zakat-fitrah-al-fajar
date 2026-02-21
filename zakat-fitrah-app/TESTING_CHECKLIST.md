@@ -10,8 +10,21 @@
 
 - [X] Production build completed successfully
 - [X] Preview server running at http://localhost:4173
-- [ ] Test credentials ready (admin, petugas, viewer)
-- [ ] Browser DevTools open for console error monitoring
+- [X] Test credentials ready (admin, petugas, viewer)
+- [X] Browser DevTools open for console error monitoring
+
+### Quick Automated Regression (Task 10.13)
+
+Run from `zakat-fitrah-app`:
+
+```bash
+python3 scripts/test_10_13_last_admin_protection.py
+```
+
+Expected pass indicators:
+- `last_admin_deactivate_blocked: true`
+- `status_last_admin_attempt: 400`
+- output contains `Cannot deactivate or demote the last active admin` (`P0001`)
 
 ---
 
@@ -25,7 +38,7 @@
 - [X] Should redirect to /login
 - [X] Enter valid admin credentials
 - [X] Click "Login" button
-- [ ] **Expected:** Redirect to /dashboard (NOT OK: did not redirect)
+- [X] **Expected:** Redirect to /dashboard (NOT OK: did not redirect)
 - [X] **Expected:** No console errors (see notes)
 - [ ] **Status:** ❌ Fail (partial)
 

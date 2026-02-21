@@ -13,6 +13,7 @@ import { useTahunZakatList } from '@/hooks/useDashboard';
 import { LaporanPemasukan } from '@/components/laporan/LaporanPemasukan';
 import { LaporanDistribusi } from '@/components/laporan/LaporanDistribusi';
 import { LaporanMustahik } from '@/components/laporan/LaporanMustahik';
+import { LaporanHakAmil } from '@/components/laporan/LaporanHakAmil';
 import { PerbandinganTahun } from '@/components/laporan/PerbandinganTahun';
 
 export default function Laporan() {
@@ -87,6 +88,7 @@ export default function Laporan() {
               <SelectItem value="pemasukan">Pemasukan</SelectItem>
               <SelectItem value="distribusi">Distribusi</SelectItem>
               <SelectItem value="mustahik">Mustahik</SelectItem>
+              <SelectItem value="hakamil">Hak Amil</SelectItem>
               <SelectItem value="perbandingan">Perbandingan Tahun</SelectItem>
             </SelectContent>
           </Select>
@@ -95,6 +97,7 @@ export default function Laporan() {
             <TabsTrigger value="pemasukan">Pemasukan</TabsTrigger>
             <TabsTrigger value="distribusi">Distribusi</TabsTrigger>
             <TabsTrigger value="mustahik">Mustahik</TabsTrigger>
+            <TabsTrigger value="hakamil">Hak Amil</TabsTrigger>
             <TabsTrigger value="perbandingan">
               <TrendingUp className="mr-2 h-4 w-4" />
               Perbandingan Tahun
@@ -112,6 +115,10 @@ export default function Laporan() {
 
         <TabsContent value="mustahik">
           <LaporanMustahik tahunZakatId={selectedTahun} />
+        </TabsContent>
+
+        <TabsContent value="hakamil">
+          <LaporanHakAmil tahunZakatId={selectedTahun} />
         </TabsContent>
 
         <TabsContent value="perbandingan">

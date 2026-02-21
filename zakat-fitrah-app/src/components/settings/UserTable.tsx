@@ -14,7 +14,7 @@ interface User {
   id: string;
   email: string;
   nama_lengkap: string;
-  role: 'admin' | 'petugas' | 'viewer';
+  role: 'admin' | 'petugas';
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -32,10 +32,9 @@ export function UserTable({ data, isLoading, onEdit, onToggleActive }: UserTable
     const variants: Record<string, { className: string; label: string }> = {
       admin: { className: 'bg-red-600', label: 'Admin' },
       petugas: { className: 'bg-blue-600', label: 'Petugas' },
-      viewer: { className: 'bg-gray-600', label: 'Viewer' },
     };
 
-    const variant = variants[role] || variants.viewer;
+    const variant = variants[role] || variants.petugas;
     return (
       <Badge className={variant.className}>
         {variant.label}

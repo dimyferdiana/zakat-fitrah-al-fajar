@@ -5,6 +5,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { PemasukanChart } from '@/components/dashboard/PemasukanChart';
 import { DistribusiProgress } from '@/components/dashboard/DistribusiProgress';
+import { HakAmilCard } from '@/components/dashboard/HakAmilCard';
 import {
   useDashboardStats,
   useTahunZakatList,
@@ -164,6 +165,9 @@ export function Dashboard() {
           icon={Wheat}
         />
       </div>
+
+      {/* Hak Amil Summary Card */}
+      <HakAmilCard tahunZakatId={selectedTahun || activeTahun?.id} />
 
       {/* Charts and Progress */}
       <div className="grid gap-4 md:grid-cols-2">

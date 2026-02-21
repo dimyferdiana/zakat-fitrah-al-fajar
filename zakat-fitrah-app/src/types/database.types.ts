@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type UserRole = 'admin' | 'petugas' | 'viewer';
+export type UserRole = 'admin' | 'petugas';
 
 export type JenisZakat = 'beras' | 'uang';
 
@@ -22,6 +22,10 @@ export type PemasukanBerasKategori = 'infak_sedekah_beras';
 
 export type StatusDistribusi = 'pending' | 'selesai';
 
+export type HakAmilBasisMode = 'net_after_reconciliation' | 'gross_before_reconciliation';
+
+export type HakAmilKategori = 'zakat_fitrah' | 'zakat_maal' | 'infak' | 'fidyah' | 'beras';
+
 export interface Database {
   public: {
     Tables: {
@@ -32,6 +36,8 @@ export interface Database {
           email: string;
           role: UserRole;
           is_active: boolean;
+          address: string | null;
+          phone: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -41,6 +47,8 @@ export interface Database {
           email: string;
           role?: UserRole;
           is_active?: boolean;
+          address?: string | null;
+          phone?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -48,8 +56,48 @@ export interface Database {
           id?: string;
           nama_lengkap?: string;
           email?: string;
+          address?: string | null;
+          phone?: string | null;
           role?: UserRole;
           is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      user_invitations: {
+        Row: {
+          id: string;
+          email: string;
+          role: UserRole;
+          token_hash: string;
+          expires_at: string;
+          used_at: string | null;
+          revoked_at: string | null;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          role: UserRole;
+          token_hash: string;
+          expires_at: string;
+          used_at?: string | null;
+          revoked_at?: string | null;
+          created_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          role?: UserRole;
+          token_hash?: string;
+          expires_at?: string;
+          used_at?: string | null;
+          revoked_at?: string | null;
+          created_by?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -334,6 +382,112 @@ export interface Database {
           created_at?: string;
         };
       };
+      hak_amil_configs: {
+        Row: {
+          id: string;
+          tahun_zakat_id: string;
+          basis_mode: HakAmilBasisMode;
+          persen_zakat_fitrah: number;
+          persen_zakat_maal: number;
+          persen_infak: number;
+          persen_fidyah: number;
+          persen_beras: number;
+          created_by: string | null;
+          updated_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tahun_zakat_id: string;
+          basis_mode?: HakAmilBasisMode;
+          persen_zakat_fitrah?: number;
+          persen_zakat_maal?: number;
+          persen_infak?: number;
+          persen_fidyah?: number;
+          persen_beras?: number;
+          created_by?: string | null;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tahun_zakat_id?: string;
+          basis_mode?: HakAmilBasisMode;
+          persen_zakat_fitrah?: number;
+          persen_zakat_maal?: number;
+          persen_infak?: number;
+          persen_fidyah?: number;
+          persen_beras?: number;
+          created_by?: string | null;
+          updated_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      hak_amil_snapshots: {
+        Row: {
+          id: string;
+          tahun_zakat_id: string;
+          kategori: HakAmilKategori;
+          tanggal: string;
+          basis_mode: HakAmilBasisMode;
+          pembayaran_zakat_id: string | null;
+          pemasukan_uang_id: string | null;
+          pemasukan_beras_id: string | null;
+          rekonsiliasi_id: string | null;
+          total_bruto: number;
+          total_rekonsiliasi: number;
+          total_neto: number;
+          nominal_basis: number;
+          persen_hak_amil: number;
+          nominal_hak_amil: number;
+          catatan: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tahun_zakat_id: string;
+          kategori: HakAmilKategori;
+          tanggal?: string;
+          basis_mode: HakAmilBasisMode;
+          pembayaran_zakat_id?: string | null;
+          pemasukan_uang_id?: string | null;
+          pemasukan_beras_id?: string | null;
+          rekonsiliasi_id?: string | null;
+          total_bruto?: number;
+          total_rekonsiliasi?: number;
+          total_neto?: number;
+          nominal_basis?: number;
+          persen_hak_amil: number;
+          nominal_hak_amil: number;
+          catatan?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tahun_zakat_id?: string;
+          kategori?: HakAmilKategori;
+          tanggal?: string;
+          basis_mode?: HakAmilBasisMode;
+          pembayaran_zakat_id?: string | null;
+          pemasukan_uang_id?: string | null;
+          pemasukan_beras_id?: string | null;
+          rekonsiliasi_id?: string | null;
+          total_bruto?: number;
+          total_rekonsiliasi?: number;
+          total_neto?: number;
+          nominal_basis?: number;
+          persen_hak_amil?: number;
+          nominal_hak_amil?: number;
+          catatan?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+      };
       rekonsiliasi: {
         Row: {
           id: string;
@@ -511,11 +665,14 @@ export interface Database {
       akun_uang: AkunUang;
       pemasukan_uang_kategori: PemasukanUangKategori;
       pemasukan_beras_kategori: PemasukanBerasKategori;
+      hak_amil_basis_mode: HakAmilBasisMode;
+      hak_amil_kategori: HakAmilKategori;
     };
   };
 }
 
 export type User = Database['public']['Tables']['users']['Row'];
+export type UserInvitation = Database['public']['Tables']['user_invitations']['Row'];
 export type TahunZakat = Database['public']['Tables']['tahun_zakat']['Row'];
 export type KategoriMustahik = Database['public']['Tables']['kategori_mustahik']['Row'];
 export type Muzakki = Database['public']['Tables']['muzakki']['Row'];
@@ -523,7 +680,12 @@ export type PembayaranZakat = Database['public']['Tables']['pembayaran_zakat']['
 export type PemasukanUang = Database['public']['Tables']['pemasukan_uang']['Row'];
 export type PemasukanBeras = Database['public']['Tables']['pemasukan_beras']['Row'];
 export type HakAmil = Database['public']['Tables']['hak_amil']['Row'];
+export type HakAmilConfig = Database['public']['Tables']['hak_amil_configs']['Row'];
+export type HakAmilSnapshot = Database['public']['Tables']['hak_amil_snapshots']['Row'];
 export type Rekonsiliasi = Database['public']['Tables']['rekonsiliasi']['Row'];
 export type Mustahik = Database['public']['Tables']['mustahik']['Row'];
 export type DistribusiZakat = Database['public']['Tables']['distribusi_zakat']['Row'];
 export type AuditLog = Database['public']['Tables']['audit_logs']['Row'];
+
+// Helper types for invitation status
+export type InvitationStatus = 'pending' | 'used' | 'expired' | 'revoked';

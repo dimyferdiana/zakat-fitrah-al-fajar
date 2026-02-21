@@ -127,6 +127,14 @@ export function useCreateRekonsiliasi() {
         .single();
 
       if (error) throw error;
+
+      // Create hak amil snapshot for reconciliation
+      // Note: Rekonsiliasi is treated as an adjustment (negative impact on net)
+      // We don't calculate hak amil directly on rekonsiliasi itself
+      // but it affects the net calculation for other categories
+      // This is a design choice - we only snapshot actual income, not adjustments
+      // If needed in the future, this can be expanded
+
       return data;
     },
     onSuccess: () => {
