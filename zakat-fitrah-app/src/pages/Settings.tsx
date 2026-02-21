@@ -136,7 +136,14 @@ export default function Settings() {
         `)
         .order('updated_at', { ascending: false });
 
-      if (error) throw error;
+      // Graceful handling if table doesn't exist yet (migrations not run)
+      if (error) {
+        if (error.code === 'PGRST116' || error.message?.includes('relation') || error.message?.includes('does not exist')) {
+          console.warn('hak_amil_configs table not found - migrations 023/024 may not be applied yet');
+          return [];
+        }
+        throw error;
+      }
 
       // Fetch user names for updated_by
       const userIds = data.map((c: any) => c.updated_by).filter(Boolean);
@@ -229,7 +236,12 @@ export default function Settings() {
       setEditHakAmilConfig(null);
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Gagal menyimpan konfigurasi hak amil');
+      // Provide helpful message if table doesn't exist yet
+      if (error?.code === 'PGRST116' || error?.message?.includes('relation') || error?.message?.includes('does not exist')) {
+        toast.error('Fitur Hak Amil belum tersedia. Hubungi administrator untuk menjalankan migrasi database.');
+      } else {
+        toast.error(error.message || 'Gagal menyimpan konfigurasi hak amil');
+      }
     },
   });
 

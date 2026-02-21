@@ -57,7 +57,14 @@ export function useHakAmilConfig(tahunZakatId?: string) {
         .eq('tahun_zakat_id', tahunZakatId)
         .maybeSingle();
 
-      if (error) throw error;
+      // Graceful handling if table doesn't exist yet (migrations not run)
+      if (error) {
+        if (error.code === 'PGRST116' || error.message?.includes('relation') || error.message?.includes('does not exist')) {
+          console.warn('hak_amil_configs table not found - migrations 023/024 may not be applied yet');
+          return null;
+        }
+        throw error;
+      }
       return data;
     },
     enabled: !!tahunZakatId,
@@ -91,7 +98,14 @@ export function useHakAmilMonthlySummary(
         .gte('tanggal', startDate)
         .lte('tanggal', endDate);
 
-      if (error) throw error;
+      // Graceful handling if table doesn't exist yet (migrations not run)
+      if (error) {
+        if (error.code === 'PGRST116' || error.message?.includes('relation') || error.message?.includes('does not exist')) {
+          console.warn('hak_amil_snapshots table not found - migrations 023/024 may not be applied yet');
+          return createEmptySummary();
+        }
+        throw error;
+      }
 
       return aggregateSnapshots(snapshots || []);
     },
@@ -116,7 +130,14 @@ export function useHakAmilYearlySummary(tahunZakatId?: string) {
         .select('*')
         .eq('tahun_zakat_id', tahunZakatId);
 
-      if (error) throw error;
+      // Graceful handling if table doesn't exist yet (migrations not run)
+      if (error) {
+        if (error.code === 'PGRST116' || error.message?.includes('relation') || error.message?.includes('does not exist')) {
+          console.warn('hak_amil_snapshots table not found - migrations 023/024 may not be applied yet');
+          return createEmptySummary();
+        }
+        throw error;
+      }
 
       return aggregateSnapshots(snapshots || []);
     },
