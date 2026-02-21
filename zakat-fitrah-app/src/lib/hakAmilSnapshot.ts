@@ -23,6 +23,7 @@ export function mapKategoriToHakAmil(kategori: string): HakAmilCategory | null {
     fidyah_beras: 'fidyah',
     infak_sedekah_uang: 'infak',
     infak_sedekah_beras: 'infak',
+    maal_beras: 'zakat_maal',
   };
 
   return mapping[kategori] || null;

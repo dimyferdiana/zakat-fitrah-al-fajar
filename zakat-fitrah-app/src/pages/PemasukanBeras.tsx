@@ -43,10 +43,11 @@ const kategoriLabels: Record<string, string> = {
   fidyah_beras: 'Fidyah Beras',
   infak_sedekah_beras: 'Infak/Sedekah',
   zakat_fitrah_beras: 'Zakat Fitrah (Beras)',
+  maal_beras: 'Zakat Maal (Beras)',
 };
 
 export function PemasukanBeras() {
-  const [kategori, setKategori] = useState<'semua' | 'fidyah_beras' | 'infak_sedekah_beras' | 'zakat_fitrah_beras'>('semua');
+  const [kategori, setKategori] = useState<'semua' | 'fidyah_beras' | 'infak_sedekah_beras' | 'zakat_fitrah_beras' | 'maal_beras'>('semua');
   const [formOpen, setFormOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [buktiOpen, setBuktiOpen] = useState(false);

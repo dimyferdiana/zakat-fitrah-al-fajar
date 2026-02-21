@@ -19,7 +19,7 @@ interface PemasukanBeras {
   tahun_zakat_id: string;
   muzakki_id: string | null;
   muzakki?: { id: string; nama_kk: string } | null;
-  kategori: 'fidyah_beras' | 'infak_sedekah_beras' | 'zakat_fitrah_beras';
+  kategori: 'fidyah_beras' | 'infak_sedekah_beras' | 'zakat_fitrah_beras' | 'maal_beras';
   jumlah_beras_kg: number;
   tanggal: string;
   catatan: string | null;
@@ -41,10 +41,11 @@ export function BuktiPemasukanBeras({ open, onOpenChange, data }: BuktiPemasukan
   };
 
   const getCategoryLabel = (kategori: PemasukanBeras['kategori']) => {
-    const labels = {
+    const labels: Record<string, string> = {
       fidyah_beras: 'Fidyah (Beras)',
       infak_sedekah_beras: 'Infak/Sedekah (Beras)',
       zakat_fitrah_beras: 'Zakat Fitrah (Beras)',
+      maal_beras: 'Zakat Maal (Beras)',
     };
     return labels[kategori] || kategori;
   };

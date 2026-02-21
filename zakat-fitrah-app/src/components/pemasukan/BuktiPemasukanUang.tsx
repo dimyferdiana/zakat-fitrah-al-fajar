@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { ReceiptShell } from '@/components/pemasukan/ReceiptShell';
 import { Printer, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
@@ -238,21 +239,7 @@ export function BuktiPemasukanUang({ open, onOpenChange, data }: BuktiPemasukanU
           </DialogHeader>
 
           {/* Print Content */}
-          <div ref={contentRef} id="print-content" className="space-y-4 py-4">
-            {/* Header */}
-            <div className="text-center space-y-2">
-              <div className="flex justify-center mb-3">
-                <img src="/logo-al-fajar.png" alt="Logo" className="h-16 w-16" />
-              </div>
-              <h2 className="text-lg font-bold">YAYASAN AL-FAJAR PERMATA PAMULANG</h2>
-              <p className="text-xs">Jl. Bukit Permata VII Blok E20/16 Bakti Jaya Setu Tangerang Selatan</p>
-              <p className="text-xs">Email: permataalfajar@gmail.com</p>
-              <p className="text-xs">Layanan Al Fajar 0877-1335-9800 (WA Only)</p>
-            </div>
-
-            <Separator />
-
-            <h1 className="text-center text-lg font-bold">BUKTI PEMASUKAN UANG</h1>
+          <ReceiptShell ref={contentRef} title="BUKTI PEMASUKAN UANG">
 
             {/* Receipt Info */}
             <div className="text-xs space-y-1">
@@ -299,29 +286,7 @@ export function BuktiPemasukanUang({ open, onOpenChange, data }: BuktiPemasukanU
               )}
             </div>
 
-            <Separator />
-
-            {/* Signatures */}
-            <div className="flex justify-between text-sm pt-6">
-              <div className="text-center">
-                <p className="text-xs">Petugas</p>
-                <div className="mt-12 border-t border-foreground pt-1 w-28">
-                  <p className="text-[10px]">(......................)</p>
-                </div>
-              </div>
-              <div className="text-center">
-                <p className="text-xs">Penyetor</p>
-                <div className="mt-12 border-t border-foreground pt-1 w-28">
-                  <p className="text-[10px]">(......................)</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <p className="text-[10px] text-center text-muted-foreground pt-2">
-              Simpan bukti ini sebagai tanda terima yang sah
-            </p>
-          </div>
+          </ReceiptShell>
 
           {/* Actions */}
           <div className="flex gap-2 print:hidden">

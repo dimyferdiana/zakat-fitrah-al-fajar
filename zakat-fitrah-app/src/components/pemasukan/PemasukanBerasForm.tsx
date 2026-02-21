@@ -40,7 +40,7 @@ import type { PemasukanBerasKategori } from '@/hooks/usePemasukanBeras';
 
 const formSchema = z.object({
   tahun_zakat_id: z.string().min(1, { message: 'Tahun zakat wajib dipilih' }),
-  kategori: z.enum(['fidyah_beras', 'infak_sedekah_beras', 'zakat_fitrah_beras'], {
+  kategori: z.enum(['fidyah_beras', 'infak_sedekah_beras', 'zakat_fitrah_beras', 'maal_beras'], {
     message: 'Pilih kategori',
   }),
   jumlah_beras_kg: z.number().positive({ message: 'Jumlah harus lebih dari 0' }),
@@ -196,6 +196,7 @@ export function PemasukanBerasForm({
                       <SelectItem value="fidyah_beras">Fidyah Beras</SelectItem>
                       <SelectItem value="infak_sedekah_beras">Infak/Sedekah</SelectItem>
                       <SelectItem value="zakat_fitrah_beras">Zakat Fitrah (Beras)</SelectItem>
+                      <SelectItem value="maal_beras">Zakat Maal (Beras)</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

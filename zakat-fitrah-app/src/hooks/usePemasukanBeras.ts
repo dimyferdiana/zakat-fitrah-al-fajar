@@ -10,7 +10,8 @@ import {
 export type PemasukanBerasKategori =
   | 'fidyah_beras'
   | 'infak_sedekah_beras'
-  | 'zakat_fitrah_beras';
+  | 'zakat_fitrah_beras'
+  | 'maal_beras';
 
 export interface PemasukanBeras {
   id: string;

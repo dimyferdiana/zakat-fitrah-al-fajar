@@ -18,7 +18,11 @@ export type PemasukanUangKategori =
   | 'maal_penghasilan_uang'
   | 'infak_sedekah_uang';
 
-export type PemasukanBerasKategori = 'infak_sedekah_beras';
+export type PemasukanBerasKategori =
+  | 'fidyah_beras'
+  | 'infak_sedekah_beras'
+  | 'zakat_fitrah_beras'
+  | 'maal_beras';
 
 export type StatusDistribusi = 'pending' | 'selesai';
 
@@ -640,6 +644,32 @@ export interface Database {
           created_at?: string;
         };
       };
+      bulk_submission_logs: {
+        Row: {
+          id: string;
+          operator_id: string;
+          tahun_zakat_id: string;
+          receipt_no: string;
+          row_count: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          operator_id: string;
+          tahun_zakat_id: string;
+          receipt_no: string;
+          row_count?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          operator_id?: string;
+          tahun_zakat_id?: string;
+          receipt_no?: string;
+          row_count?: number;
+          created_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
@@ -686,6 +716,7 @@ export type Rekonsiliasi = Database['public']['Tables']['rekonsiliasi']['Row'];
 export type Mustahik = Database['public']['Tables']['mustahik']['Row'];
 export type DistribusiZakat = Database['public']['Tables']['distribusi_zakat']['Row'];
 export type AuditLog = Database['public']['Tables']['audit_logs']['Row'];
+export type BulkSubmissionLog = Database['public']['Tables']['bulk_submission_logs']['Row'];
 
 // Helper types for invitation status
 export type InvitationStatus = 'pending' | 'used' | 'expired' | 'revoked';
