@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Trash2, ChevronsUpDown, UserPlus } from 'lucide-react';
+import { Loader2, Plus, Trash2, ChevronsUpDown, UserPlus, Receipt } from 'lucide-react';
 import { format } from 'date-fns';
 import { submitBulk } from '@/hooks/useBulkPembayaran';
 import { BulkTandaTerima } from './BulkTandaTerima';
@@ -462,8 +462,18 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
         </>
       )}
 
-      {/* Submit */}
-      <div className="flex justify-end">
+      {/* Submit + re-open receipt */}
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        {result && (
+          <Button
+            variant="outline"
+            onClick={() => setReceiptOpen(true)}
+            className="gap-2"
+          >
+            <Receipt className="h-4 w-4" />
+            Lihat Tanda Terima ({result.receiptNo})
+          </Button>
+        )}
         <Button
           onClick={handleSubmit}
           disabled={isSubmitting || rows.length === 0}
