@@ -180,9 +180,8 @@ export function Dashboard() {
         <DistribusiProgress
           totalPemasukan={stats?.totalPemasukanUangRp || 0}
           totalDistribusi={stats?.totalDistribusiUangRp || 0}
-          sisa={stats?.sisaUangAfterAmilRp || 0}
+          sisa={(stats?.totalPemasukanUangRp || 0) - (stats?.totalDistribusiUangRp || 0)}
           jenis="uang"
-          hakAmil={stats?.hakAmilUangRp || 0}
         />
       </div>
 
