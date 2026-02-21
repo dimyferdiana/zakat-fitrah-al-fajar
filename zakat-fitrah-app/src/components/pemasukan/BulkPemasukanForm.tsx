@@ -23,6 +23,27 @@ interface MuzakkiOption {
   nama_kk: string;
 }
 
+interface BulkHistoryItem {
+  id: string;
+  receipt_no: string;
+  row_count: number;
+  created_at: string;
+}
+
+interface BulkUangRecord {
+  muzakki_id: string | null;
+  kategori: string;
+  jumlah_uang_rp: number;
+  muzakki?: { id: string; nama_kk: string } | null;
+}
+
+interface BulkBerasRecord {
+  muzakki_id: string | null;
+  kategori: string;
+  jumlah_beras_kg: number;
+  muzakki?: { id: string; nama_kk: string } | null;
+}
+
 interface BulkPemasukanFormProps {
   tahunZakatId: string;
   /** Max rows per submission. Reads from admin settings; default 10. */
@@ -83,6 +104,7 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
   const [newMuzakkiOpen, setNewMuzakkiOpen] = useState(false);
   const [newMuzakkiNama, setNewMuzakkiNama] = useState('');
   const [isCreatingMuzakki, setIsCreatingMuzakki] = useState(false);
+  const [reprintLoadingReceiptNo, setReprintLoadingReceiptNo] = useState<string | null>(null);
 
   const { data: muzakkiOptions = [] } = useQuery<MuzakkiOption[]>({
     queryKey: ['muzakki-options'],
@@ -95,6 +117,22 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
       return (data ?? []) as MuzakkiOption[];
     },
     staleTime: 30_000,
+  });
+
+  const { data: bulkHistory = [], isLoading: historyLoading } = useQuery<BulkHistoryItem[]>({
+    queryKey: ['bulk-submission-history', tahunZakatId],
+    enabled: Boolean(tahunZakatId),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bulk_submission_logs')
+        .select('id, receipt_no, row_count, created_at')
+        .eq('tahun_zakat_id', tahunZakatId)
+        .order('created_at', { ascending: false })
+        .limit(8);
+      if (error) throw error;
+      return (data ?? []) as BulkHistoryItem[];
+    },
+    staleTime: 10_000,
   });
 
   const alreadyAddedIds = new Set(rows.map((r) => r.muzakkiId).filter(Boolean));
@@ -160,6 +198,82 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
       toast.error('Gagal membuat muzakki: ' + (err as Error).message);
     } finally {
       setIsCreatingMuzakki(false);
+    }
+  };
+
+  const handleReprintFromHistory = async (receiptNo: string) => {
+    setReprintLoadingReceiptNo(receiptNo);
+    try {
+      const catatanRef = `Bulk #${receiptNo}`;
+
+      const [uangRes, berasRes] = await Promise.all([
+        supabase
+          .from('pemasukan_uang')
+          .select('muzakki_id, kategori, jumlah_uang_rp, muzakki:muzakki_id(id, nama_kk)')
+          .eq('tahun_zakat_id', tahunZakatId)
+          .eq('catatan', catatanRef),
+        supabase
+          .from('pemasukan_beras')
+          .select('muzakki_id, kategori, jumlah_beras_kg, muzakki:muzakki_id(id, nama_kk)')
+          .eq('tahun_zakat_id', tahunZakatId)
+          .eq('catatan', catatanRef),
+      ]);
+
+      if (uangRes.error) throw uangRes.error;
+      if (berasRes.error) throw berasRes.error;
+
+      const uangRows = (uangRes.data ?? []) as BulkUangRecord[];
+      const berasRows = (berasRes.data ?? []) as BulkBerasRecord[];
+
+      const grouped = new Map<string, BulkRow>();
+
+      const ensureRow = (muzakkiId: string | null, muzakkiNama: string): BulkRow => {
+        const key = muzakkiId ?? `unknown-${muzakkiNama}`;
+        const existing = grouped.get(key);
+        if (existing) return existing;
+        const created = makeEmptyRow(muzakkiId, muzakkiNama || 'Tanpa Nama');
+        grouped.set(key, created);
+        return created;
+      };
+
+      for (const r of uangRows) {
+        const row = ensureRow(r.muzakki_id, r.muzakki?.nama_kk ?? 'Tanpa Nama');
+        const nominal = Number(r.jumlah_uang_rp ?? 0);
+        if (r.kategori === 'zakat_fitrah_uang') row.zakatFitrahUang = (row.zakatFitrahUang ?? 0) + nominal;
+        else if (r.kategori === 'maal_penghasilan_uang') row.zakatMaalUang = (row.zakatMaalUang ?? 0) + nominal;
+        else if (r.kategori === 'infak_sedekah_uang' || r.kategori === 'fidyah_uang') {
+          row.infakUang = (row.infakUang ?? 0) + nominal;
+        }
+      }
+
+      for (const r of berasRows) {
+        const row = ensureRow(r.muzakki_id, r.muzakki?.nama_kk ?? 'Tanpa Nama');
+        const jumlah = Number(r.jumlah_beras_kg ?? 0);
+        if (r.kategori === 'zakat_fitrah_beras') row.zakatFitrahBeras = (row.zakatFitrahBeras ?? 0) + jumlah;
+        else if (r.kategori === 'maal_beras') row.zakatMaalBeras = (row.zakatMaalBeras ?? 0) + jumlah;
+        else if (r.kategori === 'infak_sedekah_beras' || r.kategori === 'fidyah_beras') {
+          row.infakBeras = (row.infakBeras ?? 0) + jumlah;
+        }
+      }
+
+      const rebuiltRows = Array.from(grouped.values());
+      if (rebuiltRows.length === 0) {
+        toast.error('Data transaksi untuk receipt ini tidak ditemukan');
+        return;
+      }
+
+      setResult({
+        success: true,
+        receiptNo,
+        rows: rebuiltRows,
+        errors: [],
+      });
+      setReceiptOpen(true);
+      toast.success(`Receipt ${receiptNo} berhasil dibuka kembali`);
+    } catch (err) {
+      toast.error('Gagal membuka receipt: ' + (err as Error).message);
+    } finally {
+      setReprintLoadingReceiptNo(null);
     }
   };
 
@@ -482,6 +596,45 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isSubmitting ? 'Menyimpan...' : 'Simpan & Cetak Resi'}
         </Button>
+      </div>
+
+      {/* Bulk receipt history */}
+      <div className="rounded-md border p-3 space-y-2">
+        <p className="text-sm font-medium">Riwayat Bulk Receipt</p>
+        {historyLoading && (
+          <p className="text-xs text-muted-foreground">Memuat riwayat...</p>
+        )}
+        {!historyLoading && bulkHistory.length === 0 && (
+          <p className="text-xs text-muted-foreground">Belum ada riwayat bulk untuk tahun ini.</p>
+        )}
+        {!historyLoading && bulkHistory.length > 0 && (
+          <div className="space-y-2">
+            {bulkHistory.map((item) => (
+              <div
+                key={item.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded border px-3 py-2"
+              >
+                <div className="text-xs">
+                  <p className="font-medium">{item.receipt_no}</p>
+                  <p className="text-muted-foreground">
+                    {new Date(item.created_at).toLocaleString('id-ID')} • {item.row_count} muzakki
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleReprintFromHistory(item.receipt_no)}
+                  disabled={reprintLoadingReceiptNo === item.receipt_no}
+                >
+                  {reprintLoadingReceiptNo === item.receipt_no && (
+                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                  )}
+                  Reprint
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Submission errors */}
