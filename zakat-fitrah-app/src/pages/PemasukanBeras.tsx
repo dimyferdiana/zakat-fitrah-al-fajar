@@ -12,15 +12,32 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { PemasukanBerasForm } from '@/components/pemasukan/PemasukanBerasForm';
 import { BuktiPemasukanBeras } from '@/components/pemasukan/BuktiPemasukanBeras';
 import {
   useCreatePemasukanBeras,
+  useUpdatePemasukanBeras,
+  useDeletePemasukanBeras,
   usePemasukanBerasList,
 } from '@/hooks/usePemasukanBeras';
 import type { PemasukanBeras } from '@/hooks/usePemasukanBeras';
 import { useTahunZakatList } from '@/hooks/useDashboard';
-import { Plus, Receipt } from 'lucide-react';
+import { Plus, Receipt, Edit, Trash2, MoreVertical } from 'lucide-react';
 
 const kategoriLabels: Record<string, string> = {
   fidyah_beras: 'Fidyah Beras',
@@ -34,6 +51,9 @@ export function PemasukanBeras() {
   const [page, setPage] = useState(1);
   const [buktiOpen, setBuktiOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<PemasukanBeras | null>(null);
+  const [editingItem, setEditingItem] = useState<PemasukanBeras | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<PemasukanBeras | null>(null);
 
   const { data: tahunList, isLoading: tahunLoading } = useTahunZakatList();
   const activeTahun = useMemo(() => tahunList?.find((t) => t.is_active), [tahunList]);
@@ -51,6 +71,8 @@ export function PemasukanBeras() {
   });
 
   const createMutation = useCreatePemasukanBeras();
+  const updateMutation = useUpdatePemasukanBeras();
+  const deleteMutation = useDeletePemasukanBeras();
 
   const handleSubmit = async (values: {
     tahun_zakat_id: string;
@@ -60,9 +82,33 @@ export function PemasukanBeras() {
     catatan?: string;
     muzakki_id?: string;
   }) => {
-    await createMutation.mutateAsync(values);
+    if (editingItem) {
+      await updateMutation.mutateAsync({ ...values, id: editingItem.id });
+      setEditingItem(null);
+    } else {
+      await createMutation.mutateAsync(values);
+    }
     setFormOpen(false);
     refetch();
+  };
+
+  const handleEdit = (item: PemasukanBeras) => {
+    setEditingItem(item);
+    setFormOpen(true);
+  };
+
+  const handleDeleteClick = (item: PemasukanBeras) => {
+    setItemToDelete(item);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (itemToDelete) {
+      await deleteMutation.mutateAsync(itemToDelete.id);
+      setDeleteConfirmOpen(false);
+      setItemToDelete(null);
+      refetch();
+    }
   };
 
   const handleShowBukti = (item: PemasukanBeras) => {
@@ -163,14 +209,36 @@ export function PemasukanBeras() {
                       <td className="py-2 pr-4">{item.muzakki?.nama_kk || '-'}</td>
                       <td className="py-2 pr-4 text-muted-foreground">{item.catatan || '-'}</td>
                       <td className="py-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleShowBukti(item)}
-                        >
-                          <Receipt className="mr-1 h-4 w-4" />
-                          Bukti
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleShowBukti(item)}
+                          >
+                            <Receipt className="mr-1 h-4 w-4" />
+                            Bukti
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEdit(item)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteClick(item)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Hapus
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -183,10 +251,23 @@ export function PemasukanBeras() {
 
       <PemasukanBerasForm
         open={formOpen}
-        onOpenChange={setFormOpen}
+        onOpenChange={(open) => {
+          setFormOpen(open);
+          if (!open) {
+            setEditingItem(null);
+          }
+        }}
         tahunOptions={tahunOptions}
-        defaultTahunId={selectedTahun || activeTahun?.id}
-        isSubmitting={createMutation.isPending}
+        defaultTahunId={editingItem?.tahun_zakat_id || selectedTahun || activeTahun?.id}
+        defaultValues={editingItem ? {
+          tahun_zakat_id: editingItem.tahun_zakat_id,
+          kategori: editingItem.kategori,
+          jumlah_beras_kg: editingItem.jumlah_beras_kg,
+          tanggal: editingItem.tanggal,
+          catatan: editingItem.catatan || undefined,
+          muzakki_id: editingItem.muzakki_id || undefined,
+        } : undefined}
+        isSubmitting={createMutation.isPending || updateMutation.isPending}
         onSubmit={(values) => handleSubmit(values)}
       />
 
@@ -197,6 +278,24 @@ export function PemasukanBeras() {
           data={selectedItem}
         />
       )}
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Pemasukan?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus pemasukan ini? Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleConfirmDelete}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            Hapus
+          </AlertDialogAction>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {tahunDisplay && (
         <p className="text-xs text-muted-foreground">

@@ -91,6 +91,10 @@ export function usePemasukanUangList(params: PemasukanUangListParams) {
   });
 }
 
+interface UpdatePemasukanInput extends CreatePemasukanInput {
+  id: string;
+}
+
 export function useCreatePemasukanUang() {
   const queryClient = useQueryClient();
 
@@ -148,6 +152,63 @@ export function useCreatePemasukanUang() {
     },
     onError: (error: Error) => {
       toast.error(`Gagal menyimpan pemasukan: ${error.message}`);
+    },
+  });
+}
+
+export function useUpdatePemasukanUang() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: UpdatePemasukanInput) => {
+      const { id, ...updateData } = input;
+      const payload = {
+        ...updateData,
+        muzakki_id: updateData.muzakki_id || null,
+        catatan: updateData.catatan || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase
+        .from('pemasukan_uang')
+        .update as any)(payload)
+        .eq('id', id)
+        .select('*')
+        .single();
+
+      if (error) throw error;
+      return data as PemasukanUang;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pemasukan-uang'] });
+      toast.success('Pemasukan uang berhasil diperbarui');
+    },
+    onError: (error: Error) => {
+      toast.error(`Gagal memperbarui pemasukan: ${error.message}`);
+    },
+  });
+}
+
+export function useDeletePemasukanUang() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('pemasukan_uang')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pemasukan-uang'] });
+      toast.success('Pemasukan uang berhasil dihapus');
+    },
+    onError: (error: Error) => {
+      toast.error(`Gagal menghapus pemasukan: ${error.message}`);
     },
   });
 }

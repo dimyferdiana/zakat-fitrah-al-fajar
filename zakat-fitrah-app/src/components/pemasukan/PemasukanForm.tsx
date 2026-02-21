@@ -78,6 +78,15 @@ interface PemasukanFormProps {
   }) => void;
   tahunOptions: TahunOption[];
   defaultTahunId?: string;
+  defaultValues?: {
+    tahun_zakat_id: string;
+    kategori: PemasukanUangKategori;
+    akun: AkunUang;
+    jumlah_uang_rp: number;
+    tanggal: string;
+    catatan?: string;
+    muzakki_id?: string;
+  };
   isSubmitting: boolean;
 }
 
@@ -87,11 +96,20 @@ export function PemasukanForm({
   onSubmit,
   tahunOptions,
   defaultTahunId,
+  defaultValues,
   isSubmitting,
 }: PemasukanFormProps) {
   const form = useForm<PemasukanFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: defaultValues ? {
+      tahun_zakat_id: defaultValues.tahun_zakat_id,
+      kategori: defaultValues.kategori,
+      akun: defaultValues.akun,
+      jumlah_uang_rp: defaultValues.jumlah_uang_rp,
+      tanggal: new Date(defaultValues.tanggal),
+      catatan: defaultValues.catatan || '',
+      muzakki_id: defaultValues.muzakki_id,
+    } : {
       tahun_zakat_id: defaultTahunId || '',
       kategori: 'fidyah_uang',
       akun: 'kas',

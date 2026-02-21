@@ -81,6 +81,10 @@ export function usePemasukanBerasList(params: PemasukanBerasListParams) {
   });
 }
 
+interface UpdatePemasukanInput extends CreatePemasukanInput {
+  id: string;
+}
+
 export function useCreatePemasukanBeras() {
   const queryClient = useQueryClient();
 
@@ -139,6 +143,63 @@ export function useCreatePemasukanBeras() {
     },
     onError: (error: Error) => {
       toast.error(`Gagal menyimpan pemasukan: ${error.message}`);
+    },
+  });
+}
+
+export function useUpdatePemasukanBeras() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: UpdatePemasukanInput) => {
+      const { id, ...updateData } = input;
+      const payload = {
+        ...updateData,
+        muzakki_id: updateData.muzakki_id || null,
+        catatan: updateData.catatan || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase
+        .from('pemasukan_beras')
+        .update as any)(payload)
+        .eq('id', id)
+        .select('*')
+        .single();
+
+      if (error) throw error;
+      return data as PemasukanBeras;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pemasukan-beras'] });
+      toast.success('Pemasukan beras berhasil diperbarui');
+    },
+    onError: (error: Error) => {
+      toast.error(`Gagal memperbarui pemasukan: ${error.message}`);
+    },
+  });
+}
+
+export function useDeletePemasukanBeras() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('pemasukan_beras')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pemasukan-beras'] });
+      toast.success('Pemasukan beras berhasil dihapus');
+    },
+    onError: (error: Error) => {
+      toast.error(`Gagal menghapus pemasukan: ${error.message}`);
     },
   });
 }

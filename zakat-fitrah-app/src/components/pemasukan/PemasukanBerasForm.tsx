@@ -76,6 +76,14 @@ interface PemasukanBerasFormProps {
   }) => void;
   tahunOptions: TahunOption[];
   defaultTahunId?: string;
+  defaultValues?: {
+    tahun_zakat_id: string;
+    kategori: PemasukanBerasKategori;
+    jumlah_beras_kg: number;
+    tanggal: string;
+    catatan?: string;
+    muzakki_id?: string;
+  };
   isSubmitting: boolean;
 }
 
@@ -85,11 +93,19 @@ export function PemasukanBerasForm({
   onSubmit,
   tahunOptions,
   defaultTahunId,
+  defaultValues,
   isSubmitting,
 }: PemasukanBerasFormProps) {
   const form = useForm<PemasukanBerasFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: defaultValues ? {
+      tahun_zakat_id: defaultValues.tahun_zakat_id,
+      kategori: defaultValues.kategori,
+      jumlah_beras_kg: defaultValues.jumlah_beras_kg,
+      tanggal: new Date(defaultValues.tanggal),
+      catatan: defaultValues.catatan || '',
+      muzakki_id: defaultValues.muzakki_id,
+    } : {
       tahun_zakat_id: defaultTahunId || '',
       kategori: 'fidyah_beras',
       jumlah_beras_kg: 0,
