@@ -21,6 +21,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useSearchDonor, useUpsertDonor, type DonorProfile } from '@/hooks/useDonor';
+import { useUpdateSedekahReceipt, type SedekahReceiptRow } from '@/hooks/useSedekahReceipts';
 import { getTerbilangText, formatRupiah } from '@/lib/terbilang';
 import { supabase } from '@/lib/supabase';
 import { downloadSedekahReceipt, normalizeCategory } from '@/utils/sedekahReceipt';
@@ -53,11 +54,27 @@ const sedekahReceiptFormSchema = z.object({
 
 type SedekahReceiptFormValues = z.infer<typeof sedekahReceiptFormSchema>;
 
-interface SedekahReceiptFormProps {
-  onSuccess?: () => void;
+/** Returns the display category + custom value from a raw category string */
+function parseCategoryForDisplay(category: string): {
+  displayCategory: string;
+  customValue: string;
+} {
+  if (SEDEKAH_CATEGORIES.includes(category)) {
+    return { displayCategory: category, customValue: '' };
+  }
+  return { displayCategory: 'Lainnya', customValue: category };
 }
 
-export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
+interface SedekahReceiptFormProps {
+  /** When provided the form runs in edit mode */
+  editData?: SedekahReceiptRow;
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+export function SedekahReceiptForm({ editData, onSuccess, onCancel }: SedekahReceiptFormProps) {
+  const isEditMode = Boolean(editData);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDonor, setSelectedDonor] = useState<DonorProfile | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -67,6 +84,7 @@ export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
   });
 
   const upsertDonor = useUpsertDonor();
+  const updateReceipt = useUpdateSedekahReceipt();
 
   const form = useForm<SedekahReceiptFormValues>({
     resolver: zodResolver(sedekahReceiptFormSchema),
@@ -82,6 +100,26 @@ export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
       notes: '',
     },
   });
+
+  // ── Populate form when editData changes ──────────────────────
+  useEffect(() => {
+    if (!editData) return;
+
+    const { displayCategory, customValue } = parseCategoryForDisplay(editData.category);
+
+    form.reset({
+      receiptNumber: editData.receipt_number,
+      donorId: editData.donor_id ?? undefined,
+      donorName: editData.donor_name,
+      donorAddress: editData.donor_address,
+      donorPhone: editData.donor_phone ?? '',
+      category: displayCategory,
+      categoryCustom: customValue,
+      amount: editData.amount,
+      date: editData.tanggal,
+      notes: editData.notes ?? '',
+    });
+  }, [editData, form]);
 
   const amount = form.watch('amount') || 0;
   const category = form.watch('category');
@@ -115,6 +153,9 @@ export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
   };
 
   useEffect(() => {
+    // Skip auto-preview in edit mode — number is already assigned
+    if (isEditMode) return;
+
     let isActive = true;
 
     const loadReceiptNumber = async () => {
@@ -141,7 +182,8 @@ export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
     return () => {
       isActive = false;
     };
-  }, [category, categoryCustom, form]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, categoryCustom, isEditMode]);
 
   const handleDonorSelect = (donor: DonorProfile) => {
     setSelectedDonor(donor);
@@ -170,68 +212,90 @@ export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
         no_telp: values.donorPhone,
       });
 
-      const date = new Date(values.date);
       const categoryKey = normalizeCategory(finalCategory);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
+      if (isEditMode && editData) {
+        // ── UPDATE path ─────────────────────────────────────
+        await updateReceipt.mutateAsync({
+          id: editData.id,
+          payload: {
+            category: finalCategory,
+            category_key: categoryKey,
+            donor_id: donor?.id ?? editData.donor_id,
+            donor_name: values.donorName,
+            donor_address: values.donorAddress,
+            donor_phone: values.donorPhone || null,
+            amount: values.amount,
+            tanggal: values.date,
+            notes: values.notes || null,
+          },
+        });
 
-      const formattedReceiptNumber = await getReceiptNumberWithRetry(categoryKey, 'next', 3);
+        toast.success('Bukti sedekah berhasil diperbarui');
+        onSuccess?.();
+      } else {
+        // ── CREATE path ─────────────────────────────────────
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
 
-      const receiptPayload: Database['public']['Tables']['bukti_sedekah']['Insert'] = {
-        receipt_number: formattedReceiptNumber,
-        category: finalCategory,
-        category_key: categoryKey,
-        donor_id: donor?.id ?? null,
-        donor_name: values.donorName,
-        donor_address: values.donorAddress,
-        donor_phone: values.donorPhone || null,
-        amount: values.amount,
-        tanggal: values.date,
-        notes: values.notes || null,
-        created_by: user.id,
-      };
+        const formattedReceiptNumber = await getReceiptNumberWithRetry(categoryKey, 'next', 3);
 
-      const receiptTable = supabase.from('bukti_sedekah') as unknown as {
-        insert: (
-          values: Database['public']['Tables']['bukti_sedekah']['Insert'],
-        ) => Promise<{ error: PostgrestError | null }>;
-      };
+        const receiptPayload: Database['public']['Tables']['bukti_sedekah']['Insert'] = {
+          receipt_number: formattedReceiptNumber,
+          category: finalCategory,
+          category_key: categoryKey,
+          donor_id: donor?.id ?? null,
+          donor_name: values.donorName,
+          donor_address: values.donorAddress,
+          donor_phone: values.donorPhone || null,
+          amount: values.amount,
+          tanggal: values.date,
+          notes: values.notes || null,
+          created_by: user.id,
+        };
 
-      const { error: receiptError } = await receiptTable.insert(receiptPayload);
+        const receiptTable = supabase.from('bukti_sedekah') as unknown as {
+          insert: (
+            values: Database['public']['Tables']['bukti_sedekah']['Insert'],
+          ) => Promise<{ error: PostgrestError | null }>;
+        };
 
-      if (receiptError) {
-        if (receiptError.code === '23505') {
-          toast.error('Nomor bukti sudah digunakan untuk kategori ini.');
-          return;
+        const { error: receiptError } = await receiptTable.insert(receiptPayload);
+
+        if (receiptError) {
+          if (receiptError.code === '23505') {
+            toast.error('Nomor bukti sudah digunakan untuk kategori ini.');
+            return;
+          }
+          throw receiptError;
         }
-        throw receiptError;
+
+        form.setValue('receiptNumber', formattedReceiptNumber);
+
+        await downloadSedekahReceipt({
+          receiptNumber: formattedReceiptNumber,
+          donorName: values.donorName,
+          donorAddress: values.donorAddress,
+          donorPhone: values.donorPhone,
+          category: finalCategory,
+          amount: values.amount,
+          date: new Date(values.date),
+          notes: values.notes,
+        });
+
+        toast.success('Bukti sedekah berhasil dibuat dan diunduh');
+        form.reset();
+        setSelectedDonor(null);
+        onSuccess?.();
       }
-
-      form.setValue('receiptNumber', formattedReceiptNumber);
-
-      await downloadSedekahReceipt({
-        receiptNumber: formattedReceiptNumber,
-        donorName: values.donorName,
-        donorAddress: values.donorAddress,
-        donorPhone: values.donorPhone,
-        category: finalCategory,
-        amount: values.amount,
-        date,
-        notes: values.notes,
-      });
-
-
-      toast.success('Bukti sedekah berhasil dibuat dan diunduh');
-      form.reset();
-      setSelectedDonor(null);
-      onSuccess?.();
     } catch (error: Error | unknown) {
       console.error('Error generating receipt:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      toast.error('Gagal membuat bukti sedekah: ' + errorMessage);
+      toast.error(
+        isEditMode
+          ? 'Gagal memperbarui bukti sedekah: ' + errorMessage
+          : 'Gagal membuat bukti sedekah: ' + errorMessage,
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -246,7 +310,7 @@ export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
             name="receiptNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nomor Bukti (Otomatis)</FormLabel>
+                <FormLabel>Nomor Bukti {isEditMode ? '' : '(Otomatis)'}</FormLabel>
                 <FormControl>
                 <Input placeholder="Otomatis" {...field} readOnly />
                 </FormControl>
@@ -456,16 +520,30 @@ export function SedekahReceiptForm({ onSuccess }: SedekahReceiptFormProps) {
 
         <div className="flex gap-3">
           <Button type="submit" disabled={isGenerating} className="flex-1">
-            {isGenerating ? 'Membuat Bukti...' : 'Buat dan Unduh Bukti'}
+            {isGenerating
+              ? isEditMode ? 'Menyimpan...' : 'Membuat Bukti...'
+              : isEditMode ? 'Simpan Perubahan' : 'Buat dan Unduh Bukti'}
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => form.reset()}
-            disabled={isGenerating}
-          >
-            Reset
-          </Button>
+
+          {isEditMode && onCancel ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isGenerating}
+            >
+              Batal
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => form.reset()}
+              disabled={isGenerating}
+            >
+              Reset
+            </Button>
+          )}
         </div>
       </form>
     </Form>
