@@ -5,6 +5,7 @@ import {
   createHakAmilSnapshot,
   fetchBasisModeForTahun,
   mapKategoriToHakAmil,
+  upsertHakAmilSnapshot,
 } from '@/lib/hakAmilSnapshot';
 
 export type PemasukanUangKategori =
@@ -187,15 +188,10 @@ export function useUpdatePemasukanUang() {
       const { data: auth } = await supabase.auth.getUser();
       const userId = auth.user?.id;
 
-      await supabase
-        .from('hak_amil_snapshots')
-        .delete()
-        .eq('pemasukan_uang_id', id);
-
       if (hakAmilKategori) {
         try {
           const basisMode = await fetchBasisModeForTahun(updateData.tahun_zakat_id);
-          await createHakAmilSnapshot({
+          await upsertHakAmilSnapshot({
             tahunZakatId: updateData.tahun_zakat_id,
             kategori: hakAmilKategori,
             tanggal: updateData.tanggal,
