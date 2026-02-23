@@ -306,17 +306,17 @@ function aggregateSnapshots(snapshots: HakAmilSnapshot[]): HakAmilSummary {
       }
     );
 
-    // Get average percentage (should be consistent within category)
-    const avgPersen =
-      categorySnapshots.reduce((sum, snap) => sum + Number(snap.persen_hak_amil), 0) /
-      categorySnapshots.length;
+    const effectivePersen =
+      summary.total_neto > 0
+        ? (summary.nominal_hak_amil / summary.total_neto) * 100
+        : 0;
 
     return {
       kategori,
       total_bruto: summary.total_bruto,
       total_rekonsiliasi: summary.total_rekonsiliasi,
       total_neto: summary.total_neto,
-      persen_hak_amil: avgPersen,
+      persen_hak_amil: effectivePersen,
       nominal_hak_amil: summary.nominal_hak_amil,
     };
   });

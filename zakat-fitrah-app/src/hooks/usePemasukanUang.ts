@@ -148,6 +148,10 @@ export function useCreatePemasukanUang() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pemasukan-uang'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['monthly-pemasukan'] });
+      queryClient.invalidateQueries({ queryKey: ['hak-amil-monthly-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['hak-amil-yearly-summary'] });
       toast.success('Pemasukan uang berhasil disimpan');
     },
     onError: (error: Error) => {
@@ -178,10 +182,44 @@ export function useUpdatePemasukanUang() {
         .single();
 
       if (error) throw error;
+
+      const hakAmilKategori = mapKategoriToHakAmil(updateData.kategori);
+      const { data: auth } = await supabase.auth.getUser();
+      const userId = auth.user?.id;
+
+      await supabase
+        .from('hak_amil_snapshots')
+        .delete()
+        .eq('pemasukan_uang_id', id);
+
+      if (hakAmilKategori) {
+        try {
+          const basisMode = await fetchBasisModeForTahun(updateData.tahun_zakat_id);
+          await createHakAmilSnapshot({
+            tahunZakatId: updateData.tahun_zakat_id,
+            kategori: hakAmilKategori,
+            tanggal: updateData.tanggal,
+            grossAmount: updateData.jumlah_uang_rp,
+            reconciliationAmount: 0,
+            basisMode,
+            sourceType: 'pemasukan_uang',
+            sourceId: id,
+            catatan: updateData.catatan,
+            createdBy: userId,
+          });
+        } catch (snapshotError) {
+          console.error('Failed to update hak amil snapshot:', snapshotError);
+        }
+      }
+
       return data as PemasukanUang;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pemasukan-uang'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['monthly-pemasukan'] });
+      queryClient.invalidateQueries({ queryKey: ['hak-amil-monthly-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['hak-amil-yearly-summary'] });
       toast.success('Pemasukan uang berhasil diperbarui');
     },
     onError: (error: Error) => {
@@ -195,6 +233,11 @@ export function useDeletePemasukanUang() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      await supabase
+        .from('hak_amil_snapshots')
+        .delete()
+        .eq('pemasukan_uang_id', id);
+
       const { error } = await supabase
         .from('pemasukan_uang')
         .delete()
@@ -205,6 +248,10 @@ export function useDeletePemasukanUang() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pemasukan-uang'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['monthly-pemasukan'] });
+      queryClient.invalidateQueries({ queryKey: ['hak-amil-monthly-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['hak-amil-yearly-summary'] });
       toast.success('Pemasukan uang berhasil dihapus');
     },
     onError: (error: Error) => {
