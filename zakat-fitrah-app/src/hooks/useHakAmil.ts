@@ -39,6 +39,14 @@ export interface HakAmilSummary {
   grand_total_hak_amil: number;
 }
 
+interface HakAmilPersenReference {
+  zakat_fitrah: number;
+  zakat_maal: number;
+  infak: number;
+  fidyah: number;
+  beras: number;
+}
+
 // =========================================
 // QUERY: Get Hak Amil Config by Tahun Zakat
 // =========================================
@@ -87,6 +95,20 @@ export function useHakAmilMonthlySummary(
         return createEmptySummary();
       }
 
+      const { data: config } = await supabase
+        .from('hak_amil_configs')
+        .select('persen_zakat_fitrah, persen_zakat_maal, persen_infak, persen_fidyah, persen_beras')
+        .eq('tahun_zakat_id', tahunZakatId)
+        .maybeSingle();
+
+      const persenReference: HakAmilPersenReference = {
+        zakat_fitrah: Number((config as { persen_zakat_fitrah?: number } | null)?.persen_zakat_fitrah ?? 12.5),
+        zakat_maal: Number((config as { persen_zakat_maal?: number } | null)?.persen_zakat_maal ?? 12.5),
+        infak: Number((config as { persen_infak?: number } | null)?.persen_infak ?? 20),
+        fidyah: Number((config as { persen_fidyah?: number } | null)?.persen_fidyah ?? 0),
+        beras: Number((config as { persen_beras?: number } | null)?.persen_beras ?? 0),
+      };
+
       // Format dates for SQL query
       const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
       const endDate = new Date(year, month, 0).toISOString().split('T')[0]; // Last day of month
@@ -107,7 +129,7 @@ export function useHakAmilMonthlySummary(
         throw error;
       }
 
-      return aggregateSnapshots(snapshots || []);
+      return aggregateSnapshots(snapshots || [], persenReference);
     },
     enabled: !!tahunZakatId && !!month && !!year,
   });
@@ -125,6 +147,20 @@ export function useHakAmilYearlySummary(tahunZakatId?: string) {
         return createEmptySummary();
       }
 
+      const { data: config } = await supabase
+        .from('hak_amil_configs')
+        .select('persen_zakat_fitrah, persen_zakat_maal, persen_infak, persen_fidyah, persen_beras')
+        .eq('tahun_zakat_id', tahunZakatId)
+        .maybeSingle();
+
+      const persenReference: HakAmilPersenReference = {
+        zakat_fitrah: Number((config as { persen_zakat_fitrah?: number } | null)?.persen_zakat_fitrah ?? 12.5),
+        zakat_maal: Number((config as { persen_zakat_maal?: number } | null)?.persen_zakat_maal ?? 12.5),
+        infak: Number((config as { persen_infak?: number } | null)?.persen_infak ?? 20),
+        fidyah: Number((config as { persen_fidyah?: number } | null)?.persen_fidyah ?? 0),
+        beras: Number((config as { persen_beras?: number } | null)?.persen_beras ?? 0),
+      };
+
       const { data: snapshots, error } = await supabase
         .from('hak_amil_snapshots')
         .select('*')
@@ -139,7 +175,7 @@ export function useHakAmilYearlySummary(tahunZakatId?: string) {
         throw error;
       }
 
-      return aggregateSnapshots(snapshots || []);
+      return aggregateSnapshots(snapshots || [], persenReference);
     },
     enabled: !!tahunZakatId,
   });
@@ -255,7 +291,10 @@ export function useUpdateHakAmilConfig() {
  * Aggregate snapshots by kategori and calculate totals.
  * Ensures fidyah and beras categories always appear with 0% and 0 nominal.
  */
-function aggregateSnapshots(snapshots: HakAmilSnapshot[]): HakAmilSummary {
+function aggregateSnapshots(
+  snapshots: HakAmilSnapshot[],
+  persenReference?: HakAmilPersenReference
+): HakAmilSummary {
   // Define all categories to ensure all are present
   const allCategories: HakAmilKategori[] = [
     'zakat_fitrah',
@@ -285,7 +324,7 @@ function aggregateSnapshots(snapshots: HakAmilSnapshot[]): HakAmilSummary {
         total_bruto: 0,
         total_rekonsiliasi: 0,
         total_neto: 0,
-        persen_hak_amil: 0,
+        persen_hak_amil: persenReference?.[kategori] ?? 0,
         nominal_hak_amil: 0,
       };
     }
@@ -309,7 +348,7 @@ function aggregateSnapshots(snapshots: HakAmilSnapshot[]): HakAmilSummary {
     const effectivePersen =
       summary.total_neto > 0
         ? (summary.nominal_hak_amil / summary.total_neto) * 100
-        : 0;
+        : (persenReference?.[kategori] ?? 0);
 
     return {
       kategori,
