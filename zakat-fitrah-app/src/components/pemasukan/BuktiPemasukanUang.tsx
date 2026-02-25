@@ -139,7 +139,7 @@ export function BuktiPemasukanUang({ open, onOpenChange, data }: BuktiPemasukanU
     // ============ TITLE SECTION ============
     doc.setFontSize(12);
     doc.setFont('Helvetica', 'bold');
-    doc.text('BUKTI PEMASUKAN UANG', pageWidth / 2, yPosition, { align: 'center' });
+    doc.text('BUKTI PENERIMAAN PEMBAYARAN', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += SECTION_GAP;
 
     // Receipt number and date
