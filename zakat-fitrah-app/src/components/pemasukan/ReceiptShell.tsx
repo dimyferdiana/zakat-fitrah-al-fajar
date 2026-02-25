@@ -52,17 +52,17 @@ export const ReceiptShell = forwardRef<HTMLDivElement, ReceiptShellProps>(
         <Separator />
 
         {/* ── Signature Section ── */}
-        <div className="grid grid-cols-2 gap-8 pt-6">
-          <div className="text-center">
-            <p className="text-xs mb-12">Petugas,</p>
-            <div className="border-t border-foreground pt-1 inline-block min-w-[120px]">
-              <p className="text-[10px]">Nama &amp; Tanda Tangan</p>
-            </div>
-          </div>
-          <div className="text-center">
-            <p className="text-xs mb-12">Penyetor,</p>
-            <div className="border-t border-foreground pt-1 inline-block min-w-[120px]">
-              <p className="text-[10px]">Nama &amp; Tanda Tangan</p>
+        <div className="flex justify-end pt-4 pb-2">
+          <div className="text-center text-xs space-y-1">
+            <p className="font-bold text-[11px]">YAYASAN AL-FAJAR PERMATA PAMULANG</p>
+            <img
+              src="/stamp-signature.png"
+              alt="Tanda Tangan &amp; Stempel"
+              className="h-16 mx-auto"
+            />
+            <div>
+              <p className="font-bold underline">H. Eldin Rizal Nasution</p>
+              <p>Ketua</p>
             </div>
           </div>
         </div>

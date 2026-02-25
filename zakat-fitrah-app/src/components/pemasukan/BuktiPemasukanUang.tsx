@@ -197,18 +197,36 @@ export function BuktiPemasukanUang({ open, onOpenChange, data }: BuktiPemasukanU
     // Separator line
     doc.setLineWidth(0.3);
     doc.line(leftX, yPosition, pageWidth - MARGIN, yPosition);
-    yPosition += 10;
+    yPosition += 8;
 
-    // Footer - Signature
+    // Footer - Official Signature (matching Bukti Sedekah style)
+    const KETUA_NAME_PDF = 'H. Eldin Rizal Nasution';
+    const stampW = 39.7;
+    const stampH = 15.9;
+    const signX = pageWidth - MARGIN - stampW / 2;
+
     doc.setFont('Helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.text('Petugas,', leftX, yPosition);
-    doc.text('Penyetor,', pageWidth - MARGIN - 40, yPosition);
-    yPosition += 20;
+    doc.setFontSize(7);
+    doc.text('YAYASAN AL-FAJAR PERMATA PAMULANG', signX, yPosition, { align: 'center' });
+    yPosition += 3;
 
-    doc.text('(_________________)', leftX, yPosition);
-    doc.text('(_________________)', pageWidth - MARGIN - 40, yPosition);
-    yPosition += 10;
+    try {
+      doc.addImage('/stamp-signature.png', 'PNG', signX - stampW / 2, yPosition, stampW, stampH);
+    } catch (error) {
+      console.warn('Could not embed stamp image:', error);
+    }
+    yPosition += stampH + 1;
+
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text(KETUA_NAME_PDF, signX, yPosition, { align: 'center' });
+    yPosition += 0.5;
+    doc.setLineWidth(0.26);
+    doc.line(signX - 18.5, yPosition, signX + 18.5, yPosition);
+    yPosition += 4;
+    doc.setFont('Helvetica', 'normal');
+    doc.text('Ketua', signX, yPosition, { align: 'center' });
+    yPosition += 8;
 
     // Footer note
     doc.setFontSize(8);
