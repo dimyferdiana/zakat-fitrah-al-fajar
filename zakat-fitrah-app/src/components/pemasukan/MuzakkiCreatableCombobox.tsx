@@ -114,6 +114,7 @@ export function MuzakkiCreatableCombobox({
     setIsCreating(true);
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.from('muzakki').insert as any)({
         nama_kk: newName.trim(),
         alamat: '-',
