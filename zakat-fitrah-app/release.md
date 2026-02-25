@@ -1,4 +1,26 @@
-# v2.0.0-phase2 — Phase 2 Dashboard & UX
+# v2.1.0 — Muzakki Creatable Inline in Pemasukan Forms
+
+## Highlights
+- New **creatable combobox** for the Muzakki field in both Pemasukan Uang and Pemasukan Beras forms.
+- Amil can now **search existing muzakki by name** via real-time filtering, or **type a new name** and register a new muzakki record inline — no navigation to the Muzakki page required.
+- Inline mini-form collects `nama_kk` (required) and optional `no_telp`; `alamat` defaults to `'-'` and can be updated later on the Muzakki page.
+- After inline creation, the new muzakki is auto-selected and its ID is saved with the transaction — the Bukti Pembayaran (screen preview + PDF) shows the correct "Dari" name automatically.
+- Clear (×) button to reset selection back to "Tanpa muzakki".
+
+## Key Changes
+- **NEW** `src/components/pemasukan/MuzakkiCreatableCombobox.tsx` — reusable Popover-based combobox with search, create, and clear.
+- `PemasukanForm.tsx` — replaced `<Select>` muzakki field with `MuzakkiCreatableCombobox`; removed inline `useQuery` for muzakki.
+- `PemasukanBerasForm.tsx` — same replacement as above.
+- `package.json` — version bumped to `2.1.0`.
+
+## Quality
+- `npm run build` passes.
+- No breaking changes to `onSubmit` signatures — `muzakki_id` remains a UUID string or `undefined`.
+- Bukti Pembayaran (Uang + Beras) unchanged; receipt data flow works for all three paths (existing, new inline, anonymous).
+
+---
+
+
 
 ## Highlights
 - Mobile-friendly navigation for Settings & Laporan (Tabs auto-swap to Select on small screens).

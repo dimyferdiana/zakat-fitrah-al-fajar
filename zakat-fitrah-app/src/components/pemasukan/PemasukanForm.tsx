@@ -34,9 +34,8 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
 import type { AkunUang, PemasukanUangKategori } from '@/hooks/usePemasukanUang';
+import { MuzakkiCreatableCombobox } from '@/components/pemasukan/MuzakkiCreatableCombobox';
 
 const formSchema = z.object({
   tahun_zakat_id: z.string().min(1, { message: 'Tahun zakat wajib dipilih' }),
@@ -57,11 +56,6 @@ interface TahunOption {
   tahun_hijriah: string;
   tahun_masehi: number;
   is_active: boolean;
-}
-
-interface MuzakkiOption {
-  id: string;
-  nama_kk: string;
 }
 
 interface PemasukanFormProps {
@@ -140,19 +134,6 @@ export function PemasukanForm({
       });
     }
   }, [defaultValues, form]);
-
-  const { data: muzakkiOptions } = useQuery({
-    queryKey: ['muzakki-options'],
-    queryFn: async (): Promise<MuzakkiOption[]> => {
-      const { data, error } = await supabase
-        .from('muzakki')
-        .select('id, nama_kk')
-        .order('nama_kk', { ascending: true });
-
-      if (error) throw error;
-      return data || [];
-    },
-  });
 
   const handleSubmit = (values: PemasukanFormValues) => {
     onSubmit({
@@ -315,24 +296,13 @@ export function PemasukanForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Muzakki (Opsional)</FormLabel>
-                  <Select 
-                    onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)} 
-                    value={field.value || 'none'}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih muzakki (opsional)" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">Tanpa muzakki</SelectItem>
-                      {muzakkiOptions?.map((m) => (
-                        <SelectItem key={m.id} value={m.id}>
-                          {m.nama_kk}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <MuzakkiCreatableCombobox
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
