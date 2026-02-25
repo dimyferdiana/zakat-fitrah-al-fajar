@@ -39,7 +39,7 @@
 
 ## Role 1: PM Agent (Product Manager)
 
-**Who:** Copilot / Claude (VS Code or CLI)  
+**Who:** Copilot (VS Code or CLI)
 **When to invoke:** Starting a new feature, planning a phase, scoping work, task monitoring
 
 ### Responsibilities
@@ -51,6 +51,7 @@
 5. **Report Status** — Provide lead with weekly/sprint summaries
 
 ### Trigger Phrases
+
 ```
 "Act as PM. Create a PRD for [feature description]"
 "Act as PM. Generate tasks from prd-task/generations/prd-[name].md"
@@ -61,6 +62,7 @@
 ### Playbook
 
 #### Generate PRD
+
 ```
 1. Read prd-task/create-prd.md for rules
 2. Provide the agent with the feature description
@@ -70,6 +72,7 @@
 ```
 
 **Prompt template:**
+
 ```
 Read the file prd-task/create-prd.md for instructions.
 Then create a PRD for the following feature:
@@ -81,6 +84,7 @@ Do NOT start implementing. Only generate the PRD.
 ```
 
 #### Generate Task List
+
 ```
 1. Read prd-task/generate-tasks.md for rules
 2. Point the agent at the approved PRD
@@ -90,6 +94,7 @@ Do NOT start implementing. Only generate the PRD.
 ```
 
 **Prompt template:**
+
 ```
 Read the file prd-task/generate-tasks.md for instructions.
 Then generate a task list based on this PRD:
@@ -99,6 +104,7 @@ Save the output to prd-task/generations/tasks-[feature-name].md
 ```
 
 ### Output
+
 - `prd-task/generations/prd-*.md` (PRDs)
 - `prd-task/generations/tasks-*.md` (Task lists)
 - `prd-task/generations/active/task-status-report.md` (Weekly status report)
@@ -108,6 +114,7 @@ Save the output to prd-task/generations/tasks-[feature-name].md
 **When to invoke:** Daily/weekly, or whenever you need a status overview
 
 **Prompt template:**
+
 ```
 You are a PM agent for the zakat-fitrah-app project.
 
@@ -144,6 +151,7 @@ Do NOT modify task files. Only read and report.
 ```
 
 ### Output
+
 - `prd-task/generations/prd-*.md` (PRDs)
 - `prd-task/generations/tasks-*.md` (Task lists)
 - `prd-task/generations/active/task-status-report.md` (Weekly status report)
@@ -152,7 +160,7 @@ Do NOT modify task files. Only read and report.
 
 ## Role 2: Engineer Agent(s)
 
-**Who:** Copilot / Claude / Cursor (VS Code or CLI)  
+**Who:** Copilot / Claude / Cursor (VS Code or CLI)
 **When to invoke:** Implementing tasks from a task list
 
 ### How to Parallelize Engineers
@@ -169,6 +177,7 @@ Tasks 4.0: Wire up pages              ← WAIT (depends on 2.0 + 3.0)
 ```
 
 #### Prompt Template (per agent)
+
 ```
 You are an Engineer agent working on the zakat-fitrah-app project.
 
@@ -197,26 +206,27 @@ Rules:
 
 ### Conflict Prevention
 
-| Task Type | Files Touched | Can Parallelize? |
-|---|---|---|
-| Database migrations | `supabase/migrations/` | YES (sequential numbering) |
-| UI components | `src/components/[feature]/` | YES (separate folders) |
-| Hooks / API | `src/hooks/` | YES (separate files) |
-| Pages | `src/pages/` | YES (separate files) |
-| Types | `src/types/` | CAREFUL (may share type files) |
-| App.tsx routing | `src/App.tsx` | NO (single file, one agent only) |
-| Shared utils | `src/utils/` or `src/lib/` | NO (coordinate manually) |
+| Task Type           | Files Touched                  | Can Parallelize?                 |
+| ------------------- | ------------------------------ | -------------------------------- |
+| Database migrations | `supabase/migrations/`       | YES (sequential numbering)       |
+| UI components       | `src/components/[feature]/`  | YES (separate folders)           |
+| Hooks / API         | `src/hooks/`                 | YES (separate files)             |
+| Pages               | `src/pages/`                 | YES (separate files)             |
+| Types               | `src/types/`                 | CAREFUL (may share type files)   |
+| App.tsx routing     | `src/App.tsx`                | NO (single file, one agent only) |
+| Shared utils        | `src/utils/` or `src/lib/` | NO (coordinate manually)         |
 
 ---
 
 ## Role 3: QA Agent
 
-**Who:** You (manual) + OpenClaw Agent (automated)  
+**Who:** You (manual) + OpenClaw Agent (automated)
 **When to invoke:** After engineer agents complete their tasks
 
 ### QA Playbook
 
 #### Phase 1: Automated Checks (OpenClaw)
+
 ```
 1. Run build:          npm run build
 2. Run lint:           npm run lint
@@ -225,6 +235,7 @@ Rules:
 ```
 
 #### Phase 2: Functional Testing (You or OpenClaw)
+
 ```
 1. Start dev server:   npm run dev
 2. Test each feature from the task list
@@ -238,6 +249,7 @@ Rules:
 ```
 
 #### Phase 3: Preview Validation
+
 ```
 1. Push to feature branch
 2. Wait for Vercel preview URL
@@ -246,6 +258,7 @@ Rules:
 ```
 
 ### QA Prompt Template (for OpenClaw)
+
 ```
 You are a QA agent for the zakat-fitrah-app project.
 
@@ -266,6 +279,7 @@ Steps:
 ```
 
 ### QA Output
+
 - `prd-task/generations/qa-[feature-name].md`
 - Bug reports filed as issues or documented inline
 
@@ -273,12 +287,13 @@ Steps:
 
 ## Role 4: DevOps Agent
 
-**Who:** Copilot / Claude  
+**Who:** Copilot / Claude
 **When to invoke:** Database changes, deployment issues, environment setup
 
 ### Playbook
 
 #### Database Migrations
+
 ```
 1. Create migration file: supabase/migrations/NNN_description.sql
 2. Numbering: next sequential number after existing files (currently at 018)
@@ -291,6 +306,7 @@ Steps:
 ```
 
 #### Environment Management
+
 ```
 # Sync Vercel env vars locally
 vercel env pull .env.local
@@ -301,6 +317,7 @@ VITE_SUPABASE_ANON_KEY=...
 ```
 
 #### Deployment Checklist
+
 ```
 - [ ] All engineers marked tasks complete
 - [ ] QA passed
@@ -312,6 +329,7 @@ VITE_SUPABASE_ANON_KEY=...
 ```
 
 ### DevOps Prompt Template
+
 ```
 You are a DevOps agent for the zakat-fitrah-app project.
 
@@ -334,12 +352,13 @@ Rules:
 
 ## Role 5: Librarian Agent
 
-**Who:** Copilot / Claude  
+**Who:** Copilot / Claude
 **When to invoke:** Periodically (after each feature completion), or when repo feels messy
 
 ### Playbook
 
 #### After Each Feature Completion
+
 ```
 1. Archive completed task files (mark as done, don't delete)
 2. Remove temp files, .bak files, unused SQL scripts
@@ -349,6 +368,7 @@ Rules:
 ```
 
 #### Periodic Cleanup (Monthly)
+
 ```
 1. Review prd-task/generations/ — archive old PRDs/tasks
 2. Check for duplicate or conflicting documentation
@@ -359,6 +379,7 @@ Rules:
 ```
 
 ### Librarian Prompt Template
+
 ```
 You are a Librarian agent for the zakat-fitrah-app project.
 Your job is to keep the repository organized and clean.
@@ -388,6 +409,7 @@ Do NOT delete any files without explicit approval. Only report what should be cl
 ```
 
 The agent will:
+
 1. Scan all `tasks-*.md` files
 2. Count completed/pending/blocked tasks per feature
 3. Generate `task-status-report.md` showing:
@@ -398,12 +420,12 @@ The agent will:
 
 ### What Gets Tracked
 
-| Item | Format | Location |
-|---|---|---|
-| Feature PRD | `prd-[name].md` | `prd-task/generations/` |
-| Task list | `tasks-[name].md` | `prd-task/generations/` |
-| Task status | Checkbox progress `[x]` vs `[ ]` | Inside task file |
-| Overall report | `task-status-report.md` | `prd-task/generations/active/` |
+| Item           | Format                               | Location                         |
+| -------------- | ------------------------------------ | -------------------------------- |
+| Feature PRD    | `prd-[name].md`                    | `prd-task/generations/`        |
+| Task list      | `tasks-[name].md`                  | `prd-task/generations/`        |
+| Task status    | Checkbox progress `[x]` vs `[ ]` | Inside task file                 |
+| Overall report | `task-status-report.md`            | `prd-task/generations/active/` |
 
 ---
 

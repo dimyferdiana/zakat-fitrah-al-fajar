@@ -27,6 +27,7 @@ const Distribusi = lazy(() => import('@/pages/Distribusi'));
 const Laporan = lazy(() => import('@/pages/Laporan'));
 const Settings = lazy(() => import('@/pages/Settings'));
 const SedekahReceipt = lazy(() => import('@/pages/SedekahReceipt'));
+const SuratPengantar = lazy(() => import('@/pages/SuratPengantar'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -135,6 +136,16 @@ function App() {
                   <ProtectedRoute allowedRoles={['admin', 'petugas']}>
                     <MainLayout>
                       <SedekahReceipt />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/surat-pengantar"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <MainLayout>
+                      <SuratPengantar />
                     </MainLayout>
                   </ProtectedRoute>
                 }

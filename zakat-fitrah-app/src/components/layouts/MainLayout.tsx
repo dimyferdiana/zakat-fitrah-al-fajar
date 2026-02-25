@@ -25,6 +25,7 @@ import {
   Wallet,
   Receipt,
   Wheat,
+  ScrollText,
 } from 'lucide-react';
 
 interface MainLayoutProps {
@@ -84,6 +85,12 @@ const navItems: NavItem[] = [
     label: 'Laporan',
     path: '/laporan',
     icon: FileText,
+  },
+  {
+    label: 'Surat Pengantar',
+    path: '/surat-pengantar',
+    icon: ScrollText,
+    roles: ['admin'],
   },
   {
     label: 'Pengaturan',
