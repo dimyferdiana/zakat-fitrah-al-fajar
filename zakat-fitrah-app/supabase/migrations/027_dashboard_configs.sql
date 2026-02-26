@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS public.dashboard_widgets (
   updated_at    timestamptz NOT NULL DEFAULT now(),
 
   CONSTRAINT dashboard_widgets_widget_type_check
-    CHECK (widget_type IN ('stat_card', 'chart', 'distribusi_progress', 'hak_amil', 'text_note')),
+    CHECK (widget_type IN ('stat_card', 'chart', 'distribusi_progress', 'hak_amil', 'hak_amil_trend', 'text_note', 'section_title')),
   CONSTRAINT dashboard_widgets_width_check
     CHECK (width IN ('full', 'half'))
 );

@@ -11,18 +11,12 @@ import {
 interface AccountLedgerTableProps {
   entries: Array<{
     id: string;
-    date?: string;
-    tanggal?: string;
-    mutation_type?: string;
-    tipe_mutasi?: string;
-    amount?: number;
-    nominal?: number;
-    reference?: string | null;
-    referensi?: string | null;
-    note?: string | null;
-    catatan?: string | null;
-    running_balance?: number;
-    saldo_berjalan?: number;
+    entry_date?: string;
+    entry_type?: string;
+    amount_rp?: number;
+    reference_no?: string | null;
+    notes?: string | null;
+    running_balance_after_rp?: number;
   }>;
   isLoading?: boolean;
 }
@@ -68,17 +62,16 @@ export function AccountLedgerTable({ entries, isLoading }: AccountLedgerTablePro
             </TableHeader>
             <TableBody>
               {entries.map((entry) => {
-                const mutationType = entry.mutation_type || entry.tipe_mutasi || '-';
-                const amount = Number(entry.amount ?? entry.nominal ?? 0);
-                const runningBalance = Number(entry.running_balance ?? entry.saldo_berjalan ?? 0);
+                const amount = Number(entry.amount_rp ?? 0);
+                const runningBalance = Number(entry.running_balance_after_rp ?? 0);
 
                 return (
                   <TableRow key={entry.id}>
-                    <TableCell>{formatDate(entry.date || entry.tanggal)}</TableCell>
-                    <TableCell className="uppercase">{mutationType}</TableCell>
+                    <TableCell>{formatDate(entry.entry_date)}</TableCell>
+                    <TableCell className="uppercase">{entry.entry_type || '-'}</TableCell>
                     <TableCell className="text-right">{formatCurrency(amount)}</TableCell>
-                    <TableCell>{entry.reference || entry.referensi || '-'}</TableCell>
-                    <TableCell>{entry.note || entry.catatan || '-'}</TableCell>
+                    <TableCell>{entry.reference_no || '-'}</TableCell>
+                    <TableCell>{entry.notes || '-'}</TableCell>
                     <TableCell className="text-right">{formatCurrency(runningBalance)}</TableCell>
                   </TableRow>
                 );

@@ -321,10 +321,33 @@ export function useCreateManualLedgerEntry() {
       queryClient.invalidateQueries({ queryKey: ['account-ledger', entry.account_id] });
       queryClient.invalidateQueries({ queryKey: ['account-ledger'] });
       queryClient.invalidateQueries({ queryKey: ['accounts-list'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts-balances'] });
       toast.success('Entri ledger manual berhasil ditambahkan');
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Gagal menambahkan entri ledger manual');
+    },
+  });
+}
+
+/** Fetch the current balance for every account in one query (uses the account_latest_balances view). */
+export function useAllAccountsBalances() {
+  return useQuery({
+    queryKey: ['accounts-balances'],
+    queryFn: async (): Promise<Record<string, number>> => {
+      if (OFFLINE_MODE) return {};
+
+      const { data, error } = await (supabase
+        .from('account_latest_balances')
+        .select as any)('account_id, current_balance');
+
+      if (error) throw error;
+
+      const map: Record<string, number> = {};
+      for (const row of (data || []) as { account_id: string; current_balance: number | null }[]) {
+        map[row.account_id] = Number(row.current_balance ?? 0);
+      }
+      return map;
     },
   });
 }

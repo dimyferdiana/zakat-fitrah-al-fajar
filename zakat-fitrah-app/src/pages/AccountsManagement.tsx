@@ -25,6 +25,7 @@ import { toast } from 'sonner';
 import {
   useAccountLedger,
   useAccountsList,
+  useAllAccountsBalances,
   useCreateAccount,
   useCreateManualLedgerEntry,
   useDeleteAccount,
@@ -76,6 +77,9 @@ export function AccountsManagement() {
       };
     });
   }, [accountsQuery.data]);
+
+  const balancesQuery = useAllAccountsBalances();
+  const balancesMap = balancesQuery.data ?? {};
 
   const isLoadingAccounts = accountsQuery.isLoading;
   const isLoadingLedger = ledgerQuery.isLoading;
@@ -229,7 +233,9 @@ export function AccountsManagement() {
                       <TableCell className="capitalize">{accountType}</TableCell>
                       <TableCell>{accountNumber}</TableCell>
                       <TableCell className="text-right">
-                        {isSelected ? formatCurrency(latestBalance) : '-'}
+                        {isSelected
+                          ? formatCurrency(latestBalance)
+                          : formatCurrency(balancesMap[account.id] ?? 0)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

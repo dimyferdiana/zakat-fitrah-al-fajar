@@ -109,6 +109,13 @@ BEGIN
 END;
 $$;
 
+-- Repair dirty rows: some legacy rows have jenis_zakat='uang' but akun_uang=NULL
+-- (inserted before the check constraint was enforced). Fix them to 'kas' default
+-- so the subsequent UPDATE (which triggers constraint re-validation) doesn't fail.
+UPDATE public.pembayaran_zakat
+SET akun_uang = 'kas'
+WHERE jenis_zakat = 'uang' AND akun_uang IS NULL;
+
 -- Backfill payment records
 WITH mapped_accounts AS (
   SELECT
