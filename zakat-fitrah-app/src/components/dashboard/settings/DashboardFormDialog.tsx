@@ -30,12 +30,14 @@ import {
 } from '@/components/ui/select';
 import type { DashboardConfig } from '@/types/dashboard';
 import { useCreateDashboard, useUpdateDashboard } from '@/hooks/useDashboardConfig';
+import { DASHBOARD_TEMPLATE_OPTIONS } from '@/lib/dashboardTemplates';
 
 const schema = z.object({
   title: z.string().min(1, 'Judul wajib diisi'),
   description: z.string().optional(),
   visibility: z.enum(['public', 'private']),
   stat_card_columns: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  template_id: z.enum(['scratch', 'full', 'monitoring', 'hak_amil_focus']).optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -66,6 +68,7 @@ export function DashboardFormDialog({
       description: '',
       visibility: 'public',
       stat_card_columns: 3,
+      template_id: 'scratch',
     },
   });
 
@@ -77,6 +80,7 @@ export function DashboardFormDialog({
         description: dashboard.description ?? '',
         visibility: dashboard.visibility,
         stat_card_columns: dashboard.stat_card_columns,
+        template_id: 'scratch',
       });
     } else {
       form.reset({
@@ -84,6 +88,7 @@ export function DashboardFormDialog({
         description: '',
         visibility: 'public',
         stat_card_columns: 3,
+        template_id: 'scratch',
       });
     }
   }, [dashboard, form, open]);
@@ -109,11 +114,43 @@ export function DashboardFormDialog({
         <DialogHeader>
           <DialogTitle>{isEdit ? 'Edit Dashboard' : 'Buat Dashboard Baru'}</DialogTitle>
           <DialogDescription>
-            Atur judul, visibilitas, dan jumlah kolom stat card dashboard.
+            {isEdit
+              ? 'Atur judul, visibilitas, dan jumlah kolom stat card dashboard.'
+              : 'Atur judul dashboard dan pilih template awal atau mulai dari kosong.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {!isEdit && (
+              <FormField
+                control={form.control}
+                name="template_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Template Dashboard</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {DASHBOARD_TEMPLATE_OPTIONS.map((template) => (
+                          <SelectItem key={template.id} value={template.id}>
+                            {template.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {DASHBOARD_TEMPLATE_OPTIONS.find((t) => t.id === field.value)?.description}
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
               name="title"

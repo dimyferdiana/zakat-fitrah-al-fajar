@@ -36,6 +36,7 @@ import {
   useDeletePemasukanUang,
   usePemasukanUangList,
 } from '@/hooks/usePemasukanUang';
+import { useAccountsList } from '@/hooks/useAccountsLedger';
 import type { PemasukanUang } from '@/hooks/usePemasukanUang';
 import { useTahunZakatList } from '@/hooks/useDashboard';
 import { Plus, Receipt, Edit, Trash2, MoreVertical, Layers } from 'lucide-react';
@@ -85,11 +86,19 @@ export function PemasukanUang() {
   const createMutation = useCreatePemasukanUang();
   const updateMutation = useUpdatePemasukanUang();
   const deleteMutation = useDeletePemasukanUang();
+  const accountsQuery = useAccountsList({ is_active: true });
+
+  const accountOptions = accountsQuery.data || [];
+  const accountNameMap = useMemo(
+    () => new Map(accountOptions.map((account) => [account.id, account.account_name])),
+    [accountOptions]
+  );
 
   const handleSubmit = async (values: {
     tahun_zakat_id: string;
     kategori: PemasukanUang['kategori'];
     akun: PemasukanUang['akun'];
+    account_id: string;
     jumlah_uang_rp: number;
     tanggal: string;
     catatan?: string;
@@ -140,8 +149,8 @@ export function PemasukanUang() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Pemasukan Uang"
-        description="Catat pemasukan uang untuk fidyah, maal/penghasilan, dan infak/sedekah"
+        title="Penerimaan Uang"
+        description="Catat penerimaan uang untuk fidyah, maal/penghasilan, dan infak/sedekah"
       />
 
       <Card>
@@ -203,7 +212,7 @@ export function PemasukanUang() {
             {!bulkMode && (
               <Button onClick={() => setFormOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                Tambah Pemasukan
+                Tambah Penerimaan
               </Button>
             )}
           </div>
@@ -214,14 +223,14 @@ export function PemasukanUang() {
             <BulkPemasukanForm tahunZakatId={selectedTahun || activeTahun?.id || ''} />
           ) : (
             <>
-          {isLoading && <LoadingSpinner text="Memuat pemasukan..." />}
+          {isLoading && <LoadingSpinner text="Memuat penerimaan..." />}
 
           {!isLoading && pemasukan?.data.length === 0 && (
             <EmptyState
               icon={Plus}
-              title="Belum ada pemasukan"
-              description="Catat pemasukan uang pertama untuk tahun ini"
-              action={{ label: 'Tambah Pemasukan', onClick: () => setFormOpen(true) }}
+              title="Belum ada penerimaan"
+              description="Catat penerimaan uang pertama untuk tahun ini"
+              action={{ label: 'Tambah Penerimaan', onClick: () => setFormOpen(true) }}
             />
           )}
 
@@ -246,7 +255,9 @@ export function PemasukanUang() {
                         {new Date(item.tanggal).toLocaleDateString('id-ID')}
                       </td>
                       <td className="py-2 pr-4">{kategoriLabels[item.kategori] || item.kategori}</td>
-                      <td className="py-2 pr-4 capitalize">{item.akun}</td>
+                      <td className="py-2 pr-4 capitalize">
+                        {accountNameMap.get(item.account_id || '') || item.akun}
+                      </td>
                       <td className="py-2 pr-4 font-medium">{formatCurrency(Number(item.jumlah_uang_rp))}</td>
                       <td className="py-2 pr-4">{item.muzakki?.nama_kk || '-'}</td>
                       <td className="py-2 pr-4 text-muted-foreground">{item.catatan || '-'}</td>
@@ -307,11 +318,17 @@ export function PemasukanUang() {
           tahun_zakat_id: editingItem.tahun_zakat_id,
           kategori: editingItem.kategori,
           akun: editingItem.akun,
+          account_id: editingItem.account_id || undefined,
           jumlah_uang_rp: editingItem.jumlah_uang_rp,
           tanggal: editingItem.tanggal,
           catatan: editingItem.catatan || undefined,
           muzakki_id: editingItem.muzakki_id || undefined,
         } : undefined}
+        accountOptions={accountOptions.map((account) => ({
+          id: account.id,
+          account_name: account.account_name,
+          account_channel: account.account_channel,
+        }))}
         isSubmitting={createMutation.isPending || updateMutation.isPending}
         onSubmit={(values) => handleSubmit(values)}
       />
@@ -327,9 +344,9 @@ export function PemasukanUang() {
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Pemasukan?</AlertDialogTitle>
+            <AlertDialogTitle>Hapus Penerimaan?</AlertDialogTitle>
             <AlertDialogDescription>
-              Apakah Anda yakin ingin menghapus pemasukan ini? Tindakan ini tidak dapat dibatalkan.
+              Apakah Anda yakin ingin menghapus penerimaan ini? Tindakan ini tidak dapat dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogCancel>Batal</AlertDialogCancel>

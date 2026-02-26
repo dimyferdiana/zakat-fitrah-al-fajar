@@ -119,6 +119,8 @@ export default function Settings() {
   const { data: hakAmilConfigs = [], isLoading: loadingHakAmilConfigs } = useQuery<HakAmilConfigTableRow[]>({
     queryKey: ['hak-amil-configs'],
     queryFn: async () => {
+      if (OFFLINE_MODE) return offlineStore.getHakAmilConfigs();
+
       const { data, error } = await supabase
         .from('hak_amil_configs')
         .select(`
@@ -186,8 +188,7 @@ export default function Settings() {
   const saveHakAmilConfigMutation = useMutation({
     mutationFn: async (values: any) => {
       if (OFFLINE_MODE) {
-        // In offline mode, just return a mock success - config changes are not persisted
-        return { ...values, id: 'offline-hak-amil-config' };
+        return offlineStore.upsertHakAmilConfig(values);
       }
 
       const { data: { user: authUser } } = await supabase.auth.getUser();
@@ -278,6 +279,7 @@ export default function Settings() {
     queryFn: async () => {
       const tahunId = selectedTahun || activeTahun?.id;
       if (!tahunId) return null;
+      if (OFFLINE_MODE) return null;
 
       const { data, error } = await supabase
         .from('hak_amil')

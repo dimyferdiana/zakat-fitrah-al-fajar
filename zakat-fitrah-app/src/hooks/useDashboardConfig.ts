@@ -10,6 +10,7 @@ import type {
   UpdateWidgetInput,
 } from '@/types/dashboard';
 import { DEFAULT_DASHBOARD_WIDGETS } from '@/lib/dashboardDefaults';
+import { getTemplateWidgets } from '@/lib/dashboardTemplates';
 
 const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
@@ -106,6 +107,9 @@ export function useCreateDashboard() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: CreateDashboardInput): Promise<DashboardConfig> => {
+      const templateId = input.template_id ?? 'scratch';
+      const templateWidgets = getTemplateWidgets(templateId);
+
       if (OFFLINE_MODE) {
         const now = new Date().toISOString();
         const created: DashboardConfig = {
@@ -120,7 +124,16 @@ export function useCreateDashboard() {
           updated_at: now,
         };
         offlineDashboards = [...offlineDashboards, created];
-        offlineWidgetsByDashboard[created.id] = [];
+        offlineWidgetsByDashboard[created.id] = templateWidgets.map((w, index) => ({
+          id: createOfflineId('offline-widget'),
+          dashboard_id: created.id,
+          widget_type: w.widget_type,
+          sort_order: w.sort_order ?? index,
+          width: w.width,
+          config: w.config,
+          created_at: now,
+          updated_at: now,
+        }));
         return created;
       }
 
@@ -137,10 +150,30 @@ export function useCreateDashboard() {
         .single();
 
       if (error) throw error;
-      return data as unknown as DashboardConfig;
+
+      const created = data as unknown as DashboardConfig;
+
+      if (templateWidgets.length > 0) {
+        const widgetsPayload = templateWidgets.map((w, index) => ({
+          dashboard_id: created.id,
+          widget_type: w.widget_type,
+          sort_order: w.sort_order ?? index,
+          width: w.width,
+          config: w.config,
+        }));
+
+        const { error: widgetInsertError } = await db
+          .from('dashboard_widgets')
+          .insert(widgetsPayload);
+
+        if (widgetInsertError) throw widgetInsertError;
+      }
+
+      return created;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['dashboard-configs'] });
+      qc.invalidateQueries({ queryKey: ['dashboard-widgets'] });
       toast.success('Dashboard berhasil dibuat');
     },
     onError: (err: Error) => {

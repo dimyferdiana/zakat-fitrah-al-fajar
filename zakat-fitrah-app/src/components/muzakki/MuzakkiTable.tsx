@@ -8,15 +8,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,46 +19,30 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Search, Edit, Trash2, Printer, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { format } from 'date-fns';
-import { id as idLocale } from 'date-fns/locale';
+import { Search, Edit, Trash2, ChevronLeft, ChevronRight, X, History } from 'lucide-react';
 
-interface Muzakki {
+interface MuzakkiMaster {
   id: string;
   nama_kk: string;
   alamat: string;
   no_telp: string | null;
 }
 
-interface PembayaranZakat {
-  id: string;
-  muzakki_id: string;
-  muzakki: Muzakki;
-  tahun_zakat_id: string;
-  tanggal_bayar: string;
-  jumlah_jiwa: number;
-  jenis_zakat: 'beras' | 'uang';
-  jumlah_beras_kg: number | null;
-  jumlah_uang_rp: number | null;
-  akun_uang?: 'kas' | 'bank' | null;
-  jumlah_uang_dibayar_rp?: number | null;
-  created_at: string;
-  updated_at: string;
-  sedekah_uang?: number | null;
-  sedekah_beras?: number | null;
+interface MuzakkiStats {
+  transaksiCount: number;
+  tanggalTerakhir: string | null;
 }
 
 interface MuzakkiTableProps {
-  data: PembayaranZakat[];
+  data: MuzakkiMaster[];
+  statsByMuzakkiId?: Record<string, MuzakkiStats>;
   totalCount: number;
   isLoading: boolean;
-  onEdit: (pembayaran: PembayaranZakat) => void;
+  onEdit: (muzakki: MuzakkiMaster) => void;
+  onViewHistory: (muzakki: MuzakkiMaster) => void;
   onDelete: (id: string) => void;
-  onPrint: (pembayaran: PembayaranZakat) => void;
   searchValue: string;
   onSearchChange: (search: string) => void;
-  jenisZakatValue: string;
-  onJenisZakatChange: (jenis: string) => void;
   onSortChange: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
   currentPage: number;
   pageSize: number;
@@ -75,45 +51,28 @@ interface MuzakkiTableProps {
 
 export function MuzakkiTable({
   data,
+  statsByMuzakkiId,
   totalCount,
   isLoading,
   onEdit,
+  onViewHistory,
   onDelete,
-  onPrint,
   searchValue,
   onSearchChange,
-  jenisZakatValue,
-  onJenisZakatChange,
   onSortChange,
   currentPage,
   pageSize,
   onPageChange,
 }: MuzakkiTableProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState('tanggal_bayar');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortBy, setSortBy] = useState('nama_kk');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-
-
-  const handleSort = (column: string) => {
+  const handleSort = (column: 'nama_kk' | 'alamat' | 'no_telp') => {
     const newSortOrder = sortBy === column && sortOrder === 'asc' ? 'desc' : 'asc';
     setSortBy(column);
     setSortOrder(newSortOrder);
     onSortChange(column, newSortOrder);
-  };
-
-  const formatCurrency = (value: number | null) => {
-    if (value === null) return '-';
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
-
-  const formatNumber = (value: number | null) => {
-    if (value === null) return '-';
-    return value.toFixed(2);
   };
 
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -142,16 +101,6 @@ export function MuzakkiTable({
             </Button>
           )}
         </div>
-        <Select value={jenisZakatValue} onValueChange={onJenisZakatChange}>
-          <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder="Jenis Zakat" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="semua">Semua Jenis</SelectItem>
-            <SelectItem value="beras">Beras</SelectItem>
-            <SelectItem value="uang">Uang</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Table */}
@@ -161,116 +110,82 @@ export function MuzakkiTable({
             <TableRow>
               <TableHead
                 className="cursor-pointer hover:bg-muted"
-                onClick={() => handleSort('muzakki.nama_kk')}
+                onClick={() => handleSort('nama_kk')}
               >
                 Nama KK
               </TableHead>
-              <TableHead>Alamat</TableHead>
-              <TableHead className="text-center">Jiwa</TableHead>
-              <TableHead>Jenis Zakat</TableHead>
-              <TableHead className="text-right">Total</TableHead>
               <TableHead
                 className="cursor-pointer hover:bg-muted"
-                onClick={() => handleSort('tanggal_bayar')}
+                onClick={() => handleSort('alamat')}
               >
-                Tanggal
+                Alamat
               </TableHead>
+              <TableHead
+                className="cursor-pointer hover:bg-muted"
+                onClick={() => handleSort('no_telp')}
+              >
+                No. Telepon
+              </TableHead>
+              <TableHead className="text-center">Riwayat Transaksi</TableHead>
               <TableHead className="text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={5} className="h-24 text-center">
                   Memuat data...
                 </TableCell>
               </TableRow>
             ) : data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
-                  Tidak ada data pembayaran.
+                <TableCell colSpan={5} className="h-24 text-center">
+                  Tidak ada data muzakki.
                 </TableCell>
               </TableRow>
             ) : (
-              data.map((pembayaran) => {
-                const hasSedekah = pembayaran.jenis_zakat === 'beras' 
-                  ? (pembayaran.sedekah_beras && pembayaran.sedekah_beras > 0)
-                  : (pembayaran.sedekah_uang && pembayaran.sedekah_uang > 0);
+              data.map((muzakki) => {
+                const stats = statsByMuzakkiId?.[muzakki.id];
 
                 return (
-                  <>
-                    <TableRow key={pembayaran.id}>
-                      <TableCell className="font-medium">{pembayaran.muzakki.nama_kk}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">
-                        {pembayaran.muzakki.alamat}
-                      </TableCell>
-                      <TableCell className="text-center">{pembayaran.jumlah_jiwa}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-1">
-                            <Badge variant={pembayaran.jenis_zakat === 'beras' ? 'default' : 'secondary'}>
-                              {pembayaran.jenis_zakat === 'beras' ? 'Beras' : 'Uang'}
-                            </Badge>
-                            <Badge variant="outline">Zakat</Badge>
-                          </div>
-                          {hasSedekah && (
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                              + Sedekah
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex flex-col gap-1">
-                          <div>
-                            {pembayaran.jenis_zakat === 'beras'
-                              ? `${formatNumber(pembayaran.jumlah_beras_kg)} kg`
-                              : formatCurrency(pembayaran.jumlah_uang_rp)}
-                          </div>
-                          {hasSedekah && (
-                            <div className="text-sm text-green-600">
-                              + {pembayaran.jenis_zakat === 'beras' 
-                                ? `${formatNumber(pembayaran.sedekah_beras || 0)} kg`
-                                : formatCurrency(pembayaran.sedekah_uang || 0)}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(pembayaran.tanggal_bayar), 'dd MMM yyyy', {
-                          locale: idLocale,
-                        })}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onPrint(pembayaran)}
-                            title="Print Bukti"
-                          >
-                            <Printer className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onEdit(pembayaran)}
-                            title="Edit"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeleteId(pembayaran.id)}
-                            title="Hapus"
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  </>
+                  <TableRow key={muzakki.id}>
+                    <TableCell className="font-medium">{muzakki.nama_kk}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {muzakki.alamat}
+                    </TableCell>
+                    <TableCell>{muzakki.no_telp || '-'}</TableCell>
+                    <TableCell className="text-center">
+                      {stats ? stats.transaksiCount : 0}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onViewHistory(muzakki)}
+                          title="Lihat Riwayat"
+                        >
+                          <History className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onEdit(muzakki)}
+                          title="Edit"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeleteId(muzakki.id)}
+                          title="Hapus"
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                 );
               })
             )}
@@ -310,10 +225,10 @@ export function MuzakkiTable({
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Pembayaran?</AlertDialogTitle>
+            <AlertDialogTitle>Hapus Muzakki?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tindakan ini tidak dapat dibatalkan. Data pembayaran zakat akan dihapus secara
-              permanen dari database.
+              Tindakan ini tidak dapat dibatalkan. Data muzakki akan dihapus secara permanen jika
+              tidak memiliki riwayat transaksi.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

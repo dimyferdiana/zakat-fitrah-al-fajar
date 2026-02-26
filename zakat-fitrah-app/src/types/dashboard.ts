@@ -25,6 +25,8 @@ export type WidgetType =
   | 'chart'
   | 'distribusi_progress'
   | 'hak_amil'
+  | 'hak_amil_trend'
+  | 'section_title'
   | 'text_note';
 
 export type WidgetWidth = 'full' | 'half';
@@ -50,6 +52,7 @@ export type AggregationRuleId =
   | 'total_muzakki'
   | 'total_mustahik_aktif'
   | 'total_mustahik_nonaktif'
+  | 'hak_amil_beras'
   | 'hak_amil_uang';
 
 export type StatFormat = 'currency' | 'weight' | 'number';
@@ -81,11 +84,16 @@ export interface TextNoteConfig {
   content: string;
 }
 
+export interface SectionTitleConfig {
+  title: string;
+}
+
 export type WidgetConfig =
   | StatCardConfig
   | ChartConfig
   | DistribusiProgressConfig
   | HakAmilConfig
+  | SectionTitleConfig
   | TextNoteConfig;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -113,6 +121,7 @@ export interface CreateDashboardInput {
   visibility: DashboardVisibility;
   stat_card_columns: 1 | 2 | 3;
   sort_order?: number;
+  template_id?: 'scratch' | 'full' | 'monitoring' | 'hak_amil_focus';
 }
 
 export interface UpdateDashboardInput {

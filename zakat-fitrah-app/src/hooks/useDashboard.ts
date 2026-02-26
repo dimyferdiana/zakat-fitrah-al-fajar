@@ -18,6 +18,7 @@ const EMPTY_DASHBOARD_STATS: DashboardStats = {
   infakSedekahUangRp: 0,
   maalPenghasilanUangRp: 0,
   totalPemasukanUangRp: 0,
+  hakAmilBerasKg: 0,
   hakAmilUangRp: 0,
   sisaUangAfterAmilRp: 0,
   infakSedekahBerasKg: 0,
@@ -41,6 +42,7 @@ export interface DashboardStats {
   infakSedekahUangRp: number;
   maalPenghasilanUangRp: number;
   totalPemasukanUangRp: number; // Including fitrah + fidyah + infak + maal + rekonsiliasi
+  hakAmilBerasKg: number;
   hakAmilUangRp: number;
   sisaUangAfterAmilRp: number;
   // Phase 2.2: Pemasukan Beras (Sedekah)
@@ -211,6 +213,15 @@ export function useDashboardStats(tahunZakatId?: string) {
 
       const hakAmilUangRp = Number((hakAmilData as { jumlah_uang_rp?: number } | null)?.jumlah_uang_rp) || 0;
 
+      const { data: hakAmilConfig } = await supabase
+        .from('hak_amil_configs')
+        .select('persen_beras')
+        .eq('tahun_zakat_id', activeTahunId)
+        .maybeSingle();
+
+      const persenHakAmilBeras = Number((hakAmilConfig as { persen_beras?: number } | null)?.persen_beras ?? 12.5);
+      const hakAmilBerasKg = totalBerasKg * (persenHakAmilBeras / 100);
+
       // Total pemasukan uang (dashboard card) — zakatFitrahUangFromPemasukan already included in totalUangRp
       const totalPemasukanUangRp =
         totalUangRp + // zakat fitrah uang (pembayaran_zakat + pemasukan_uang)
@@ -240,6 +251,7 @@ export function useDashboardStats(tahunZakatId?: string) {
         infakSedekahUangRp,
         maalPenghasilanUangRp,
         totalPemasukanUangRp,
+        hakAmilBerasKg,
         hakAmilUangRp,
         sisaUangAfterAmilRp,
         infakSedekahBerasKg,

@@ -30,30 +30,42 @@ interface DefaultWidget {
 }
 
 export const DEFAULT_DASHBOARD_WIDGETS: DefaultWidget[] = [
-  // StatCards
-  { widget_type: 'stat_card', sort_order: 0, width: 'full', config: { label: 'Total Muzakki', icon: 'Users', rule: 'total_muzakki', format: 'number' } },
-  { widget_type: 'stat_card', sort_order: 1, width: 'full', config: { label: 'Mustahik Aktif', icon: 'Heart', rule: 'total_mustahik_aktif', format: 'number' } },
-  { widget_type: 'stat_card', sort_order: 2, width: 'full', config: { label: 'Mustahik Non-Aktif', icon: 'Heart', rule: 'total_mustahik_nonaktif', format: 'number' } },
-  { widget_type: 'stat_card', sort_order: 3, width: 'full', config: { label: 'Zakat Beras Terkumpul', icon: 'Package', rule: 'zakat_beras_terkumpul', format: 'weight' } },
-  { widget_type: 'stat_card', sort_order: 4, width: 'full', config: { label: 'Zakat Uang Terkumpul', icon: 'Coins', rule: 'zakat_uang_terkumpul', format: 'currency' } },
-  { widget_type: 'stat_card', sort_order: 5, width: 'full', config: { label: 'Beras Tersalurkan', icon: 'Send', rule: 'distribusi_beras', format: 'weight' } },
-  { widget_type: 'stat_card', sort_order: 6, width: 'full', config: { label: 'Uang Tersalurkan', icon: 'TrendingUp', rule: 'distribusi_uang', format: 'currency' } },
-  { widget_type: 'stat_card', sort_order: 7, width: 'full', config: { label: 'Fidyah Uang', icon: 'HandHeart', rule: 'fidyah_uang', format: 'currency' } },
-  { widget_type: 'stat_card', sort_order: 8, width: 'full', config: { label: 'Fidyah Beras', icon: 'HandHeart', rule: 'fidyah_beras', format: 'weight' } },
-  { widget_type: 'stat_card', sort_order: 9, width: 'full', config: { label: 'Infak/Sedekah Uang', icon: 'Gift', rule: 'infak_sedekah_uang', format: 'currency' } },
-  { widget_type: 'stat_card', sort_order: 10, width: 'full', config: { label: 'Infak/Sedekah Beras', icon: 'Gift', rule: 'infak_sedekah_beras', format: 'weight' } },
-  { widget_type: 'stat_card', sort_order: 11, width: 'full', config: { label: 'Maal/Penghasilan Uang', icon: 'Coins', rule: 'maal_penghasilan_uang', format: 'currency' } },
-  { widget_type: 'stat_card', sort_order: 12, width: 'full', config: { label: 'Total Pemasukan Uang', icon: 'Banknote', rule: 'total_pemasukan_uang', format: 'currency' } },
-  { widget_type: 'stat_card', sort_order: 13, width: 'full', config: { label: 'Total Pemasukan Beras', icon: 'Wheat', rule: 'total_pemasukan_beras', format: 'weight' } },
-  { widget_type: 'stat_card', sort_order: 14, width: 'full', config: { label: 'Hak Amil Uang', icon: 'Coins', rule: 'hak_amil_uang', format: 'currency' } },
-  // HakAmil summary card
-  { widget_type: 'hak_amil', sort_order: 15, width: 'full', config: {} },
-  // Distribusi Progress
-  { widget_type: 'distribusi_progress', sort_order: 16, width: 'half', config: { jenis: 'beras' } },
-  { widget_type: 'distribusi_progress', sort_order: 17, width: 'half', config: { jenis: 'uang' } },
-  // Charts
-  { widget_type: 'chart', sort_order: 18, width: 'full', config: { data_type: 'uang', categories: [] } },
-  { widget_type: 'chart', sort_order: 19, width: 'full', config: { data_type: 'beras', categories: [] } },
+  // Ringkasan utama
+  { widget_type: 'section_title', sort_order: 0, width: 'full', config: { title: 'Ringkasan Utama' } },
+  { widget_type: 'stat_card', sort_order: 1, width: 'half', config: { label: 'Total Muzakki', icon: 'Users', rule: 'total_muzakki', format: 'number' } },
+  { widget_type: 'stat_card', sort_order: 2, width: 'half', config: { label: 'Mustahik Aktif', icon: 'Heart', rule: 'total_mustahik_aktif', format: 'number' } },
+  { widget_type: 'stat_card', sort_order: 3, width: 'half', config: { label: 'Mustahik Non-Aktif', icon: 'Heart', rule: 'total_mustahik_nonaktif', format: 'number' } },
+
+  // Pemasukan
+  { widget_type: 'section_title', sort_order: 4, width: 'full', config: { title: 'Pemasukan Zakat & Dana' } },
+  { widget_type: 'stat_card', sort_order: 5, width: 'half', config: { label: 'Zakat Uang Terkumpul', icon: 'Coins', rule: 'zakat_uang_terkumpul', format: 'currency' } },
+  { widget_type: 'stat_card', sort_order: 6, width: 'half', config: { label: 'Zakat Beras Terkumpul', icon: 'Package', rule: 'zakat_beras_terkumpul', format: 'weight' } },
+  { widget_type: 'stat_card', sort_order: 7, width: 'half', config: { label: 'Fidyah Uang', icon: 'HandHeart', rule: 'fidyah_uang', format: 'currency' } },
+  { widget_type: 'stat_card', sort_order: 8, width: 'half', config: { label: 'Fidyah Beras', icon: 'HandHeart', rule: 'fidyah_beras', format: 'weight' } },
+  { widget_type: 'stat_card', sort_order: 9, width: 'half', config: { label: 'Infak/Sedekah Uang', icon: 'Gift', rule: 'infak_sedekah_uang', format: 'currency' } },
+  { widget_type: 'stat_card', sort_order: 10, width: 'half', config: { label: 'Infak/Sedekah Beras', icon: 'Gift', rule: 'infak_sedekah_beras', format: 'weight' } },
+  { widget_type: 'stat_card', sort_order: 11, width: 'half', config: { label: 'Maal/Penghasilan Uang', icon: 'Coins', rule: 'maal_penghasilan_uang', format: 'currency' } },
+  { widget_type: 'stat_card', sort_order: 12, width: 'half', config: { label: 'Total Pemasukan Uang', icon: 'Banknote', rule: 'total_pemasukan_uang', format: 'currency' } },
+  { widget_type: 'stat_card', sort_order: 13, width: 'half', config: { label: 'Total Pemasukan Beras', icon: 'Wheat', rule: 'total_pemasukan_beras', format: 'weight' } },
+
+  // Distribusi
+  { widget_type: 'section_title', sort_order: 14, width: 'full', config: { title: 'Distribusi' } },
+  { widget_type: 'stat_card', sort_order: 15, width: 'half', config: { label: 'Beras Tersalurkan', icon: 'Send', rule: 'distribusi_beras', format: 'weight' } },
+  { widget_type: 'stat_card', sort_order: 16, width: 'half', config: { label: 'Uang Tersalurkan', icon: 'TrendingUp', rule: 'distribusi_uang', format: 'currency' } },
+  { widget_type: 'distribusi_progress', sort_order: 17, width: 'half', config: { jenis: 'beras' } },
+  { widget_type: 'distribusi_progress', sort_order: 18, width: 'half', config: { jenis: 'uang' } },
+
+  // Hak amil
+  { widget_type: 'section_title', sort_order: 19, width: 'full', config: { title: 'Hak Amil' } },
+  { widget_type: 'stat_card', sort_order: 20, width: 'half', config: { label: 'Hak Amil Uang', icon: 'Coins', rule: 'hak_amil_uang', format: 'currency' } },
+  { widget_type: 'stat_card', sort_order: 21, width: 'half', config: { label: 'Hak Amil Beras', icon: 'Wheat', rule: 'hak_amil_beras', format: 'weight' } },
+  { widget_type: 'hak_amil', sort_order: 22, width: 'full', config: {} },
+  { widget_type: 'hak_amil_trend', sort_order: 23, width: 'full', config: {} },
+
+  // Tren pemasukan
+  { widget_type: 'section_title', sort_order: 24, width: 'full', config: { title: 'Tren Pemasukan' } },
+  { widget_type: 'chart', sort_order: 25, width: 'full', config: { data_type: 'uang', categories: [] } },
+  { widget_type: 'chart', sort_order: 26, width: 'full', config: { data_type: 'beras', categories: [] } },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────

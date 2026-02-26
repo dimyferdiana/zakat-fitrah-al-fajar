@@ -26,6 +26,7 @@ import {
   Receipt,
   Wheat,
   ScrollText,
+  Landmark,
 } from 'lucide-react';
 
 interface MainLayoutProps {
@@ -37,72 +38,110 @@ interface NavItem {
   path: string;
   icon: React.ComponentType<{ className?: string }>;
   roles?: UserRole[];
+  hidden?: boolean;
 }
 
-const navItems: NavItem[] = [
+interface NavSection {
+  title: string;
+  items: NavItem[];
+}
+
+const navSections: NavSection[] = [
   {
-    label: 'Dashboard',
-    path: '/dashboard',
-    icon: LayoutDashboard,
+    title: 'Ringkasan',
+    items: [
+      {
+        label: 'Dashboard',
+        path: '/dashboard',
+        icon: LayoutDashboard,
+      },
+    ],
   },
   {
-    label: 'Data Muzakki',
-    path: '/muzakki',
-    icon: Users,
-    roles: ['admin', 'petugas'],
+    title: 'Data Master',
+    items: [
+      {
+        label: 'Data Muzakki',
+        path: '/muzakki',
+        icon: Users,
+        roles: ['admin', 'petugas'],
+      },
+      {
+        label: 'Data Mustahik',
+        path: '/mustahik',
+        icon: Heart,
+        roles: ['admin', 'petugas'],
+      },
+    ],
   },
   {
-    label: 'Pemasukan Uang',
-    path: '/pemasukan',
-    icon: Wallet,
-    roles: ['admin', 'petugas'],
+    title: 'Transaksi',
+    items: [
+      {
+        label: 'Penerimaan Uang',
+        path: '/penerimaan-uang',
+        icon: Wallet,
+        roles: ['admin', 'petugas'],
+      },
+      {
+        label: 'Penerimaan Beras',
+        path: '/penerimaan-beras',
+        icon: Wheat,
+        roles: ['admin', 'petugas'],
+      },
+      {
+        label: 'Distribusi Zakat',
+        path: '/distribusi',
+        icon: Send,
+        roles: ['admin', 'petugas'],
+      },
+      {
+        label: 'Bukti Sedekah',
+        path: '/sedekah-receipt',
+        icon: Receipt,
+        roles: ['admin', 'petugas'],
+      },
+    ],
   },
   {
-    label: 'Pemasukan Beras',
-    path: '/pemasukan-beras',
-    icon: Wheat,
-    roles: ['admin', 'petugas'],
+    title: 'Laporan',
+    items: [
+      {
+        label: 'Laporan',
+        path: '/laporan',
+        icon: FileText,
+      },
+      {
+        label: 'Surat Pengantar',
+        path: '/surat-pengantar',
+        icon: ScrollText,
+        roles: ['admin'],
+        hidden: true,
+      },
+    ],
   },
   {
-    label: 'Data Mustahik',
-    path: '/mustahik',
-    icon: Heart,
-    roles: ['admin', 'petugas'],
-  },
-  {
-    label: 'Distribusi Zakat',
-    path: '/distribusi',
-    icon: Send,
-    roles: ['admin', 'petugas'],
-  },
-  {
-    label: 'Bukti Sedekah',
-    path: '/sedekah-receipt',
-    icon: Receipt,
-    roles: ['admin', 'petugas'],
-  },
-  {
-    label: 'Laporan',
-    path: '/laporan',
-    icon: FileText,
-  },
-  {
-    label: 'Surat Pengantar',
-    path: '/surat-pengantar',
-    icon: ScrollText,
-    roles: ['admin'],
-  },
-  {
-    label: 'Konfigurasi Dashboard',
-    path: '/dashboard-settings',
-    icon: LayoutDashboard,
-    roles: ['admin'],
-  },
-  {
-    label: 'Pengaturan',
-    path: '/settings',
-    icon: Settings,
-    roles: ['admin'],
+    title: 'Sistem',
+    items: [
+      {
+        label: 'Manajemen Rekening',
+        path: '/accounts',
+        icon: Landmark,
+        roles: ['admin', 'petugas'],
+      },
+      {
+        label: 'Konfigurasi Dashboard',
+        path: '/dashboard-settings',
+        icon: LayoutDashboard,
+        roles: ['admin'],
+      },
+      {
+        label: 'Pengaturan',
+        path: '/settings',
+        icon: Settings,
+        roles: ['admin'],
+      },
+    ],
   },
 ];
 
@@ -111,36 +150,49 @@ export function MainLayout({ children }: MainLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, hasRole } = useAuth();
+  const allNavItems = navSections.flatMap((section) => section.items);
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
 
-  const filteredNavItems = navItems.filter(
-    (item) => !item.roles || hasRole(item.roles)
-  );
+  const filteredNavSections = navSections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter(
+        (item) => !item.hidden && (!item.roles || hasRole(item.roles))
+      ),
+    }))
+    .filter((section) => section.items.length > 0);
 
   const isActive = (path: string) => location.pathname === path;
 
   const NavContent = () => (
     <nav className="space-y-2">
-      {filteredNavItems.map((item) => {
-        const Icon = item.icon;
-        const active = isActive(item.path);
-        return (
-          <Link key={item.path} to={item.path}>
-            <Button
-              variant={active ? 'secondary' : 'ghost'}
-              className="w-full justify-start"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <Icon className="mr-2 h-4 w-4" />
-              {item.label}
-            </Button>
-          </Link>
-        );
-      })}
+      {filteredNavSections.map((section) => (
+        <div key={section.title} className="space-y-1">
+          <p className="px-2 pt-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {section.title}
+          </p>
+          {section.items.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            return (
+              <Link key={item.path} to={item.path}>
+                <Button
+                  variant={active ? 'secondary' : 'ghost'}
+                  className="w-full justify-start"
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <Icon className="mr-2 h-4 w-4" />
+                  {item.label}
+                </Button>
+              </Link>
+            );
+          })}
+        </div>
+      ))}
     </nav>
   );
 
@@ -211,7 +263,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           {/* Page Title (could be passed as prop) */}
           <div className="flex-1 lg:ml-0">
             <h1 className="text-lg font-semibold lg:text-xl">
-              {navItems.find((item) => item.path === location.pathname)?.label ||
+              {allNavItems.find((item) => item.path === location.pathname && !item.hidden)?.label ||
                 'Dashboard'}
             </h1>
           </div>

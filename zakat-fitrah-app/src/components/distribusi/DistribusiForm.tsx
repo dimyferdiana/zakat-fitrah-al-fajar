@@ -44,7 +44,11 @@ import { id as localeId } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useMustahikList } from '@/hooks/useMustahik';
 import { useStokCheck, type StokSummary } from '@/hooks/useDistribusi';
+import { offlineStore } from '@/lib/offlineStore';
 import { supabase } from '@/lib/supabase';
+import { isUuid } from '@/lib/utils';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 const formSchema = z.object({
   mustahik_id: z.string().min(1, { message: 'Pilih mustahik penerima' }),
@@ -103,6 +107,26 @@ export function DistribusiForm({
       const fetchEligible = async () => {
         if (!tahunZakatId) {
           setEligibleMustahik([]);
+          return;
+        }
+
+        if (OFFLINE_MODE || !isUuid(tahunZakatId)) {
+          const offlineTakenIds = new Set(
+            offlineStore
+              .getDistribusiList({ tahun_zakat_id: tahunZakatId, status: 'semua', page: 1, limit: 1000 })
+              .data
+              .filter((d) => d.status === 'pending' || d.status === 'selesai')
+              .map((d) => d.mustahik_id)
+          );
+
+          const fallbackEligible = (mustahikList as any).filter(
+            (m: any) => !offlineTakenIds.has(m.id)
+          );
+          setEligibleMustahik(fallbackEligible);
+
+          if (mustahikId && offlineTakenIds.has(mustahikId)) {
+            form.setValue('mustahik_id', '');
+          }
           return;
         }
 

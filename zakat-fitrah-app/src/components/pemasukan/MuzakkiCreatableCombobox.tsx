@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { offlineStore } from '@/lib/offlineStore';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { ChevronDown, Plus, X, Loader2, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 interface MuzakkiOption {
   id: string;
@@ -45,6 +48,13 @@ export function MuzakkiCreatableCombobox({
   const { data: muzakkiOptions = [], isLoading } = useQuery({
     queryKey: ['muzakki-options'],
     queryFn: async (): Promise<MuzakkiOption[]> => {
+      if (OFFLINE_MODE) {
+        return offlineStore
+          .getMuzakkiAll()
+          .map((item) => ({ id: item.id, nama_kk: item.nama_kk }))
+          .sort((a, b) => a.nama_kk.localeCompare(b.nama_kk));
+      }
+
       const { data, error } = await supabase
         .from('muzakki')
         .select('id, nama_kk')
@@ -114,6 +124,24 @@ export function MuzakkiCreatableCombobox({
     setIsCreating(true);
 
     try {
+      if (OFFLINE_MODE) {
+        const created = offlineStore.addMuzakki({
+          nama_kk: newName.trim(),
+          alamat: '-',
+          no_telp: newTelp.trim() || null,
+        });
+
+        await queryClient.invalidateQueries({ queryKey: ['muzakki-options'] });
+
+        onChange(created.id);
+        setOpen(false);
+        setSearch('');
+        setCreating(false);
+        setNewName('');
+        setNewTelp('');
+        return;
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.from('muzakki').insert as any)({
         nama_kk: newName.trim(),

@@ -42,7 +42,7 @@ const formSchema = z.object({
   kategori: z.enum(['fidyah_uang', 'maal_penghasilan_uang', 'infak_sedekah_uang', 'zakat_fitrah_uang'], {
     message: 'Pilih kategori',
   }),
-  akun: z.enum(['kas', 'bank'], { message: 'Pilih akun' }),
+  account_id: z.string().min(1, { message: 'Pilih rekening' }),
   jumlah_uang_rp: z.number().positive({ message: 'Nominal harus lebih dari 0' }),
   tanggal: z.date({ message: 'Tanggal wajib diisi' }),
   catatan: z.string().max(255, { message: 'Maksimal 255 karakter' }).optional().or(z.literal('')),
@@ -65,6 +65,7 @@ interface PemasukanFormProps {
     tahun_zakat_id: string;
     kategori: PemasukanUangKategori;
     akun: AkunUang;
+    account_id: string;
     jumlah_uang_rp: number;
     tanggal: string;
     catatan?: string;
@@ -76,11 +77,17 @@ interface PemasukanFormProps {
     tahun_zakat_id: string;
     kategori: PemasukanUangKategori;
     akun: AkunUang;
+    account_id?: string;
     jumlah_uang_rp: number;
     tanggal: string;
     catatan?: string;
     muzakki_id?: string;
   };
+  accountOptions: Array<{
+    id: string;
+    account_name: string;
+    account_channel: 'kas' | 'bank' | 'qris';
+  }>;
   isSubmitting: boolean;
 }
 
@@ -91,6 +98,7 @@ export function PemasukanForm({
   tahunOptions,
   defaultTahunId,
   defaultValues,
+  accountOptions,
   isSubmitting,
 }: PemasukanFormProps) {
   const form = useForm<PemasukanFormValues>({
@@ -98,7 +106,7 @@ export function PemasukanForm({
     defaultValues: defaultValues ? {
       tahun_zakat_id: defaultValues.tahun_zakat_id,
       kategori: defaultValues.kategori,
-      akun: defaultValues.akun,
+      account_id: defaultValues.account_id || accountOptions[0]?.id || '',
       jumlah_uang_rp: defaultValues.jumlah_uang_rp,
       tanggal: new Date(defaultValues.tanggal),
       catatan: defaultValues.catatan || '',
@@ -106,7 +114,7 @@ export function PemasukanForm({
     } : {
       tahun_zakat_id: defaultTahunId || '',
       kategori: 'fidyah_uang',
-      akun: 'kas',
+      account_id: accountOptions[0]?.id || '',
       jumlah_uang_rp: 0,
       tanggal: new Date(),
       catatan: '',
@@ -120,13 +128,20 @@ export function PemasukanForm({
     }
   }, [defaultTahunId, form]);
 
+  useEffect(() => {
+    const currentValue = form.getValues('account_id');
+    if (!currentValue && accountOptions.length > 0) {
+      form.setValue('account_id', accountOptions[0].id);
+    }
+  }, [accountOptions, form]);
+
   // Reset form when defaultValues change (e.g., when editing a different item)
   useEffect(() => {
     if (defaultValues) {
       form.reset({
         tahun_zakat_id: defaultValues.tahun_zakat_id,
         kategori: defaultValues.kategori,
-        akun: defaultValues.akun,
+        account_id: defaultValues.account_id || accountOptions[0]?.id || '',
         jumlah_uang_rp: defaultValues.jumlah_uang_rp,
         tanggal: new Date(defaultValues.tanggal),
         catatan: defaultValues.catatan || '',
@@ -136,8 +151,12 @@ export function PemasukanForm({
   }, [defaultValues, form]);
 
   const handleSubmit = (values: PemasukanFormValues) => {
+    const selectedAccount = accountOptions.find((account) => account.id === values.account_id);
+    const akun: AkunUang = selectedAccount?.account_channel === 'kas' ? 'kas' : 'bank';
+
     onSubmit({
       ...values,
+      akun,
       catatan: values.catatan || undefined,
       tanggal: values.tanggal.toISOString().split('T')[0],
     });
@@ -208,19 +227,22 @@ export function PemasukanForm({
 
               <FormField
                 control={form.control}
-                name="akun"
+                name="account_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Akun *</FormLabel>
+                    <FormLabel>Rekening *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Pilih akun" />
+                          <SelectValue placeholder="Pilih rekening" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="kas">Kas</SelectItem>
-                        <SelectItem value="bank">Bank</SelectItem>
+                        {accountOptions.map((account) => (
+                          <SelectItem key={account.id} value={account.id}>
+                            {account.account_name} ({account.account_channel.toUpperCase()})
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

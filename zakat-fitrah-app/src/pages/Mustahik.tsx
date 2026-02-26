@@ -31,7 +31,11 @@ import {
   type Mustahik,
 } from '@/hooks/useMustahik';
 import { useTahunZakatList } from '@/hooks/useDashboard';
+import { offlineStore } from '@/lib/offlineStore';
 import { supabase } from '@/lib/supabase';
+import { isUuid } from '@/lib/utils';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 export default function MustahikPage() {
   // State for filters and pagination
@@ -79,6 +83,22 @@ export default function MustahikPage() {
     const fetchReceived = async () => {
       if (!activeTahun) {
         setReceivedIds(new Set());
+        return;
+      }
+
+      if (OFFLINE_MODE || !isUuid(activeTahun.id)) {
+        const offlineReceived = offlineStore
+          .getDistribusiList({
+            tahun_zakat_id: activeTahun.id,
+            status: 'semua',
+            page: 1,
+            limit: 1000,
+          })
+          .data
+          .filter((d) => d.status === 'pending' || d.status === 'selesai')
+          .map((d) => d.mustahik_id);
+
+        setReceivedIds(new Set(offlineReceived));
         return;
       }
 

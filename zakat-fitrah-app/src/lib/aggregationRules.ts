@@ -107,6 +107,12 @@ export const AGGREGATION_RULES: AggregationRule[] = [
     statsField: 'totalMustahikNonAktif',
   },
   {
+    id: 'hak_amil_beras',
+    label: 'Hak Amil Beras',
+    format: 'weight',
+    statsField: 'hakAmilBerasKg',
+  },
+  {
     id: 'hak_amil_uang',
     label: 'Hak Amil Uang',
     format: 'currency',

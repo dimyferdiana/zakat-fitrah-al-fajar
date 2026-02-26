@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { offlineStore } from '@/lib/offlineStore';
+import { isUuid } from '@/lib/utils';
 
 const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 // Interfaces
@@ -65,6 +66,12 @@ export function useDistribusiList(params: DistribusiListParams) {
         const result = offlineStore.getDistribusiList(params);
         return { data: result.data, totalCount: result.count };
       }
+
+      if (params.tahun_zakat_id && !isUuid(params.tahun_zakat_id)) {
+        const result = offlineStore.getDistribusiList(params);
+        return { data: result.data, totalCount: result.count };
+      }
+
       let query = supabase
         .from('distribusi_zakat')
         .select(
@@ -146,6 +153,7 @@ export function useStokCheck(tahunZakatId: string | null) {
         };
       }
       if (OFFLINE_MODE) return offlineStore.getStokSummary(tahunZakatId);
+      if (!isUuid(tahunZakatId)) return offlineStore.getStokSummary(tahunZakatId);
 
       // Get pemasukan totals
       const { data: pemasukanData, error: pemasukanError } = await supabase
@@ -199,7 +207,13 @@ export function useCreateDistribusi() {
 
   return useMutation({
     mutationFn: async (input: CreateDistribusiInput) => {
-      if (OFFLINE_MODE) return offlineStore.addDistribusi({ ...input, catatan: input.catatan ?? null, status: 'pending' }) as any;
+      if (OFFLINE_MODE || !isUuid(input.tahun_zakat_id)) {
+        return offlineStore.addDistribusi({
+          ...input,
+          catatan: input.catatan ?? null,
+          status: 'pending',
+        }) as any;
+      }
       // Prevent double distribution to the same mustahik in the same year
       const { data: existingDistribusi, error: existingError } = await supabase
         .from('distribusi_zakat')

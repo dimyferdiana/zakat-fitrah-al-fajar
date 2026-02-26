@@ -130,8 +130,8 @@ export function PemasukanBeras() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Pemasukan Beras"
-        description="Catat pemasukan beras untuk fidyah, infak/sedekah, dan zakat fitrah"
+        title="Penerimaan Beras"
+        description="Catat penerimaan beras untuk fidyah, infak/sedekah, dan zakat fitrah"
       />
 
       <Card>
@@ -181,7 +181,7 @@ export function PemasukanBeras() {
             {!bulkMode && (
               <Button onClick={() => setFormOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                Tambah Pemasukan
+                Tambah Penerimaan
               </Button>
             )}
           </div>
@@ -192,14 +192,14 @@ export function PemasukanBeras() {
             <BulkPemasukanForm tahunZakatId={selectedTahun || activeTahun?.id || ''} />
           ) : (
             <>
-          {isLoading && <LoadingSpinner text="Memuat pemasukan..." />}
+          {isLoading && <LoadingSpinner text="Memuat penerimaan..." />}
 
           {!isLoading && pemasukan?.data.length === 0 && (
             <EmptyState
               icon={Plus}
-              title="Belum ada pemasukan"
-              description="Catat pemasukan beras pertama untuk tahun ini"
-              action={{ label: 'Tambah Pemasukan', onClick: () => setFormOpen(true) }}
+              title="Belum ada penerimaan"
+              description="Catat penerimaan beras pertama untuk tahun ini"
+              action={{ label: 'Tambah Penerimaan', onClick: () => setFormOpen(true) }}
             />
           )}
 
@@ -302,9 +302,9 @@ export function PemasukanBeras() {
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Pemasukan?</AlertDialogTitle>
+            <AlertDialogTitle>Hapus Penerimaan?</AlertDialogTitle>
             <AlertDialogDescription>
-              Apakah Anda yakin ingin menghapus pemasukan ini? Tindakan ini tidak dapat dibatalkan.
+              Apakah Anda yakin ingin menghapus penerimaan ini? Tindakan ini tidak dapat dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogCancel>Batal</AlertDialogCancel>

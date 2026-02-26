@@ -22,6 +22,7 @@ export type AkunUang = 'kas' | 'bank';
 export interface PemasukanUang {
   id: string;
   tahun_zakat_id: string;
+  account_id?: string | null;
   muzakki_id: string | null;
   muzakki?: { id: string; nama_kk: string } | null;
   kategori: PemasukanUangKategori;
@@ -44,12 +45,117 @@ export interface PemasukanUangListParams {
 
 interface CreatePemasukanInput {
   tahun_zakat_id: string;
+  account_id: string;
   muzakki_id?: string;
   kategori: PemasukanUangKategori;
   akun: AkunUang;
   jumlah_uang_rp: number;
   tanggal: string;
   catatan?: string;
+}
+
+const DEFAULT_KAS_ACCOUNT_NAME = 'KAS';
+const DEFAULT_BANK_ACCOUNT_NAME = 'BCA-SYARIAH : MPZ LAZ AL FAJAR ZAKAT';
+
+async function resolveUangAccountId(akun: AkunUang, accountId: string): Promise<string> {
+  if (accountId) return accountId;
+
+  const preferredAccountName = akun === 'bank' ? DEFAULT_BANK_ACCOUNT_NAME : DEFAULT_KAS_ACCOUNT_NAME;
+  const fallbackAccountName = DEFAULT_KAS_ACCOUNT_NAME;
+
+  const { data: accounts, error } = await (supabase
+    .from('accounts')
+    .select as any)('id, account_name')
+    .in('account_name', [preferredAccountName, fallbackAccountName])
+    .eq('is_active', true);
+
+  if (error) throw error;
+
+  const matched = (accounts || []).find((account: { account_name: string }) => account.account_name === preferredAccountName)
+    || (accounts || []).find((account: { account_name: string }) => account.account_name === fallbackAccountName);
+
+  if (!matched?.id) {
+    throw new Error(`Akun default tidak ditemukan untuk channel ${akun}`);
+  }
+
+  return matched.id as string;
+}
+
+interface SyncPemasukanUangLedgerInput {
+  pemasukanUangId: string;
+  accountId: string;
+  amountRp: number;
+  tanggal: string;
+  catatan?: string | null;
+  createdBy: string;
+}
+
+export async function createPemasukanUangLedgerEntry(input: SyncPemasukanUangLedgerInput) {
+  const { error } = await (supabase.from('account_ledger_entries').insert as any)({
+    account_id: input.accountId,
+    entry_type: 'IN',
+    amount_rp: input.amountRp,
+    running_balance_before_rp: 0,
+    running_balance_after_rp: input.amountRp,
+    entry_date: input.tanggal,
+    effective_at: new Date().toISOString(),
+    notes: input.catatan || null,
+    source_pemasukan_uang_id: input.pemasukanUangId,
+    created_by: input.createdBy,
+  });
+
+  if (error) throw error;
+}
+
+export async function updatePemasukanUangLedgerEntry(input: SyncPemasukanUangLedgerInput) {
+  const { data: existingLedger, error: existingLedgerError } = await (supabase
+    .from('account_ledger_entries')
+    .select as any)('id')
+    .eq('source_pemasukan_uang_id', input.pemasukanUangId)
+    .maybeSingle();
+
+  if (existingLedgerError) throw existingLedgerError;
+
+  if (!existingLedger?.id) {
+    await createPemasukanUangLedgerEntry(input);
+    return;
+  }
+
+  const { error } = await (supabase
+    .from('account_ledger_entries')
+    .update as any)({
+      account_id: input.accountId,
+      entry_type: 'IN',
+      amount_rp: input.amountRp,
+      running_balance_before_rp: 0,
+      running_balance_after_rp: input.amountRp,
+      entry_date: input.tanggal,
+      effective_at: new Date().toISOString(),
+      notes: input.catatan || null,
+      updated_at: new Date().toISOString(),
+      created_by: input.createdBy,
+    })
+    .eq('source_pemasukan_uang_id', input.pemasukanUangId);
+
+  if (error) throw error;
+}
+
+export async function deletePemasukanUangLedgerEntry(pemasukanUangId: string) {
+  const { data: existingLedger, error: existingLedgerError } = await (supabase
+    .from('account_ledger_entries')
+    .select as any)('id')
+    .eq('source_pemasukan_uang_id', pemasukanUangId)
+    .maybeSingle();
+
+  if (existingLedgerError) throw existingLedgerError;
+  if (!existingLedger?.id) return;
+
+  const { error } = await supabase
+    .from('account_ledger_entries')
+    .delete()
+    .eq('id', existingLedger.id);
+
+  if (error) throw error;
 }
 
 export function usePemasukanUangList(params: PemasukanUangListParams) {
@@ -115,6 +221,7 @@ export function useCreatePemasukanUang() {
 
       const payload = {
         ...input,
+        account_id: input.account_id,
         muzakki_id: input.muzakki_id || null,
         catatan: input.catatan || null,
         created_by: userId,
@@ -126,6 +233,21 @@ export function useCreatePemasukanUang() {
         .single();
 
       if (error) throw error;
+
+      try {
+        const accountId = await resolveUangAccountId(input.akun, input.account_id);
+        await createPemasukanUangLedgerEntry({
+          pemasukanUangId: data.id,
+          accountId,
+          amountRp: input.jumlah_uang_rp,
+          tanggal: input.tanggal,
+          catatan: input.catatan || null,
+          createdBy: userId,
+        });
+      } catch (ledgerSyncError) {
+        await supabase.from('pemasukan_uang').delete().eq('id', data.id);
+        throw ledgerSyncError;
+      }
 
       // Create hak amil snapshot for this transaction
       const hakAmilKategori = mapKategoriToHakAmil(input.kategori);
@@ -175,6 +297,7 @@ export function useUpdatePemasukanUang() {
       const { id, ...updateData } = input;
       const payload = {
         ...updateData,
+        account_id: updateData.account_id,
         muzakki_id: updateData.muzakki_id || null,
         catatan: updateData.catatan || null,
         updated_at: new Date().toISOString(),
@@ -189,6 +312,16 @@ export function useUpdatePemasukanUang() {
         .single();
 
       if (error) throw error;
+
+      const accountId = await resolveUangAccountId(updateData.akun, updateData.account_id);
+      await updatePemasukanUangLedgerEntry({
+        pemasukanUangId: id,
+        accountId,
+        amountRp: updateData.jumlah_uang_rp,
+        tanggal: updateData.tanggal,
+        catatan: updateData.catatan || null,
+        createdBy: data.created_by,
+      });
 
       const hakAmilKategori = mapKategoriToHakAmil(updateData.kategori);
       const { data: auth } = await supabase.auth.getUser();
@@ -240,6 +373,8 @@ export function useDeletePemasukanUang() {
         .from('hak_amil_snapshots')
         .delete()
         .eq('pemasukan_uang_id', id);
+
+      await deletePemasukanUangLedgerEntry(id);
 
       const { error } = await supabase
         .from('pemasukan_uang')

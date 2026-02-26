@@ -21,7 +21,7 @@ const MOCK_USERS = [
     email: 'bendahara@masjid.com',
     password: getDemoPassword('bendahara'),
     nama_lengkap: 'Bendahara Masjid',
-    role: 'bendahara' as const,
+    role: 'petugas' as const,
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -31,14 +31,14 @@ const MOCK_USERS = [
     email: 'panitia@masjid.com',
     password: getDemoPassword('panitia'),
     nama_lengkap: 'Panitia Zakat',
-    role: 'panitia' as const,
+    role: 'petugas' as const,
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
 ];
 
-const SESSION_KEY = 'mock_auth_session';
+const SESSION_KEY = 'mock_auth_session_v2'; // v2: fixed roles to match DB enum
 
 export interface MockSession {
   user: User;

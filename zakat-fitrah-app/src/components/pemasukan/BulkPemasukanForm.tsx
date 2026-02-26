@@ -1,6 +1,7 @@
 import { useState, useCallback, useId } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { offlineStore } from '@/lib/offlineStore';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,8 @@ import { format } from 'date-fns';
 import { submitBulk } from '@/hooks/useBulkPembayaran';
 import { BulkTandaTerima } from './BulkTandaTerima';
 import type { BulkRow, BulkResult } from '@/types/bulk';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 interface MuzakkiOption {
   id: string;
@@ -109,6 +112,13 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
   const { data: muzakkiOptions = [] } = useQuery<MuzakkiOption[]>({
     queryKey: ['muzakki-options'],
     queryFn: async () => {
+      if (OFFLINE_MODE) {
+        return offlineStore
+          .getMuzakkiAll()
+          .map((item) => ({ id: item.id, nama_kk: item.nama_kk }))
+          .sort((a, b) => a.nama_kk.localeCompare(b.nama_kk));
+      }
+
       const { data, error } = await supabase
         .from('muzakki')
         .select('id, nama_kk')
@@ -179,6 +189,20 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
     if (!nama) return;
     setIsCreatingMuzakki(true);
     try {
+      if (OFFLINE_MODE) {
+        const created = offlineStore.addMuzakki({
+          nama_kk: nama,
+          alamat: '',
+          no_telp: null,
+        });
+        addRow(created.id, nama);
+        queryClient.invalidateQueries({ queryKey: ['muzakki-options'] });
+        setNewMuzakkiNama('');
+        setNewMuzakkiOpen(false);
+        toast.success(`Muzakki "${nama}" berhasil ditambahkan`);
+        return;
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.from('muzakki').insert as any)({
         nama_kk: nama,

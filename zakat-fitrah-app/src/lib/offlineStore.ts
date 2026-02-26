@@ -29,6 +29,20 @@ export interface Muzakki {
   no_telp: string | null;
 }
 
+export interface HakAmilConfig {
+  id: string;
+  tahun_zakat_id: string;
+  tahun_label: string;
+  basis_mode: 'net_after_reconciliation' | 'gross_before_reconciliation';
+  zakat_fitrah_pct: number;
+  zakat_maal_pct: number;
+  infak_pct: number;
+  fidyah_pct: number;
+  beras_pct: number;
+  updated_at: string;
+  updated_by_name: string | null;
+}
+
 export interface PembayaranZakat {
   id: string;
   muzakki_id: string;
@@ -69,6 +83,24 @@ const TAHUN_ZAKAT_SEED: TahunZakat[] = [
     is_active: false,
     created_at: '2024-12-01T00:00:00Z',
     updated_at: '2025-04-01T00:00:00Z',
+  },
+];
+
+// ---------- Seed: Hak Amil Configs ----------
+
+const HAK_AMIL_CONFIGS_SEED: HakAmilConfig[] = [
+  {
+    id: 'hac-2026',
+    tahun_zakat_id: 'tz-2026',
+    tahun_label: '1447 H (2026 M)',
+    basis_mode: 'net_after_reconciliation',
+    zakat_fitrah_pct: 12.5,
+    zakat_maal_pct: 12.5,
+    infak_pct: 20,
+    fidyah_pct: 0,
+    beras_pct: 12.5,
+    updated_at: '2026-01-01T00:00:00Z',
+    updated_by_name: 'Administrator',
   },
 ];
 
@@ -180,6 +212,12 @@ const PEMBAYARAN_UANG: PembayaranZakat[] = [
 // ---------- Seed: Pemasukan Uang (additional categories) ----------
 
 const PEMASUKAN_UANG_SEED: PemasukanUang[] = [
+  // --- February 2026 (current month) ---
+  { id: 'pu-09', tahun_zakat_id: 'tz-2026', muzakki_id: null, muzakki: null, kategori: 'infak_sedekah_uang', akun: 'kas',  jumlah_uang_rp: 150000,  tanggal: '2026-02-05', catatan: 'Kotak amal Jumat', created_by: 'mock-admin-001', created_at: '2026-02-05T14:00:00Z' },
+  { id: 'pu-10', tahun_zakat_id: 'tz-2026', muzakki_id: 'mzk-05', muzakki: { id: 'mzk-05', nama_kk: 'Budi Santoso' }, kategori: 'infak_sedekah_uang', akun: 'bank', jumlah_uang_rp: 250000,  tanggal: '2026-02-12', catatan: 'Sedekah berkat tahlilan', created_by: 'mock-admin-001', created_at: '2026-02-12T09:00:00Z' },
+  { id: 'pu-11', tahun_zakat_id: 'tz-2026', muzakki_id: 'mzk-12', muzakki: { id: 'mzk-12', nama_kk: 'Abdul Hamid' }, kategori: 'maal_penghasilan_uang', akun: 'bank', jumlah_uang_rp: 600000,  tanggal: '2026-02-20', catatan: 'Zakat penghasilan bulan Februari', created_by: 'mock-admin-001', created_at: '2026-02-20T09:00:00Z' },
+  { id: 'pu-12', tahun_zakat_id: 'tz-2026', muzakki_id: null, muzakki: null, kategori: 'fidyah_uang',          akun: 'kas',  jumlah_uang_rp: 90000,   tanggal: '2026-02-15', catatan: 'Fidyah 2 orang lansia', created_by: 'mock-admin-001', created_at: '2026-02-15T10:00:00Z' },
+  // --- March 2026 ---
   { id: 'pu-01', tahun_zakat_id: 'tz-2026', muzakki_id: null, muzakki: null, kategori: 'fidyah_uang',          akun: 'kas',  jumlah_uang_rp: 50000,   tanggal: '2026-03-10', catatan: 'Fidyah 1 orang sakit kronis', created_by: 'mock-admin-001', created_at: '2026-03-10T10:00:00Z' },
   { id: 'pu-02', tahun_zakat_id: 'tz-2026', muzakki_id: null, muzakki: null, kategori: 'fidyah_uang',          akun: 'kas',  jumlah_uang_rp: 175000,  tanggal: '2026-03-12', catatan: 'Fidyah 3.5 orang', created_by: 'mock-admin-001', created_at: '2026-03-12T10:00:00Z' },
   { id: 'pu-03', tahun_zakat_id: 'tz-2026', muzakki_id: 'mzk-01', muzakki: { id: 'mzk-01', nama_kk: 'Ahmad Fauzi' }, kategori: 'infak_sedekah_uang', akun: 'kas',  jumlah_uang_rp: 200000,  tanggal: '2026-03-15', catatan: 'Infak bulanan', created_by: 'mock-admin-001', created_at: '2026-03-15T11:00:00Z' },
@@ -189,9 +227,9 @@ const PEMASUKAN_UANG_SEED: PemasukanUang[] = [
   { id: 'pu-07', tahun_zakat_id: 'tz-2026', muzakki_id: 'mzk-17', muzakki: { id: 'mzk-17', nama_kk: 'Yusuf Effendi' }, kategori: 'maal_penghasilan_uang', akun: 'bank', jumlah_uang_rp: 1200000, tanggal: '2026-03-10', catatan: 'Zakat tijarah/perdagangan', created_by: 'mock-admin-001', created_at: '2026-03-10T08:00:00Z' },
   { id: 'pu-08', tahun_zakat_id: 'tz-2026', muzakki_id: 'mzk-23', muzakki: { id: 'mzk-23', nama_kk: 'Muhamad Soleh' }, kategori: 'maal_penghasilan_uang', akun: 'kas',  jumlah_uang_rp: 500000,  tanggal: '2026-03-14', catatan: 'Zakat penghasilan freelance', created_by: 'mock-admin-001', created_at: '2026-03-14T10:00:00Z' },
 ];
-// fidyahUang: 50000+175000 = 225,000
-// infakSedekahUang: 200000+500000+150000 = 850,000
-// maalUang: 800000+1200000+500000 = 2,500,000
+// Feb: fidyahUang 90000 | infakUang 150000+250000=400000 | maalUang 600000
+// Mar: fidyahUang 50000+175000=225000 | infakUang 200000+500000+150000=850000 | maalUang 800000+1200000+500000=2500000
+// Total: fidyahUang 315000 | infakSedekahUang 1250000 | maalUang 3100000 | totalPemasukanUangRp 7455000
 
 // ---------- Seed: Pemasukan Beras ----------
 
@@ -200,9 +238,11 @@ const PEMASUKAN_BERAS_SEED: PemasukanBeras[] = [
   { id: 'pmbr-02', tahun_zakat_id: 'tz-2026', muzakki_id: null, muzakki: null, kategori: 'infak_sedekah_beras', jumlah_beras_kg: 7.5,  tanggal: '2026-03-21', catatan: 'Donasi beras anonim', created_by: 'mock-bendahara-001', created_at: '2026-03-21T11:00:00Z' },
   { id: 'pmbr-03', tahun_zakat_id: 'tz-2026', muzakki_id: 'mzk-09', muzakki: { id: 'mzk-09', nama_kk: 'Agus Salim' }, kategori: 'infak_sedekah_beras', jumlah_beras_kg: 5.0,  tanggal: '2026-03-24', catatan: 'Infak beras dari anggota', created_by: 'mock-admin-001', created_at: '2026-03-24T09:00:00Z' },
   { id: 'pmbr-04', tahun_zakat_id: 'tz-2026', muzakki_id: null, muzakki: null, kategori: 'fidyah_beras', jumlah_beras_kg: 2.5, tanggal: '2026-03-16', catatan: 'Fidyah beras 1 jiwa', created_by: 'mock-admin-001', created_at: '2026-03-16T08:00:00Z' },
+  { id: 'pmbr-05', tahun_zakat_id: 'tz-2026', muzakki_id: 'mzk-06', muzakki: { id: 'mzk-06', nama_kk: 'Hendra Wijaya' }, kategori: 'infak_sedekah_beras', jumlah_beras_kg: 5.0, tanggal: '2026-02-25', catatan: 'Infak beras Jumat', created_by: 'mock-admin-001', created_at: '2026-02-25T10:00:00Z' },
 ];
-// infakSedekahBeras: 10+7.5+5 = 22.5 kg
-// fidyahBeras: 2.5 kg
+// Feb infakSedekahBeras: 5.0 kg
+// Mar infakSedekahBeras: 10+7.5+5 = 22.5 kg | fidyahBeras: 2.5 kg
+// Total infakSedekahBeras: 27.5 kg | fidyahBeras: 2.5 kg
 
 // ---------- Seed: Kategori Mustahik ----------
 
@@ -309,29 +349,31 @@ const DISTRIBUSI_SEED: Distribusi[] = [
 // totalMustahikNonAktif: 3 (mth-07, mth-16, mth-31)
 // sisaBerasKg: 265 - 120 = 145 kg
 // sisaUangRp: 2,790,000 - 1,500,000 = 1,290,000
-// hakAmilUangRp: 0 (distributed via distribusi, not separate hak_amil table)
-// sisaUangAfterAmilRp: 6,365,000 - 0 - 1,500,000 = 4,865,000
+// hakAmilUangRp: 12.5%×zakatFitrahUang(2790000) + 20%×infakUang(1250000) + 12.5%×maal(3100000) + 0%×fidyah
+//   = 348750 + 250000 + 387500 = 986250
+// sisaUangAfterAmilRp: 7455000 - 986250 - 1500000 = 4968750
 
 export const OFFLINE_STATS_2026 = {
   totalBerasKg: 265,
   totalUangRp: 2790000,
   totalMuzakki: 40,
-  totalMustahikAktif: 33,
+  totalMustahikAktif: 32,
   totalMustahikNonAktif: 3,
   totalDistribusiBerasKg: 120,
   totalDistribusiUangRp: 1500000,
   sisaBerasKg: 145,
   sisaUangRp: 1290000,
-  fidyahUangRp: 225000,
-  infakSedekahUangRp: 850000,
-  maalPenghasilanUangRp: 2500000,
-  totalPemasukanUangRp: 6365000,
-  hakAmilUangRp: 0,
-  sisaUangAfterAmilRp: 4865000,
-  infakSedekahBerasKg: 22.5,
+  fidyahUangRp: 315000,
+  infakSedekahUangRp: 1250000,
+  maalPenghasilanUangRp: 3100000,
+  totalPemasukanUangRp: 7455000,
+  hakAmilBerasKg: 33.125,
+  hakAmilUangRp: 986250,
+  sisaUangAfterAmilRp: 4968750,
+  infakSedekahBerasKg: 27.5,
   fidyahBerasKg: 2.5,
   zakatFitrahBerasKg: 265,
-  totalPemasukanBerasKg: 290,
+  totalPemasukanBerasKg: 295,
 };
 
 export const OFFLINE_MONTHLY_2026 = [
@@ -339,11 +381,11 @@ export const OFFLINE_MONTHLY_2026 = [
     month: '2026-02',
     zakatBerasKg: 0,
     fidyahBerasKg: 0,
-    sedekahBerasKg: 0,
+    sedekahBerasKg: 5.0,
     zakatUangRp: 0,
-    fidyahUangRp: 0,
-    sedekahUangRp: 0,
-    maalUangRp: 0,
+    fidyahUangRp: 90000,
+    sedekahUangRp: 400000,
+    maalUangRp: 600000,
   },
   {
     month: '2026-03',
@@ -365,6 +407,7 @@ function makeId(prefix: string) {
 
 class OfflineStore {
   tahunZakat: TahunZakat[] = [...TAHUN_ZAKAT_SEED];
+  hakAmilConfigs: HakAmilConfig[] = [...HAK_AMIL_CONFIGS_SEED];
   muzakki: Muzakki[] = [...MUZAKKI_SEED];
   pembayaran: PembayaranZakat[] = [...PEMBAYARAN_BERAS, ...PEMBAYARAN_UANG];
   pemasukanUang: PemasukanUang[] = [...PEMASUKAN_UANG_SEED];
@@ -372,6 +415,34 @@ class OfflineStore {
   distribusi: Distribusi[] = [...DISTRIBUSI_SEED];
   mustahik: Mustahik[] = [...MUSTAHIK_SEED];
   kategoriMustahik: KategoriMustahik[] = [...KATEGORI_MUSTAHIK_SEED];
+
+  // ---- Hak Amil Config ----
+  getHakAmilConfigs(): HakAmilConfig[] {
+    return [...this.hakAmilConfigs].sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+  }
+  upsertHakAmilConfig(values: {
+    tahun_zakat_id: string;
+    basis_mode: 'net_after_reconciliation' | 'gross_before_reconciliation';
+    zakat_fitrah_pct: number;
+    zakat_maal_pct: number;
+    infak_pct: number;
+    fidyah_pct: number;
+    beras_pct: number;
+  }): HakAmilConfig {
+    const tz = this.tahunZakat.find((t) => t.id === values.tahun_zakat_id);
+    const tahun_label = tz ? `${tz.tahun_hijriah} (${tz.tahun_masehi} M)` : values.tahun_zakat_id;
+    const existing = this.hakAmilConfigs.find((c) => c.tahun_zakat_id === values.tahun_zakat_id);
+    const now = new Date().toISOString();
+    if (existing) {
+      const updated: HakAmilConfig = { ...existing, ...values, tahun_label, updated_at: now };
+      this.hakAmilConfigs = this.hakAmilConfigs.map((c) => c.id === existing.id ? updated : c);
+      return updated;
+    } else {
+      const item: HakAmilConfig = { id: makeId('hac'), ...values, tahun_label, updated_at: now, updated_by_name: 'Administrator' };
+      this.hakAmilConfigs = [...this.hakAmilConfigs, item];
+      return item;
+    }
+  }
 
   // ---- Tahun Zakat ----
   getTahunZakatList(): TahunZakat[] {

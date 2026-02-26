@@ -34,6 +34,7 @@ import type {
   DistribusiProgressConfig,
   TextNoteConfig,
   HakAmilConfig,
+  SectionTitleConfig,
   AggregationRuleId,
   StatFormat,
 } from '@/types/dashboard';
@@ -45,6 +46,8 @@ const WIDGET_TYPES: { value: WidgetType; label: string }[] = [
   { value: 'chart', label: 'Grafik Bulanan' },
   { value: 'distribusi_progress', label: 'Progress Distribusi' },
   { value: 'hak_amil', label: 'Hak Amil' },
+  { value: 'hak_amil_trend', label: 'Tren Hak Amil' },
+  { value: 'section_title', label: 'Judul Bagian' },
   { value: 'text_note', label: 'Catatan Teks' },
 ];
 
@@ -55,7 +58,7 @@ const STAT_CARD_FORMATS = [
 ];
 
 const schema = z.object({
-  widget_type: z.enum(['stat_card', 'chart', 'distribusi_progress', 'hak_amil', 'text_note']),
+  widget_type: z.enum(['stat_card', 'chart', 'distribusi_progress', 'hak_amil', 'hak_amil_trend', 'section_title', 'text_note']),
   width: z.enum(['full', 'half']),
   // stat_card specific
   rule: z.string().optional(),
@@ -66,6 +69,8 @@ const schema = z.object({
   jenis: z.string().optional(),
   // text_note specific
   content: z.string().optional(),
+  // section_title specific
+  title: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -100,6 +105,7 @@ export function WidgetEditorSheet({
       icon: 'BarChart2',
       jenis: 'beras',
       content: '',
+      title: '',
     },
   });
 
@@ -118,6 +124,7 @@ export function WidgetEditorSheet({
         icon: cfg.icon ?? 'BarChart2',
         jenis: cfg.jenis ?? 'beras',
         content: cfg.content ?? '',
+        title: cfg.title ?? '',
       });
     } else {
       form.reset({
@@ -129,6 +136,7 @@ export function WidgetEditorSheet({
         icon: 'BarChart2',
         jenis: 'beras',
         content: '',
+        title: '',
       });
     }
   }, [widget, form, open]);
@@ -156,6 +164,9 @@ export function WidgetEditorSheet({
     }
     if (values.widget_type === 'text_note') {
       return { content: values.content ?? '' } as TextNoteConfig;
+    }
+    if (values.widget_type === 'section_title') {
+      return { title: values.title ?? '' } as SectionTitleConfig;
     }
     return {} as HakAmilConfig;
   };
@@ -362,6 +373,23 @@ export function WidgetEditorSheet({
                         rows={6}
                         {...field}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Section Title specific */}
+            {widgetType === 'section_title' && (
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Judul Bagian</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Contoh: Ringkasan Keuangan" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

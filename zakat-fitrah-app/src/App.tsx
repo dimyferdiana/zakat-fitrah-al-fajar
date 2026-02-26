@@ -29,6 +29,7 @@ const Settings = lazy(() => import('@/pages/Settings'));
 const DashboardSettings = lazy(() => import('@/pages/DashboardSettings').then(m => ({ default: m.DashboardSettings })));
 const SedekahReceipt = lazy(() => import('@/pages/SedekahReceipt'));
 const SuratPengantar = lazy(() => import('@/pages/SuratPengantar'));
+const AccountsManagement = lazy(() => import('@/pages/AccountsManagement'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -72,7 +73,7 @@ function App() {
                 }
               />
               <Route
-                path="/pemasukan"
+                path="/penerimaan-uang"
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'petugas']}>
                     <MainLayout>
@@ -82,12 +83,28 @@ function App() {
                 }
               />
               <Route
-                path="/pemasukan-beras"
+                path="/penerimaan-beras"
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'petugas']}>
                     <MainLayout>
                       <PemasukanBeras />
                     </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/pemasukan"
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'petugas']}>
+                    <Navigate to="/penerimaan-uang" replace />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/pemasukan-beras"
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'petugas']}>
+                    <Navigate to="/penerimaan-beras" replace />
                   </ProtectedRoute>
                 }
               />
@@ -157,6 +174,16 @@ function App() {
                   <ProtectedRoute allowedRoles={['admin']}>
                     <MainLayout>
                       <SuratPengantar />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/accounts"
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'petugas']}>
+                    <MainLayout>
+                      <AccountsManagement />
                     </MainLayout>
                   </ProtectedRoute>
                 }
