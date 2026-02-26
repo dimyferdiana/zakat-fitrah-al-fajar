@@ -300,6 +300,91 @@ export function useDeleteMuzakki() {
 }
 
 // ──────────────────────────────────────────────────────────
+// Batch stats: transaction counts for a list of muzakki IDs
+// ──────────────────────────────────────────────────────────
+export interface MuzakkiStats {
+  transaksiCount: number;
+  tanggalTerakhir: string | null;
+}
+
+export function useMuzakkiStatsBatch(muzakkiIds: string[], tahunZakatId?: string) {
+  return useQuery({
+    queryKey: ['muzakki-stats-batch', muzakkiIds, tahunZakatId],
+    queryFn: async (): Promise<Record<string, MuzakkiStats>> => {
+      if (!muzakkiIds.length) return {};
+
+      const result: Record<string, MuzakkiStats> = {};
+      for (const id of muzakkiIds) result[id] = { transaksiCount: 0, tanggalTerakhir: null };
+
+      const addLatest = (id: string, date: string) => {
+        if (!result[id]) return;
+        result[id].transaksiCount++;
+        if (!result[id].tanggalTerakhir || date > result[id].tanggalTerakhir!) {
+          result[id].tanggalTerakhir = date;
+        }
+      };
+
+      if (OFFLINE_MODE) {
+        for (const row of offlineStore.pembayaran) {
+          if (row.muzakki_id && result[row.muzakki_id] !== undefined) {
+            if (!tahunZakatId || row.tahun_zakat_id === tahunZakatId) {
+              addLatest(row.muzakki_id, row.tanggal_bayar);
+            }
+          }
+        }
+        for (const row of offlineStore.pemasukanUang) {
+          if (row.muzakki_id && result[row.muzakki_id] !== undefined) {
+            if (!tahunZakatId || row.tahun_zakat_id === tahunZakatId) {
+              addLatest(row.muzakki_id, row.tanggal);
+            }
+          }
+        }
+        for (const row of offlineStore.pemasukanBeras) {
+          if (row.muzakki_id && result[row.muzakki_id] !== undefined) {
+            if (!tahunZakatId || row.tahun_zakat_id === tahunZakatId) {
+              addLatest(row.muzakki_id, row.tanggal);
+            }
+          }
+        }
+        return result;
+      }
+
+      // Online: query all 3 tables in parallel, only the columns we need
+      let pzQ = (supabase.from('pembayaran_zakat').select as any)('muzakki_id, tanggal_bayar')
+        .in('muzakki_id', muzakkiIds);
+      let puQ = (supabase.from('pemasukan_uang').select as any)('muzakki_id, tanggal')
+        .in('muzakki_id', muzakkiIds);
+      let pbQ = (supabase.from('pemasukan_beras').select as any)('muzakki_id, tanggal')
+        .in('muzakki_id', muzakkiIds);
+
+      if (tahunZakatId) {
+        pzQ = pzQ.eq('tahun_zakat_id', tahunZakatId);
+        puQ = puQ.eq('tahun_zakat_id', tahunZakatId);
+        pbQ = pbQ.eq('tahun_zakat_id', tahunZakatId);
+      }
+
+      const [pzRes, puRes, pbRes] = await Promise.all([pzQ, puQ, pbQ]);
+      if (pzRes.error) throw pzRes.error;
+      if (puRes.error) throw puRes.error;
+      if (pbRes.error) throw pbRes.error;
+
+      for (const row of (pzRes.data || [])) {
+        if (row.muzakki_id) addLatest(row.muzakki_id, row.tanggal_bayar);
+      }
+      for (const row of (puRes.data || [])) {
+        if (row.muzakki_id) addLatest(row.muzakki_id, row.tanggal);
+      }
+      for (const row of (pbRes.data || [])) {
+        if (row.muzakki_id) addLatest(row.muzakki_id, row.tanggal);
+      }
+
+      return result;
+    },
+    enabled: muzakkiIds.length > 0,
+  });
+}
+
+// ──────────────────────────────────────────────────────────
 // Unified transaction item for Riwayat Transaksi modal
 // ──────────────────────────────────────────────────────────
 export interface MuzakkiTransactionItem {

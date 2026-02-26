@@ -37,6 +37,7 @@ import {
   useUpdateMuzakki,
   useDeleteMuzakki,
   useMuzakkiTransactionHistory,
+  useMuzakkiStatsBatch,
   type MuzakkiTransactionItem,
 } from '@/hooks/useMuzakki';
 import { useTahunZakatList } from '@/hooks/useDashboard';
@@ -123,6 +124,12 @@ export function Muzakki() {
     muzakkiId: historyMuzakki?.id || null,
     tahunZakatId: selectedTahun || activeTahun?.id,
   });
+
+  const muzakkiIds = (muzakkiData?.data || []).map((m) => m.id);
+  const { data: statsByMuzakkiId } = useMuzakkiStatsBatch(
+    muzakkiIds,
+    selectedTahun || activeTahun?.id,
+  );
 
   const createMutation = useCreateMuzakki();
   const updateMutation = useUpdateMuzakki();
@@ -228,6 +235,7 @@ export function Muzakki() {
       ) : (
         <MuzakkiTable
           data={muzakkiData?.data || []}
+          statsByMuzakkiId={statsByMuzakkiId}
           totalCount={muzakkiData?.count || 0}
           isLoading={isLoading}
           onEdit={handleOpenForm}
