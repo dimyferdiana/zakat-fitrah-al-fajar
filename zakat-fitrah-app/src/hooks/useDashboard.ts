@@ -76,23 +76,23 @@ export function useDashboardStats(tahunZakatId?: string) {
         };
       }
 
-      // Total pemasukan beras
+      // Total pemasukan beras (from old pembayaran_zakat table)
       const { data: pemasukanBeras } = await supabase
         .from('pembayaran_zakat')
         .select('jumlah_beras_kg')
         .eq('tahun_zakat_id', activeTahunId)
         .eq('jenis_zakat', 'beras');
 
-      const totalBerasKg = (pemasukanBeras as PembayaranData[] | null)?.reduce((sum, p) => sum + (Number(p.jumlah_beras_kg) || 0), 0) || 0;
+      const zakatFitrahBerasFromPembayaran = (pemasukanBeras as PembayaranData[] | null)?.reduce((sum, p) => sum + (Number(p.jumlah_beras_kg) || 0), 0) || 0;
 
-      // Total pemasukan uang (zakat fitrah uang)
+      // Total pemasukan uang (from old pembayaran_zakat table)
       const { data: pemasukanUang } = await supabase
         .from('pembayaran_zakat')
         .select('jumlah_uang_rp')
         .eq('tahun_zakat_id', activeTahunId)
         .eq('jenis_zakat', 'uang');
 
-      const totalUangRp = (pemasukanUang as PembayaranData[] | null)?.reduce((sum, p) => sum + (Number(p.jumlah_uang_rp) || 0), 0) || 0;
+      const zakatFitrahUangFromPembayaran = (pemasukanUang as PembayaranData[] | null)?.reduce((sum, p) => sum + (Number(p.jumlah_uang_rp) || 0), 0) || 0;
 
       // Total muzakki (distinct)
       const { count: totalMuzakki } = await supabase
@@ -150,6 +150,11 @@ export function useDashboardStats(tahunZakatId?: string) {
         .filter((p: any) => p.kategori === 'maal_penghasilan_uang')
         .reduce((sum: number, p: any) => sum + (Number(p.jumlah_uang_rp) || 0), 0);
 
+      // Zakat fitrah uang entered via pemasukan_uang table (new entry path)
+      const zakatFitrahUangFromPemasukan = (pemasukanUangData || [])
+        .filter((p: any) => p.kategori === 'zakat_fitrah_uang')
+        .reduce((sum: number, p: any) => sum + (Number(p.jumlah_uang_rp) || 0), 0);
+
       // Phase 2.2: Get pemasukan_beras (infak/sedekah beras)
       const { data: pemasukanBerasData } = await supabase
         .from('pemasukan_beras')
@@ -168,12 +173,15 @@ export function useDashboardStats(tahunZakatId?: string) {
         .filter((p: any) => p.kategori === 'zakat_fitrah_beras')
         .reduce((sum: number, p: any) => sum + (Number(p.jumlah_beras_kg) || 0), 0);
 
-      // Total pemasukan beras (dashboard card) includes zakat beras + other categories
+      // Combined totals: entries from both pembayaran_zakat (legacy) and pemasukan_uang/beras (new)
+      const totalBerasKg = zakatFitrahBerasFromPembayaran + zakatFitrahBerasKg;
+      const totalUangRp = zakatFitrahUangFromPembayaran + zakatFitrahUangFromPemasukan;
+
+      // Total pemasukan beras (dashboard card) — zakatFitrahBerasKg already included in totalBerasKg
       const totalPemasukanBerasKg =
-        totalBerasKg + // zakat fitrah beras from pembayaran_zakat
+        totalBerasKg + // zakat fitrah beras (pembayaran_zakat + pemasukan_beras)
         fidyahBerasKg +
-        infakSedekahBerasKg +
-        zakatFitrahBerasKg; // in case there's direct zakat fitrah beras in pemasukan_beras
+        infakSedekahBerasKg;
 
       // Phase 2: Get rekonsiliasi adjustments
       const { data: rekonsiliasiData } = await supabase
@@ -194,9 +202,9 @@ export function useDashboardStats(tahunZakatId?: string) {
 
       const hakAmilUangRp = Number((hakAmilData as { jumlah_uang_rp?: number } | null)?.jumlah_uang_rp) || 0;
 
-      // Total pemasukan uang (dashboard card) now includes zakat uang + other categories
+      // Total pemasukan uang (dashboard card) — zakatFitrahUangFromPemasukan already included in totalUangRp
       const totalPemasukanUangRp =
-        totalUangRp + // zakat fitrah uang (actual received)
+        totalUangRp + // zakat fitrah uang (pembayaran_zakat + pemasukan_uang)
         fidyahUangRp +
         infakSedekahUangRp +
         maalPenghasilanUangRp +
