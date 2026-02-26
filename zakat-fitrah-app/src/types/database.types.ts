@@ -6,11 +6,15 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type UserRole = 'admin' | 'petugas';
+export type UserRole = 'admin' | 'petugas' | 'viewer';
 
 export type JenisZakat = 'beras' | 'uang';
 
 export type AkunUang = 'kas' | 'bank';
+
+export type AccountChannel = 'kas' | 'bank' | 'qris';
+
+export type AccountLedgerEntryType = 'IN' | 'OUT' | 'REKONSILIASI';
 
 export type PemasukanUangKategori =
   | 'zakat_fitrah_uang'
@@ -18,7 +22,11 @@ export type PemasukanUangKategori =
   | 'maal_penghasilan_uang'
   | 'infak_sedekah_uang';
 
-export type PemasukanBerasKategori = 'infak_sedekah_beras';
+export type PemasukanBerasKategori =
+  | 'fidyah_beras'
+  | 'infak_sedekah_beras'
+  | 'zakat_fitrah_beras'
+  | 'maal_beras';
 
 export type StatusDistribusi = 'pending' | 'selesai';
 
@@ -526,6 +534,103 @@ export interface Database {
           created_at?: string;
         };
       };
+      accounts: {
+        Row: {
+          id: string;
+          account_name: string;
+          account_channel: AccountChannel;
+          is_active: boolean;
+          metadata: Json;
+          sort_order: number;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          account_name: string;
+          account_channel: AccountChannel;
+          is_active?: boolean;
+          metadata?: Json;
+          sort_order?: number;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          account_name?: string;
+          account_channel?: AccountChannel;
+          is_active?: boolean;
+          metadata?: Json;
+          sort_order?: number;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      account_ledger_entries: {
+        Row: {
+          id: string;
+          account_id: string;
+          entry_type: AccountLedgerEntryType;
+          amount_rp: number;
+          running_balance_before_rp: number;
+          running_balance_after_rp: number;
+          entry_date: string;
+          effective_at: string;
+          notes: string | null;
+          reference_no: string | null;
+          source_pembayaran_zakat_id: string | null;
+          source_pemasukan_uang_id: string | null;
+          source_pemasukan_beras_id: string | null;
+          source_rekonsiliasi_id: string | null;
+          manual_reconciliation_ref: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          account_id: string;
+          entry_type: AccountLedgerEntryType;
+          amount_rp: number;
+          running_balance_before_rp?: number;
+          running_balance_after_rp?: number;
+          entry_date?: string;
+          effective_at?: string;
+          notes?: string | null;
+          reference_no?: string | null;
+          source_pembayaran_zakat_id?: string | null;
+          source_pemasukan_uang_id?: string | null;
+          source_pemasukan_beras_id?: string | null;
+          source_rekonsiliasi_id?: string | null;
+          manual_reconciliation_ref?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          account_id?: string;
+          entry_type?: AccountLedgerEntryType;
+          amount_rp?: number;
+          running_balance_before_rp?: number;
+          running_balance_after_rp?: number;
+          entry_date?: string;
+          effective_at?: string;
+          notes?: string | null;
+          reference_no?: string | null;
+          source_pembayaran_zakat_id?: string | null;
+          source_pemasukan_uang_id?: string | null;
+          source_pemasukan_beras_id?: string | null;
+          source_rekonsiliasi_id?: string | null;
+          manual_reconciliation_ref?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       mustahik: {
         Row: {
           id: string;
@@ -640,6 +745,32 @@ export interface Database {
           created_at?: string;
         };
       };
+      bulk_submission_logs: {
+        Row: {
+          id: string;
+          operator_id: string;
+          tahun_zakat_id: string;
+          receipt_no: string;
+          row_count: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          operator_id: string;
+          tahun_zakat_id: string;
+          receipt_no: string;
+          row_count?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          operator_id?: string;
+          tahun_zakat_id?: string;
+          receipt_no?: string;
+          row_count?: number;
+          created_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
@@ -667,6 +798,8 @@ export interface Database {
       pemasukan_beras_kategori: PemasukanBerasKategori;
       hak_amil_basis_mode: HakAmilBasisMode;
       hak_amil_kategori: HakAmilKategori;
+      account_channel: AccountChannel;
+      account_ledger_entry_type: AccountLedgerEntryType;
     };
   };
 }
@@ -683,9 +816,12 @@ export type HakAmil = Database['public']['Tables']['hak_amil']['Row'];
 export type HakAmilConfig = Database['public']['Tables']['hak_amil_configs']['Row'];
 export type HakAmilSnapshot = Database['public']['Tables']['hak_amil_snapshots']['Row'];
 export type Rekonsiliasi = Database['public']['Tables']['rekonsiliasi']['Row'];
+export type Account = Database['public']['Tables']['accounts']['Row'];
+export type AccountLedgerEntry = Database['public']['Tables']['account_ledger_entries']['Row'];
 export type Mustahik = Database['public']['Tables']['mustahik']['Row'];
 export type DistribusiZakat = Database['public']['Tables']['distribusi_zakat']['Row'];
 export type AuditLog = Database['public']['Tables']['audit_logs']['Row'];
+export type BulkSubmissionLog = Database['public']['Tables']['bulk_submission_logs']['Row'];
 
 // Helper types for invitation status
 export type InvitationStatus = 'pending' | 'used' | 'expired' | 'revoked';

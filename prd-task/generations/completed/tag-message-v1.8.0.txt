@@ -1,0 +1,30 @@
+v1.8.0 — Zakat Fitrah Al-Fajar Feature Release
+
+Release date: 2026-02-26
+Scope: Consolidated completed features V1.0.0 through V1.8.0
+
+Highlights
+- Fase 2 dashboard keuangan: pemasukan multi-kategori, hak amil, rekonsiliasi.
+- Sedekah receipt generator PDF landscape dengan terbilang, stempel, tanda tangan.
+- Invitation-only authentication + profile management + RLS hardening.
+- Auto-split kelebihan pembayaran menjadi zakat + sedekah/infak.
+- Pengaturan hak amil uang/beras dengan konfigurasi dan rekap.
+- Bulk pembayaran multi-muzakki + multi-jenis dengan tanda terima tabel.
+- Creatable muzakki inline di form pemasukan.
+- Dashboard configuration dinamis berbasis widget.
+- Revamp navigasi + manajemen rekening/kas berbasis ledger.
+
+Version Timeline
+- V1.0.0 (2026-01-11): Fase 2 Dashboard Keuangan
+- V1.1.0 (2026-01-23): Sedekah Receipt Generator
+- V1.2.0 (2026-02-12): Invitation Auth + User/Profile Management
+- V1.3.0 (2026-02-12): Auto Split Zakat/Sedekah
+- V1.4.0 (2026-02-21): Pengaturan Hak Amil Uang/Beras
+- V1.5.0 (2026-02-22): Bulk Pembayaran Transaksi
+- V1.6.0 (2026-02-25): Muzakki Creatable Inline in Pemasukan
+- V1.7.0 (2026-02-26): Dashboard Configuration
+- V1.8.0 (2026-02-26): Revamp Navigasi + Manajemen Rekening/Kas
+
+Reference docs
+- Consolidated release note: prd-task/generations/completed/release-notes-v1.8.0.md
+- Updated project README: README.md

@@ -31,6 +31,98 @@ export interface CreateRekonsiliasiInput {
   catatan: string;
 }
 
+const DEFAULT_KAS_ACCOUNT_NAME = 'KAS';
+const DEFAULT_BANK_ACCOUNT_NAME = 'BCA-SYARIAH : MPZ LAZ AL FAJAR ZAKAT';
+
+async function resolveRekonsiliasiAccountId(jenis: 'uang' | 'beras', akun?: 'kas' | 'bank'): Promise<string> {
+  const preferredAccountName = jenis === 'uang'
+    ? (akun === 'bank' ? DEFAULT_BANK_ACCOUNT_NAME : DEFAULT_KAS_ACCOUNT_NAME)
+    : DEFAULT_KAS_ACCOUNT_NAME;
+
+  const { data: accounts, error } = await (supabase
+    .from('accounts')
+    .select as any)('id, account_name')
+    .in('account_name', [preferredAccountName, DEFAULT_KAS_ACCOUNT_NAME])
+    .eq('is_active', true);
+
+  if (error) throw error;
+
+  const matched = (accounts || []).find((account: { account_name: string }) => account.account_name === preferredAccountName)
+    || (accounts || []).find((account: { account_name: string }) => account.account_name === DEFAULT_KAS_ACCOUNT_NAME);
+
+  if (!matched?.id) {
+    throw new Error('Akun default rekonsiliasi tidak ditemukan');
+  }
+
+  return matched.id as string;
+}
+
+async function resolveRekonsiliasiAmountRp(input: CreateRekonsiliasiInput): Promise<number> {
+  if (input.jenis === 'uang') {
+    return input.jumlah;
+  }
+
+  const { data: tahunZakat, error } = await (supabase
+    .from('tahun_zakat')
+    .select as any)('nilai_beras_kg')
+    .eq('id', input.tahun_zakat_id)
+    .single();
+
+  if (error) throw error;
+
+  const nilaiBerasPerKg = Number(tahunZakat?.nilai_beras_kg || 0);
+  if (!nilaiBerasPerKg || Number.isNaN(nilaiBerasPerKg)) {
+    throw new Error('Nilai beras per kg pada tahun zakat tidak valid');
+  }
+
+  return input.jumlah * nilaiBerasPerKg;
+}
+
+export async function createRekonsiliasiLedgerEntry(input: {
+  rekonsiliasiId: string;
+  accountId: string;
+  amountRp: number;
+  tanggal: string;
+  catatan: string;
+  createdBy: string;
+}) {
+  const manualRef = `MANUAL-REKONSILIASI-${input.rekonsiliasiId}`;
+
+  const { error } = await (supabase.from('account_ledger_entries').insert as any)({
+    account_id: input.accountId,
+    entry_type: 'REKONSILIASI',
+    amount_rp: input.amountRp,
+    running_balance_before_rp: 0,
+    running_balance_after_rp: 0,
+    entry_date: input.tanggal,
+    effective_at: new Date().toISOString(),
+    notes: input.catatan || null,
+    source_rekonsiliasi_id: input.rekonsiliasiId,
+    manual_reconciliation_ref: manualRef,
+    created_by: input.createdBy,
+  });
+
+  if (error) throw error;
+}
+
+export async function deleteRekonsiliasiLedgerEntry(rekonsiliasiId: string) {
+  const { data: existingLedger, error: existingLedgerError } = await (supabase
+    .from('account_ledger_entries')
+    .select as any)('id')
+    .eq('source_rekonsiliasi_id', rekonsiliasiId)
+    .maybeSingle();
+
+  if (existingLedgerError) throw existingLedgerError;
+  if (!existingLedger?.id) return;
+
+  const { error } = await supabase
+    .from('account_ledger_entries')
+    .delete()
+    .eq('id', existingLedger.id);
+
+  if (error) throw error;
+}
+
 // Query: Get all rekonsiliasi with filters
 export function useRekonsiliasiList(tahunZakatId?: string) {
   return useQuery({
@@ -111,12 +203,15 @@ export function useCreateRekonsiliasi() {
         throw new Error('Only admin can create rekonsiliasi');
       }
 
+      const accountId = await resolveRekonsiliasiAccountId(input.jenis, input.akun);
+
       const { data, error } = await (supabase
         .from('rekonsiliasi')
         .insert as any)({
           tahun_zakat_id: input.tahun_zakat_id,
           jenis: input.jenis,
           akun: input.jenis === 'uang' ? input.akun : null,
+          account_id: accountId,
           jumlah_uang_rp: input.jenis === 'uang' ? input.jumlah : null,
           jumlah_beras_kg: input.jenis === 'beras' ? input.jumlah : null,
           tanggal: input.tanggal,
@@ -127,6 +222,21 @@ export function useCreateRekonsiliasi() {
         .single();
 
       if (error) throw error;
+
+      try {
+        const amountRp = await resolveRekonsiliasiAmountRp(input);
+        await createRekonsiliasiLedgerEntry({
+          rekonsiliasiId: (data as { id: string }).id,
+          accountId,
+          amountRp,
+          tanggal: input.tanggal,
+          catatan: input.catatan,
+          createdBy: user.id,
+        });
+      } catch (ledgerSyncError) {
+        await supabase.from('rekonsiliasi').delete().eq('id', (data as { id: string }).id);
+        throw ledgerSyncError;
+      }
 
       // Create hak amil snapshot for reconciliation
       // Note: Rekonsiliasi is treated as an adjustment (negative impact on net)
@@ -168,6 +278,8 @@ export function useDeleteRekonsiliasi() {
       if ((userData as any)?.role !== 'admin') {
         throw new Error('Only admin can delete rekonsiliasi');
       }
+
+      await deleteRekonsiliasiLedgerEntry(id);
 
       const { error } = await supabase
         .from('rekonsiliasi')

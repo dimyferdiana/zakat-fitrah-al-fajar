@@ -153,23 +153,33 @@ export function BuktiTerima({ open, onOpenChange, distribusi }: BuktiTerimaProps
     );
     y += 15;
 
-    // Signature Section
-    const col1X = 40;
-    const col2X = pageWidth - 70;
+    // Signature Section - Official stamp matching Bukti Sedekah
+    const KETUA_NAME_PDF = 'H. Eldin Rizal Nasution';
+    const stampW = 39.7;
+    const stampH = 15.9;
+    const signX = pageWidth - 20 - stampW / 2;
 
     pdf.setFont('helvetica', 'normal');
-    pdf.text('Petugas,', col1X, y, { align: 'center' });
-    pdf.text('Penerima,', col2X, y, { align: 'center' });
-    y += 20;
+    pdf.setFontSize(7);
+    pdf.text('YAYASAN AL-FAJAR PERMATA PAMULANG', signX, y, { align: 'center' });
+    y += 3;
 
-    // Signature lines
-    pdf.line(col1X - 25, y, col1X + 25, y);
-    pdf.line(col2X - 25, y, col2X + 25, y);
-    y += 2;
+    try {
+      pdf.addImage('/stamp-signature.png', 'PNG', signX - stampW / 2, y, stampW, stampH);
+    } catch (error) {
+      console.warn('Could not embed stamp image:', error);
+    }
+    y += stampH + 1;
 
-    pdf.setFontSize(8);
-    pdf.text('(...........................)', col1X, y, { align: 'center' });
-    pdf.text('(...........................)', col2X, y, { align: 'center' });
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(9);
+    pdf.text(KETUA_NAME_PDF, signX, y, { align: 'center' });
+    y += 0.5;
+    pdf.setLineWidth(0.26);
+    pdf.line(signX - 18.5, y, signX + 18.5, y);
+    y += 4;
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('Ketua', signX, y, { align: 'center' });
 
     // Footer
     y = pageHeight - 20;
@@ -299,18 +309,18 @@ export function BuktiTerima({ open, onOpenChange, distribusi }: BuktiTerimaProps
               </div>
             </div>
 
-            {/* Signatures */}
-            <div className="grid grid-cols-2 gap-8 mt-16">
-              <div className="text-center">
-                <p className="mb-16">Petugas,</p>
-                <div className="border-t border-gray-400 pt-2">
-                  <p className="text-sm">(............................)</p>
-                </div>
-              </div>
-              <div className="text-center">
-                <p className="mb-16">Penerima,</p>
-                <div className="border-t border-gray-400 pt-2">
-                  <p className="text-sm">(............................)</p>
+            {/* Signature - Official stamp matching Bukti Sedekah */}
+            <div className="flex justify-end mt-16 mb-4">
+              <div className="text-center text-xs space-y-1">
+                <p className="font-bold text-[11px]">YAYASAN AL-FAJAR PERMATA PAMULANG</p>
+                <img
+                  src="/stamp-signature.png"
+                  alt="Tanda Tangan &amp; Stempel"
+                  className="h-16 mx-auto"
+                />
+                <div>
+                  <p className="font-bold underline">H. Eldin Rizal Nasution</p>
+                  <p>Ketua</p>
                 </div>
               </div>
             </div>

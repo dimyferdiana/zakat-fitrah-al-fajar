@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { PemasukanBerasForm } from '@/components/pemasukan/PemasukanBerasForm';
 import { BuktiPemasukanBeras } from '@/components/pemasukan/BuktiPemasukanBeras';
+import { BulkPemasukanForm } from '@/components/pemasukan/BulkPemasukanForm';
 import {
   useCreatePemasukanBeras,
   useUpdatePemasukanBeras,
@@ -37,16 +38,17 @@ import {
 } from '@/hooks/usePemasukanBeras';
 import type { PemasukanBeras } from '@/hooks/usePemasukanBeras';
 import { useTahunZakatList } from '@/hooks/useDashboard';
-import { Plus, Receipt, Edit, Trash2, MoreVertical } from 'lucide-react';
+import { Plus, Receipt, Edit, Trash2, MoreVertical, Layers } from 'lucide-react';
 
 const kategoriLabels: Record<string, string> = {
   fidyah_beras: 'Fidyah Beras',
   infak_sedekah_beras: 'Infak/Sedekah',
   zakat_fitrah_beras: 'Zakat Fitrah (Beras)',
+  maal_beras: 'Zakat Maal (Beras)',
 };
 
 export function PemasukanBeras() {
-  const [kategori, setKategori] = useState<'semua' | 'fidyah_beras' | 'infak_sedekah_beras' | 'zakat_fitrah_beras'>('semua');
+  const [kategori, setKategori] = useState<'semua' | 'fidyah_beras' | 'infak_sedekah_beras' | 'zakat_fitrah_beras' | 'maal_beras'>('semua');
   const [formOpen, setFormOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [buktiOpen, setBuktiOpen] = useState(false);
@@ -58,6 +60,7 @@ export function PemasukanBeras() {
   const { data: tahunList, isLoading: tahunLoading } = useTahunZakatList();
   const activeTahun = useMemo(() => tahunList?.find((t) => t.is_active), [tahunList]);
   const [selectedTahun, setSelectedTahun] = useState<string | undefined>(() => activeTahun?.id);
+  const [bulkMode, setBulkMode] = useState(false);
 
   const {
     data: pemasukan,
@@ -127,8 +130,8 @@ export function PemasukanBeras() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Pemasukan Beras"
-        description="Catat pemasukan beras untuk fidyah, infak/sedekah, dan zakat fitrah"
+        title="Penerimaan Beras"
+        description="Catat penerimaan beras untuk fidyah, infak/sedekah, dan zakat fitrah"
       />
 
       <Card>
@@ -167,21 +170,36 @@ export function PemasukanBeras() {
             </Select>
           </div>
 
-          <Button onClick={() => setFormOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Tambah Pemasukan
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={bulkMode ? 'default' : 'outline'}
+              onClick={() => setBulkMode((m) => !m)}
+            >
+              <Layers className="mr-2 h-4 w-4" />
+              {bulkMode ? 'Mode Bulk (Aktif)' : 'Mode Bulk'}
+            </Button>
+            {!bulkMode && (
+              <Button onClick={() => setFormOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Tambah Penerimaan
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <Separator />
         <CardContent>
-          {isLoading && <LoadingSpinner text="Memuat pemasukan..." />}
+          {bulkMode ? (
+            <BulkPemasukanForm tahunZakatId={selectedTahun || activeTahun?.id || ''} />
+          ) : (
+            <>
+          {isLoading && <LoadingSpinner text="Memuat penerimaan..." />}
 
           {!isLoading && pemasukan?.data.length === 0 && (
             <EmptyState
               icon={Plus}
-              title="Belum ada pemasukan"
-              description="Catat pemasukan beras pertama untuk tahun ini"
-              action={{ label: 'Tambah Pemasukan', onClick: () => setFormOpen(true) }}
+              title="Belum ada penerimaan"
+              description="Catat penerimaan beras pertama untuk tahun ini"
+              action={{ label: 'Tambah Penerimaan', onClick: () => setFormOpen(true) }}
             />
           )}
 
@@ -246,6 +264,8 @@ export function PemasukanBeras() {
               </table>
             </div>
           )}
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -282,9 +302,9 @@ export function PemasukanBeras() {
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Pemasukan?</AlertDialogTitle>
+            <AlertDialogTitle>Hapus Penerimaan?</AlertDialogTitle>
             <AlertDialogDescription>
-              Apakah Anda yakin ingin menghapus pemasukan ini? Tindakan ini tidak dapat dibatalkan.
+              Apakah Anda yakin ingin menghapus penerimaan ini? Tindakan ini tidak dapat dibatalkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogCancel>Batal</AlertDialogCancel>

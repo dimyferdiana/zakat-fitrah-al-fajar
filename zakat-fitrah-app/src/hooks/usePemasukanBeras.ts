@@ -5,12 +5,17 @@ import {
   createHakAmilSnapshot,
   fetchBasisModeForTahun,
   mapKategoriToHakAmil,
+  upsertHakAmilSnapshot,
 } from '@/lib/hakAmilSnapshot';
+import { offlineStore } from '@/lib/offlineStore';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 export type PemasukanBerasKategori =
   | 'fidyah_beras'
   | 'infak_sedekah_beras'
-  | 'zakat_fitrah_beras';
+  | 'zakat_fitrah_beras'
+  | 'maal_beras';
 
 export interface PemasukanBeras {
   id: string;
@@ -42,6 +47,118 @@ interface CreatePemasukanInput {
   catatan?: string;
 }
 
+const DEFAULT_KAS_ACCOUNT_NAME = 'KAS';
+
+async function resolveKASAccountId(): Promise<string> {
+  const { data: account, error } = await (supabase
+    .from('accounts')
+    .select as any)('id')
+    .eq('account_name', DEFAULT_KAS_ACCOUNT_NAME)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!account?.id) {
+    throw new Error('Akun default KAS tidak ditemukan');
+  }
+
+  return account.id as string;
+}
+
+async function convertBerasKgToRp(tahunZakatId: string, jumlahBerasKg: number): Promise<number> {
+  const { data: tahunZakat, error } = await (supabase
+    .from('tahun_zakat')
+    .select as any)('nilai_beras_kg')
+    .eq('id', tahunZakatId)
+    .single();
+
+  if (error) throw error;
+
+  const nilaiBerasPerKg = Number(tahunZakat?.nilai_beras_kg || 0);
+  if (!nilaiBerasPerKg || Number.isNaN(nilaiBerasPerKg)) {
+    throw new Error('Nilai beras per kg pada tahun zakat tidak valid');
+  }
+
+  return jumlahBerasKg * nilaiBerasPerKg;
+}
+
+interface SyncPemasukanBerasLedgerInput {
+  pemasukanBerasId: string;
+  accountId: string;
+  amountRp: number;
+  tanggal: string;
+  catatan?: string | null;
+  createdBy: string;
+}
+
+export async function createPemasukanBerasLedgerEntry(input: SyncPemasukanBerasLedgerInput) {
+  const { error } = await (supabase.from('account_ledger_entries').insert as any)({
+    account_id: input.accountId,
+    entry_type: 'IN',
+    amount_rp: input.amountRp,
+    running_balance_before_rp: 0,
+    running_balance_after_rp: input.amountRp,
+    entry_date: input.tanggal,
+    effective_at: new Date().toISOString(),
+    notes: input.catatan || null,
+    source_pemasukan_beras_id: input.pemasukanBerasId,
+    created_by: input.createdBy,
+  });
+
+  if (error) throw error;
+}
+
+export async function updatePemasukanBerasLedgerEntry(input: SyncPemasukanBerasLedgerInput) {
+  const { data: existingLedger, error: existingLedgerError } = await (supabase
+    .from('account_ledger_entries')
+    .select as any)('id')
+    .eq('source_pemasukan_beras_id', input.pemasukanBerasId)
+    .maybeSingle();
+
+  if (existingLedgerError) throw existingLedgerError;
+
+  if (!existingLedger?.id) {
+    await createPemasukanBerasLedgerEntry(input);
+    return;
+  }
+
+  const { error } = await (supabase
+    .from('account_ledger_entries')
+    .update as any)({
+      account_id: input.accountId,
+      entry_type: 'IN',
+      amount_rp: input.amountRp,
+      running_balance_before_rp: 0,
+      running_balance_after_rp: input.amountRp,
+      entry_date: input.tanggal,
+      effective_at: new Date().toISOString(),
+      notes: input.catatan || null,
+      updated_at: new Date().toISOString(),
+      created_by: input.createdBy,
+    })
+    .eq('source_pemasukan_beras_id', input.pemasukanBerasId);
+
+  if (error) throw error;
+}
+
+export async function deletePemasukanBerasLedgerEntry(pemasukanBerasId: string) {
+  const { data: existingLedger, error: existingLedgerError } = await (supabase
+    .from('account_ledger_entries')
+    .select as any)('id')
+    .eq('source_pemasukan_beras_id', pemasukanBerasId)
+    .maybeSingle();
+
+  if (existingLedgerError) throw existingLedgerError;
+  if (!existingLedger?.id) return;
+
+  const { error } = await supabase
+    .from('account_ledger_entries')
+    .delete()
+    .eq('id', existingLedger.id);
+
+  if (error) throw error;
+}
+
 export function usePemasukanBerasList(params: PemasukanBerasListParams) {
   return useQuery({
     queryKey: ['pemasukan-beras', params],
@@ -49,6 +166,7 @@ export function usePemasukanBerasList(params: PemasukanBerasListParams) {
       if (!params.tahunZakatId) {
         return { data: [], count: 0 };
       }
+      if (OFFLINE_MODE) return offlineStore.getPemasukanBerasList(params);
 
       let query = supabase
         .from('pemasukan_beras')
@@ -90,6 +208,7 @@ export function useCreatePemasukanBeras() {
 
   return useMutation({
     mutationFn: async (input: CreatePemasukanInput) => {
+      if (OFFLINE_MODE) return offlineStore.addPemasukanBeras(input) as any;
       const { data: auth } = await supabase.auth.getUser();
       const userId = auth.user?.id;
 
@@ -97,8 +216,11 @@ export function useCreatePemasukanBeras() {
         throw new Error('User tidak terautentikasi');
       }
 
+      const accountId = await resolveKASAccountId();
+
       const payload = {
         ...input,
+        account_id: accountId,
         muzakki_id: input.muzakki_id || null,
         catatan: input.catatan || null,
         created_by: userId,
@@ -111,6 +233,21 @@ export function useCreatePemasukanBeras() {
         .single();
 
       if (error) throw error;
+
+      try {
+        const amountRp = await convertBerasKgToRp(input.tahun_zakat_id, input.jumlah_beras_kg);
+        await createPemasukanBerasLedgerEntry({
+          pemasukanBerasId: data.id,
+          accountId,
+          amountRp,
+          tanggal: input.tanggal,
+          catatan: input.catatan || null,
+          createdBy: userId,
+        });
+      } catch (ledgerSyncError) {
+        await supabase.from('pemasukan_beras').delete().eq('id', data.id);
+        throw ledgerSyncError;
+      }
 
       // Create hak amil snapshot for this transaction
       const hakAmilKategori = mapKategoriToHakAmil(input.kategori);
@@ -139,6 +276,10 @@ export function useCreatePemasukanBeras() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pemasukan-beras'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['monthly-pemasukan'] });
+      queryClient.invalidateQueries({ queryKey: ['hak-amil-monthly-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['hak-amil-yearly-summary'] });
       toast.success('Pemasukan beras berhasil disimpan');
     },
     onError: (error: Error) => {
@@ -152,9 +293,12 @@ export function useUpdatePemasukanBeras() {
 
   return useMutation({
     mutationFn: async (input: UpdatePemasukanInput) => {
+      if (OFFLINE_MODE) { offlineStore.updatePemasukanBeras(input.id, input); return offlineStore.getPemasukanBerasList({}).data.find(p => p.id === input.id) as any; }
       const { id, ...updateData } = input;
+      const accountId = await resolveKASAccountId();
       const payload = {
         ...updateData,
+        account_id: accountId,
         muzakki_id: updateData.muzakki_id || null,
         catatan: updateData.catatan || null,
         updated_at: new Date().toISOString(),
@@ -169,10 +313,49 @@ export function useUpdatePemasukanBeras() {
         .single();
 
       if (error) throw error;
+
+      const amountRp = await convertBerasKgToRp(updateData.tahun_zakat_id, updateData.jumlah_beras_kg);
+      await updatePemasukanBerasLedgerEntry({
+        pemasukanBerasId: id,
+        accountId,
+        amountRp,
+        tanggal: updateData.tanggal,
+        catatan: updateData.catatan || null,
+        createdBy: data.created_by,
+      });
+
+      const hakAmilKategori = mapKategoriToHakAmil(updateData.kategori);
+      const { data: auth } = await supabase.auth.getUser();
+      const userId = auth.user?.id;
+
+      if (hakAmilKategori) {
+        try {
+          const basisMode = await fetchBasisModeForTahun(updateData.tahun_zakat_id);
+          await upsertHakAmilSnapshot({
+            tahunZakatId: updateData.tahun_zakat_id,
+            kategori: hakAmilKategori,
+            tanggal: updateData.tanggal,
+            grossAmount: updateData.jumlah_beras_kg,
+            reconciliationAmount: 0,
+            basisMode,
+            sourceType: 'pemasukan_beras',
+            sourceId: id,
+            catatan: updateData.catatan,
+            createdBy: userId,
+          });
+        } catch (snapshotError) {
+          console.error('Failed to update hak amil snapshot:', snapshotError);
+        }
+      }
+
       return data as PemasukanBeras;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pemasukan-beras'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['monthly-pemasukan'] });
+      queryClient.invalidateQueries({ queryKey: ['hak-amil-monthly-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['hak-amil-yearly-summary'] });
       toast.success('Pemasukan beras berhasil diperbarui');
     },
     onError: (error: Error) => {
@@ -186,6 +369,14 @@ export function useDeletePemasukanBeras() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      if (OFFLINE_MODE) { offlineStore.deletePemasukanBeras(id); return id; }
+      await supabase
+        .from('hak_amil_snapshots')
+        .delete()
+        .eq('pemasukan_beras_id', id);
+
+      await deletePemasukanBerasLedgerEntry(id);
+
       const { error } = await supabase
         .from('pemasukan_beras')
         .delete()
@@ -196,6 +387,10 @@ export function useDeletePemasukanBeras() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pemasukan-beras'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['monthly-pemasukan'] });
+      queryClient.invalidateQueries({ queryKey: ['hak-amil-monthly-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['hak-amil-yearly-summary'] });
       toast.success('Pemasukan beras berhasil dihapus');
     },
     onError: (error: Error) => {

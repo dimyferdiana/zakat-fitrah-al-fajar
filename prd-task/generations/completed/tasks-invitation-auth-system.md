@@ -1,5 +1,11 @@
 # Tasks: Authentication + Invitation-Only Registration + User Management + Profile Settings
 
+## Document Control
+- **Version:** V1.2.0
+- **Created Date:** 2026-02-14
+- **Last Updated:** 2026-02-26
+- **Summary of Addition/Adjustment:** Menjabarkan implementasi invitation auth, user/profile management, email flow, RLS hardening, dan checklist validasi.
+
 ## Relevant Files
 
 ### Database & Migrations

@@ -23,6 +23,7 @@ export function mapKategoriToHakAmil(kategori: string): HakAmilCategory | null {
     fidyah_beras: 'fidyah',
     infak_sedekah_uang: 'infak',
     infak_sedekah_beras: 'infak',
+    maal_beras: 'zakat_maal',
   };
 
   return mapping[kategori] || null;
@@ -46,6 +47,61 @@ export interface CreateSnapshotInput {
  * This ensures immutable history even when config changes in future years.
  */
 export async function createHakAmilSnapshot(input: CreateSnapshotInput): Promise<void> {
+  const snapshotPayload = buildSnapshotPayload(input);
+
+  const { error } = await supabase
+    .from('hak_amil_snapshots')
+    // @ts-expect-error - hak_amil_snapshots table exists but types not yet regenerated
+    .insert(snapshotPayload);
+
+  if (error) {
+    console.error('Failed to create hak_amil_snapshot:', error);
+    // Don't throw - snapshot failure should not block the transaction
+    // but we log it for monitoring
+  }
+}
+
+/**
+ * Upsert a hak_amil_snapshots record by source reference.
+ * Used on transaction updates so dashboard bruto/neto always follows latest edited values.
+ */
+export async function upsertHakAmilSnapshot(input: CreateSnapshotInput): Promise<void> {
+  const snapshotPayload = buildSnapshotPayload(input);
+
+  const sourceColumn =
+    input.sourceType === 'pemasukan_uang'
+      ? 'pemasukan_uang_id'
+      : input.sourceType === 'pemasukan_beras'
+        ? 'pemasukan_beras_id'
+        : 'rekonsiliasi_id';
+
+  const { data: existingRows, error: selectError } = await supabase
+    .from('hak_amil_snapshots')
+    .select('id')
+    .eq(sourceColumn, input.sourceId)
+    .limit(1);
+
+  if (selectError) {
+    console.error('Failed to check existing hak_amil_snapshot:', selectError);
+  }
+
+  if (existingRows && existingRows.length > 0) {
+    const { error: updateError } = await supabase
+      .from('hak_amil_snapshots')
+      // @ts-expect-error - table exists but generated DB types may lag migration
+      .update(snapshotPayload)
+      .eq(sourceColumn, input.sourceId);
+
+    if (updateError) {
+      console.error('Failed to update hak_amil_snapshot:', updateError);
+    }
+    return;
+  }
+
+  await createHakAmilSnapshot(input);
+}
+
+function buildSnapshotPayload(input: CreateSnapshotInput): Partial<HakAmilSnapshotInsert> {
   const basisMode = input.basisMode ?? DEFAULT_HAK_AMIL_BASIS_MODE;
 
   const breakdown = buildHakAmilBreakdown({
@@ -79,17 +135,7 @@ export async function createHakAmilSnapshot(input: CreateSnapshotInput): Promise
     snapshotPayload.rekonsiliasi_id = input.sourceId;
   }
 
-  // Type assertion needed until database types are regenerated after migration
-  const { error } = await supabase
-    .from('hak_amil_snapshots')
-    // @ts-expect-error - hak_amil_snapshots table exists but types not yet regenerated
-    .insert(snapshotPayload);
-
-  if (error) {
-    console.error('Failed to create hak_amil_snapshot:', error);
-    // Don't throw - snapshot failure should not block the transaction
-    // but we log it for monitoring
-  }
+  return snapshotPayload;
 }
 
 /**

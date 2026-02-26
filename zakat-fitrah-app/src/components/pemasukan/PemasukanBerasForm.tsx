@@ -34,13 +34,12 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
 import type { PemasukanBerasKategori } from '@/hooks/usePemasukanBeras';
+import { MuzakkiCreatableCombobox } from '@/components/pemasukan/MuzakkiCreatableCombobox';
 
 const formSchema = z.object({
   tahun_zakat_id: z.string().min(1, { message: 'Tahun zakat wajib dipilih' }),
-  kategori: z.enum(['fidyah_beras', 'infak_sedekah_beras', 'zakat_fitrah_beras'], {
+  kategori: z.enum(['fidyah_beras', 'infak_sedekah_beras', 'zakat_fitrah_beras', 'maal_beras'], {
     message: 'Pilih kategori',
   }),
   jumlah_beras_kg: z.number().positive({ message: 'Jumlah harus lebih dari 0' }),
@@ -56,11 +55,6 @@ interface TahunOption {
   tahun_hijriah: string;
   tahun_masehi: number;
   is_active: boolean;
-}
-
-interface MuzakkiOption {
-  id: string;
-  nama_kk: string;
 }
 
 interface PemasukanBerasFormProps {
@@ -120,19 +114,6 @@ export function PemasukanBerasForm({
       form.setValue('tahun_zakat_id', defaultTahunId);
     }
   }, [defaultTahunId, form]);
-
-  const { data: muzakkiOptions } = useQuery({
-    queryKey: ['muzakki-options'],
-    queryFn: async (): Promise<MuzakkiOption[]> => {
-      const { data, error } = await supabase
-        .from('muzakki')
-        .select('id, nama_kk')
-        .order('nama_kk', { ascending: true });
-
-      if (error) throw error;
-      return data || [];
-    },
-  });
 
   const handleSubmit = (values: PemasukanBerasFormValues) => {
     onSubmit({
@@ -196,6 +177,7 @@ export function PemasukanBerasForm({
                       <SelectItem value="fidyah_beras">Fidyah Beras</SelectItem>
                       <SelectItem value="infak_sedekah_beras">Infak/Sedekah</SelectItem>
                       <SelectItem value="zakat_fitrah_beras">Zakat Fitrah (Beras)</SelectItem>
+                      <SelectItem value="maal_beras">Zakat Maal (Beras)</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -270,24 +252,13 @@ export function PemasukanBerasForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Muzakki (Opsional)</FormLabel>
-                  <Select 
-                    onValueChange={(value) => field.onChange(value === 'none' ? undefined : value)} 
-                    value={field.value || 'none'}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih muzakki (opsional)" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">Tanpa muzakki</SelectItem>
-                      {muzakkiOptions?.map((m) => (
-                        <SelectItem key={m.id} value={m.id}>
-                          {m.nama_kk}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <MuzakkiCreatableCombobox
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

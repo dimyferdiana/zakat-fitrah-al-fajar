@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { offlineStore } from '@/lib/offlineStore';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 interface MuzakkiRecord {
   id: string;
@@ -50,6 +53,54 @@ interface PembayaranListParams {
   sortOrder?: 'asc' | 'desc';
 }
 
+export interface MuzakkiMaster {
+  id: string;
+  nama_kk: string;
+  alamat: string;
+  no_telp: string | null;
+}
+
+interface MuzakkiListParams {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+  sortBy?: keyof MuzakkiMaster;
+  sortOrder?: 'asc' | 'desc';
+}
+
+interface CreateMuzakkiInput {
+  nama_kk: string;
+  alamat: string;
+  no_telp?: string;
+}
+
+interface UpdateMuzakkiInput extends CreateMuzakkiInput {
+  id: string;
+}
+
+export async function createMuzakkiRecord(input: CreateMuzakkiInput): Promise<MuzakkiMaster> {
+  const { data, error } = await (supabase.from('muzakki').insert as any)({
+    nama_kk: input.nama_kk,
+    alamat: input.alamat,
+    no_telp: input.no_telp || null,
+  }).select().single();
+
+  if (error) throw error;
+  return data as MuzakkiMaster;
+}
+
+export async function updateMuzakkiRecord(input: UpdateMuzakkiInput): Promise<MuzakkiMaster> {
+  const { data, error } = await (supabase.from('muzakki').update as any)({
+    nama_kk: input.nama_kk,
+    alamat: input.alamat,
+    no_telp: input.no_telp || null,
+    updated_at: new Date().toISOString(),
+  }).eq('id', input.id).select().single();
+
+  if (error) throw error;
+  return data as MuzakkiMaster;
+}
+
 interface CreatePembayaranInput {
   nama_kk: string;
   alamat: string;
@@ -69,6 +120,231 @@ interface CreatePembayaranInput {
 interface UpdatePembayaranInput extends CreatePembayaranInput {
   id: string;
   muzakki_id: string;
+}
+
+export function useMuzakkiList(params: MuzakkiListParams) {
+  return useQuery({
+    queryKey: ['muzakki-list', params],
+    queryFn: async (): Promise<{ data: MuzakkiMaster[]; count: number }> => {
+      if (OFFLINE_MODE) {
+        let items = offlineStore.getMuzakkiAll();
+
+        if (params.search) {
+          const query = params.search.toLowerCase();
+          items = items.filter(
+            (item) =>
+              item.nama_kk.toLowerCase().includes(query) ||
+              item.alamat.toLowerCase().includes(query) ||
+              (item.no_telp ?? '').toLowerCase().includes(query)
+          );
+        }
+
+        const sortBy = params.sortBy || 'nama_kk';
+        const sortOrder = params.sortOrder || 'asc';
+        items = [...items].sort((a, b) => {
+          const left = String(a[sortBy] ?? '');
+          const right = String(b[sortBy] ?? '');
+          return sortOrder === 'asc' ? left.localeCompare(right) : right.localeCompare(left);
+        });
+
+        const count = items.length;
+        const page = params.page || 1;
+        const pageSize = params.pageSize || 20;
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize;
+
+        return {
+          data: items.slice(from, to),
+          count,
+        };
+      }
+
+      let query = supabase.from('muzakki').select('id, nama_kk, alamat, no_telp', { count: 'exact' });
+
+      if (params.search) {
+        query = query.or(
+          `nama_kk.ilike.%${params.search}%,alamat.ilike.%${params.search}%,no_telp.ilike.%${params.search}%`
+        );
+      }
+
+      const sortBy = params.sortBy || 'nama_kk';
+      const sortOrder = params.sortOrder || 'asc';
+      query = query.order(sortBy, { ascending: sortOrder === 'asc' });
+
+      const page = params.page || 1;
+      const pageSize = params.pageSize || 20;
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
+      if (error) throw error;
+
+      return {
+        data: (data || []) as MuzakkiMaster[],
+        count: count || 0,
+      };
+    },
+  });
+}
+
+export function useCreateMuzakki() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreateMuzakkiInput) => {
+      if (OFFLINE_MODE) {
+        return offlineStore.addMuzakki({
+          nama_kk: input.nama_kk,
+          alamat: input.alamat,
+          no_telp: input.no_telp || null,
+        });
+      }
+
+      return createMuzakkiRecord(input);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['muzakki-list'] });
+      toast.success('Data muzakki berhasil ditambahkan');
+    },
+    onError: (error: Error) => {
+      toast.error(`Gagal menambahkan muzakki: ${error.message}`);
+    },
+  });
+}
+
+export function useUpdateMuzakki() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: UpdateMuzakkiInput) => {
+      if (OFFLINE_MODE) {
+        offlineStore.muzakki = offlineStore.muzakki.map((item) =>
+          item.id === input.id
+            ? {
+                ...item,
+                nama_kk: input.nama_kk,
+                alamat: input.alamat,
+                no_telp: input.no_telp || null,
+              }
+            : item
+        );
+
+        offlineStore.pembayaran = offlineStore.pembayaran.map((item) =>
+          item.muzakki_id === input.id
+            ? {
+                ...item,
+                muzakki: {
+                  ...item.muzakki,
+                  nama_kk: input.nama_kk,
+                  alamat: input.alamat,
+                  no_telp: input.no_telp || null,
+                },
+              }
+            : item
+        );
+
+        return offlineStore.getMuzakkiById(input.id);
+      }
+
+      return updateMuzakkiRecord(input);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['muzakki-list'] });
+      queryClient.invalidateQueries({ queryKey: ['pembayaran-list'] });
+      toast.success('Data muzakki berhasil diperbarui');
+    },
+    onError: (error: Error) => {
+      toast.error(`Gagal memperbarui muzakki: ${error.message}`);
+    },
+  });
+}
+
+export function useDeleteMuzakki() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      if (OFFLINE_MODE) {
+        const hasHistory = offlineStore.pembayaran.some((item) => item.muzakki_id === id);
+        if (hasHistory) {
+          throw new Error('Muzakki memiliki riwayat transaksi dan tidak dapat dihapus.');
+        }
+
+        offlineStore.muzakki = offlineStore.muzakki.filter((item) => item.id !== id);
+        return;
+      }
+
+      const { count, error: historyError } = await supabase
+        .from('pembayaran_zakat')
+        .select('id', { count: 'exact', head: true })
+        .eq('muzakki_id', id);
+
+      if (historyError) throw historyError;
+
+      if ((count || 0) > 0) {
+        throw new Error('Muzakki memiliki riwayat transaksi dan tidak dapat dihapus.');
+      }
+
+      const { error } = await supabase.from('muzakki').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['muzakki-list'] });
+      toast.success('Data muzakki berhasil dihapus');
+    },
+    onError: (error: Error) => {
+      toast.error(`Gagal menghapus muzakki: ${error.message}`);
+    },
+  });
+}
+
+interface MuzakkiTransactionHistoryParams {
+  muzakkiId: string | null;
+  tahunZakatId?: string;
+}
+
+export function useMuzakkiTransactionHistory(params: MuzakkiTransactionHistoryParams) {
+  return useQuery({
+    queryKey: ['muzakki-transaction-history', params],
+    queryFn: async (): Promise<PembayaranZakat[]> => {
+      if (!params.muzakkiId) return [];
+
+      if (OFFLINE_MODE) {
+        let items = offlineStore.pembayaran.filter((item) => item.muzakki_id === params.muzakkiId);
+        if (params.tahunZakatId) {
+          items = items.filter((item) => item.tahun_zakat_id === params.tahunZakatId);
+        }
+        return items.sort((a, b) => b.tanggal_bayar.localeCompare(a.tanggal_bayar));
+      }
+
+      let query = supabase
+        .from('pembayaran_zakat')
+        .select(
+          `
+          *,
+          muzakki:muzakki_id (
+            id,
+            nama_kk,
+            alamat,
+            no_telp
+          )
+        `
+        )
+        .eq('muzakki_id', params.muzakkiId)
+        .order('tanggal_bayar', { ascending: false });
+
+      if (params.tahunZakatId) {
+        query = query.eq('tahun_zakat_id', params.tahunZakatId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return (data || []) as unknown as PembayaranZakat[];
+    },
+    enabled: !!params.muzakkiId,
+  });
 }
 
 // Helper function to check if payment should be split
@@ -107,6 +383,17 @@ export function usePembayaranList(params: PembayaranListParams) {
   return useQuery({
     queryKey: ['pembayaran-list', params],
     queryFn: async (): Promise<{ data: PembayaranZakat[]; count: number }> => {
+      if (OFFLINE_MODE) {
+        return offlineStore.getPembayaranList({
+          tahunZakatId: params.tahunZakatId,
+          search: params.search,
+          jenisZakat: params.jenisZakat,
+          page: params.page,
+          pageSize: params.pageSize,
+          sortBy: params.sortBy,
+          sortOrder: params.sortOrder,
+        });
+      }
       let query = supabase
         .from('pembayaran_zakat')
         .select(
@@ -225,6 +512,25 @@ export function useCreatePembayaran() {
 
   return useMutation({
     mutationFn: async (input: CreatePembayaranInput) => {
+      if (OFFLINE_MODE) {
+        const tahunZakat = offlineStore.getTahunZakatList().find((t) => t.id === input.tahun_zakat_id);
+        const nilaiPerJiwa = input.jenis_zakat === 'beras' ? (tahunZakat?.nilai_beras_kg ?? 2.5) : (tahunZakat?.nilai_uang_rp ?? 45000);
+        let mzk = offlineStore.getMuzakkiAll().find((m) => m.nama_kk === input.nama_kk);
+        if (!mzk) mzk = offlineStore.addMuzakki({ nama_kk: input.nama_kk, alamat: input.alamat, no_telp: input.no_telp || null });
+        return offlineStore.addPembayaran({
+          muzakki_id: mzk.id,
+          tahun_zakat_id: input.tahun_zakat_id,
+          tanggal_bayar: input.tanggal_bayar,
+          jumlah_jiwa: input.jumlah_jiwa,
+          jenis_zakat: input.jenis_zakat,
+          jumlah_beras_kg: input.jenis_zakat === 'beras' ? (input.jumlah_beras_dibayar_kg ?? input.jumlah_jiwa * nilaiPerJiwa) : null,
+          jumlah_uang_rp: input.jenis_zakat === 'uang' ? (input.jumlah_uang_dibayar_rp ?? input.jumlah_jiwa * nilaiPerJiwa) : null,
+          akun_uang: input.jenis_zakat === 'uang' ? (input.akun_uang ?? null) : null,
+          jumlah_uang_dibayar_rp: input.jenis_zakat === 'uang' ? (input.jumlah_uang_dibayar_rp ?? null) : null,
+          sedekah_uang: null,
+          sedekah_beras: null,
+        });
+      }
       // First, check if muzakki exists by nama_kk
       const { data: existingMuzakki } = await supabase
         .from('muzakki')
@@ -419,6 +725,17 @@ export function useUpdatePembayaran() {
 
   return useMutation({
     mutationFn: async (input: UpdatePembayaranInput) => {
+      if (OFFLINE_MODE) {
+        return offlineStore.updatePembayaran(input.id, {
+          tanggal_bayar: input.tanggal_bayar,
+          jumlah_jiwa: input.jumlah_jiwa,
+          jenis_zakat: input.jenis_zakat,
+          jumlah_beras_kg: input.jenis_zakat === 'beras' ? (input.jumlah_beras_dibayar_kg ?? null) : null,
+          jumlah_uang_rp: input.jenis_zakat === 'uang' ? (input.jumlah_uang_dibayar_rp ?? null) : null,
+          akun_uang: input.jenis_zakat === 'uang' ? (input.akun_uang ?? null) : null,
+          jumlah_uang_dibayar_rp: input.jenis_zakat === 'uang' ? (input.jumlah_uang_dibayar_rp ?? null) : null,
+        });
+      }
       // Update muzakki
       await (supabase.from('muzakki').update as any)({
         nama_kk: input.nama_kk,
@@ -498,6 +815,7 @@ export function useDeletePembayaran() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      if (OFFLINE_MODE) { offlineStore.deletePembayaran(id); return; }
       const { error } = await supabase.from('pembayaran_zakat').delete().eq('id', id);
 
       if (error) throw error;
@@ -519,6 +837,7 @@ export function usePembayaranDetail(id: string | null) {
     queryKey: ['pembayaran-detail', id],
     queryFn: async (): Promise<PembayaranZakat | null> => {
       if (!id) return null;
+      if (OFFLINE_MODE) return offlineStore.getPembayaranList({}).data.find((p) => p.id === id) ?? null;
 
       const { data, error } = await supabase
         .from('pembayaran_zakat')

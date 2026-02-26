@@ -26,7 +26,10 @@ const Mustahik = lazy(() => import('@/pages/Mustahik'));
 const Distribusi = lazy(() => import('@/pages/Distribusi'));
 const Laporan = lazy(() => import('@/pages/Laporan'));
 const Settings = lazy(() => import('@/pages/Settings'));
+const DashboardSettings = lazy(() => import('@/pages/DashboardSettings').then(m => ({ default: m.DashboardSettings })));
 const SedekahReceipt = lazy(() => import('@/pages/SedekahReceipt'));
+const SuratPengantar = lazy(() => import('@/pages/SuratPengantar'));
+const AccountsManagement = lazy(() => import('@/pages/AccountsManagement'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -70,7 +73,7 @@ function App() {
                 }
               />
               <Route
-                path="/pemasukan"
+                path="/penerimaan-uang"
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'petugas']}>
                     <MainLayout>
@@ -80,12 +83,28 @@ function App() {
                 }
               />
               <Route
-                path="/pemasukan-beras"
+                path="/penerimaan-beras"
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'petugas']}>
                     <MainLayout>
                       <PemasukanBeras />
                     </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/pemasukan"
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'petugas']}>
+                    <Navigate to="/penerimaan-uang" replace />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/pemasukan-beras"
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'petugas']}>
+                    <Navigate to="/penerimaan-beras" replace />
                   </ProtectedRoute>
                 }
               />
@@ -130,11 +149,41 @@ function App() {
                 }
               />
               <Route
+                path="/dashboard-settings"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <MainLayout>
+                      <DashboardSettings />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/sedekah-receipt"
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'petugas']}>
                     <MainLayout>
                       <SedekahReceipt />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/surat-pengantar"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <MainLayout>
+                      <SuratPengantar />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/accounts"
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'petugas']}>
+                    <MainLayout>
+                      <AccountsManagement />
                     </MainLayout>
                   </ProtectedRoute>
                 }

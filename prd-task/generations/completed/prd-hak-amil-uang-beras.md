@@ -1,5 +1,11 @@
 # PRD: Pengaturan Hak Amil (Uang & Beras)
 
+## Document Control
+- **Version:** V1.4.0
+- **Created Date:** 2026-02-21
+- **Last Updated:** 2026-02-26
+- **Summary of Addition/Adjustment:** Menstandarkan aturan hak amil lintas kategori uang/beras, basis neto rekonsiliasi, konfigurasi per tahun, dan rekap laporan.
+
 ## 1. Introduction / Overview
 
 Fitur ini bertujuan mengatur perhitungan dan pelaporan **hak amil** secara konsisten untuk seluruh kategori penerimaan zakat/sedekah/fidyah, mencakup **uang dan beras**.

@@ -22,6 +22,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { offlineStore } from '@/lib/offlineStore';
 import { toast } from 'sonner';
 import {
   useTahunZakatList,
@@ -36,6 +37,8 @@ import {
   useToggleUserActive,
 } from '@/hooks/useUsers';
 import { useAuth } from '@/lib/auth';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 interface TahunZakat {
   id: string;
@@ -116,6 +119,8 @@ export default function Settings() {
   const { data: hakAmilConfigs = [], isLoading: loadingHakAmilConfigs } = useQuery<HakAmilConfigTableRow[]>({
     queryKey: ['hak-amil-configs'],
     queryFn: async () => {
+      if (OFFLINE_MODE) return offlineStore.getHakAmilConfigs();
+
       const { data, error } = await supabase
         .from('hak_amil_configs')
         .select(`
@@ -182,6 +187,10 @@ export default function Settings() {
   // Hak Amil Config mutation
   const saveHakAmilConfigMutation = useMutation({
     mutationFn: async (values: any) => {
+      if (OFFLINE_MODE) {
+        return offlineStore.upsertHakAmilConfig(values);
+      }
+
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (!authUser) throw new Error('User not authenticated');
 
@@ -250,6 +259,8 @@ export default function Settings() {
   const { data: activeTahun } = useQuery<TahunZakat | null>({
     queryKey: ['active-tahun'],
     queryFn: async () => {
+      if (OFFLINE_MODE) return (offlineStore.getActiveTahunZakat() as TahunZakat) ?? null;
+
       const { data, error } = await supabase
         .from('tahun_zakat')
         .select('*')
@@ -268,6 +279,7 @@ export default function Settings() {
     queryFn: async () => {
       const tahunId = selectedTahun || activeTahun?.id;
       if (!tahunId) return null;
+      if (OFFLINE_MODE) return null;
 
       const { data, error } = await supabase
         .from('hak_amil')
@@ -285,6 +297,8 @@ export default function Settings() {
   // Mutation: Upsert hak amil
   const updateHakAmilMutation = useMutation({
     mutationFn: async ({ tahunId, jumlah }: { tahunId: string; jumlah: number }) => {
+      if (OFFLINE_MODE) return { tahun_zakat_id: tahunId, jumlah_uang_rp: jumlah };
+
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (!authUser) throw new Error('User not authenticated');
 

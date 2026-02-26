@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { ReceiptShell } from '@/components/pemasukan/ReceiptShell';
 import { Printer, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
@@ -138,7 +139,7 @@ export function BuktiPemasukanUang({ open, onOpenChange, data }: BuktiPemasukanU
     // ============ TITLE SECTION ============
     doc.setFontSize(12);
     doc.setFont('Helvetica', 'bold');
-    doc.text('BUKTI PEMASUKAN UANG', pageWidth / 2, yPosition, { align: 'center' });
+    doc.text('BUKTI PENERIMAAN PEMBAYARAN', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += SECTION_GAP;
 
     // Receipt number and date
@@ -196,18 +197,36 @@ export function BuktiPemasukanUang({ open, onOpenChange, data }: BuktiPemasukanU
     // Separator line
     doc.setLineWidth(0.3);
     doc.line(leftX, yPosition, pageWidth - MARGIN, yPosition);
-    yPosition += 10;
+    yPosition += 8;
 
-    // Footer - Signature
+    // Footer - Official Signature (matching Bukti Sedekah style)
+    const KETUA_NAME_PDF = 'H. Eldin Rizal Nasution';
+    const stampW = 39.7;
+    const stampH = 15.9;
+    const signX = pageWidth - MARGIN - stampW / 2;
+
     doc.setFont('Helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.text('Petugas,', leftX, yPosition);
-    doc.text('Penyetor,', pageWidth - MARGIN - 40, yPosition);
-    yPosition += 20;
+    doc.setFontSize(7);
+    doc.text('YAYASAN AL-FAJAR PERMATA PAMULANG', signX, yPosition, { align: 'center' });
+    yPosition += 3;
 
-    doc.text('(_________________)', leftX, yPosition);
-    doc.text('(_________________)', pageWidth - MARGIN - 40, yPosition);
-    yPosition += 10;
+    try {
+      doc.addImage('/stamp-signature.png', 'PNG', signX - stampW / 2, yPosition, stampW, stampH);
+    } catch (error) {
+      console.warn('Could not embed stamp image:', error);
+    }
+    yPosition += stampH + 1;
+
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text(KETUA_NAME_PDF, signX, yPosition, { align: 'center' });
+    yPosition += 0.5;
+    doc.setLineWidth(0.26);
+    doc.line(signX - 18.5, yPosition, signX + 18.5, yPosition);
+    yPosition += 4;
+    doc.setFont('Helvetica', 'normal');
+    doc.text('Ketua', signX, yPosition, { align: 'center' });
+    yPosition += 8;
 
     // Footer note
     doc.setFontSize(8);
@@ -238,21 +257,7 @@ export function BuktiPemasukanUang({ open, onOpenChange, data }: BuktiPemasukanU
           </DialogHeader>
 
           {/* Print Content */}
-          <div ref={contentRef} id="print-content" className="space-y-4 py-4">
-            {/* Header */}
-            <div className="text-center space-y-2">
-              <div className="flex justify-center mb-3">
-                <img src="/logo-al-fajar.png" alt="Logo" className="h-16 w-16" />
-              </div>
-              <h2 className="text-lg font-bold">YAYASAN AL-FAJAR PERMATA PAMULANG</h2>
-              <p className="text-xs">Jl. Bukit Permata VII Blok E20/16 Bakti Jaya Setu Tangerang Selatan</p>
-              <p className="text-xs">Email: permataalfajar@gmail.com</p>
-              <p className="text-xs">Layanan Al Fajar 0877-1335-9800 (WA Only)</p>
-            </div>
-
-            <Separator />
-
-            <h1 className="text-center text-lg font-bold">BUKTI PEMASUKAN UANG</h1>
+          <ReceiptShell ref={contentRef} title="BUKTI PEMASUKAN UANG">
 
             {/* Receipt Info */}
             <div className="text-xs space-y-1">
@@ -299,29 +304,7 @@ export function BuktiPemasukanUang({ open, onOpenChange, data }: BuktiPemasukanU
               )}
             </div>
 
-            <Separator />
-
-            {/* Signatures */}
-            <div className="flex justify-between text-sm pt-6">
-              <div className="text-center">
-                <p className="text-xs">Petugas</p>
-                <div className="mt-12 border-t border-foreground pt-1 w-28">
-                  <p className="text-[10px]">(......................)</p>
-                </div>
-              </div>
-              <div className="text-center">
-                <p className="text-xs">Penyetor</p>
-                <div className="mt-12 border-t border-foreground pt-1 w-28">
-                  <p className="text-[10px]">(......................)</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <p className="text-[10px] text-center text-muted-foreground pt-2">
-              Simpan bukti ini sebagai tanda terima yang sah
-            </p>
-          </div>
+          </ReceiptShell>
 
           {/* Actions */}
           <div className="flex gap-2 print:hidden">

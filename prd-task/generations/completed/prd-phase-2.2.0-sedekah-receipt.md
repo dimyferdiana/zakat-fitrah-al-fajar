@@ -1,5 +1,11 @@
 # PRD: Phase 2.2.0 Sedekah Receipt Generator (PDF)
 
+## Document Control
+- **Version:** V1.1.0
+- **Created Date:** 2026-01-23
+- **Last Updated:** 2026-02-26
+- **Summary of Addition/Adjustment:** Menetapkan generator bukti sedekah PDF landscape lengkap dengan terbilang, stempel, tanda tangan, dan lookup profil donatur.
+
 ## 1. Introduction / Overview
 A landscape, printer-friendly Sedekah receipt generator for petugas. Staff inputs donor details and payment info, reuses or creates a donor profile (name, phone, address), and generates a PDF proof (no transaction data persisted). Receipt follows the provided template with stamp and signature assets, white background, includes amount in numbers and terbilang, and labels the signatory as Ketua (H. Eldin Rizal Nasution).
 
