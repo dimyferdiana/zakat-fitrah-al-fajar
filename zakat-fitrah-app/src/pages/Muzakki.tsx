@@ -37,6 +37,7 @@ import {
   useUpdateMuzakki,
   useDeleteMuzakki,
   useMuzakkiTransactionHistory,
+  type MuzakkiTransactionItem,
 } from '@/hooks/useMuzakki';
 import { useTahunZakatList } from '@/hooks/useDashboard';
 
@@ -166,8 +167,10 @@ export function Muzakki() {
     refetch();
   };
 
-  const handlePrint = (data: PembayaranZakat) => {
-    setPrintData(data);
+  const handlePrint = (item: MuzakkiTransactionItem) => {
+    if (item.raw_pembayaran) {
+      setPrintData(item.raw_pembayaran);
+    }
   };
 
   if (isLoading && !muzakkiData) {
@@ -273,33 +276,45 @@ export function Muzakki() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Tanggal</TableHead>
-                    <TableHead>Jenis</TableHead>
+                    <TableHead>Kategori</TableHead>
                     <TableHead className="text-center">Jiwa</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                    <TableHead className="text-center">Bukti</TableHead>
+                    <TableHead className="text-right">Nominal</TableHead>
+                    <TableHead>Keterangan</TableHead>
+                    <TableHead className="text-center">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactionHistory.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>
-                        {format(new Date(item.tanggal_bayar), 'dd MMM yyyy', { locale: idLocale })}
+                  {transactionHistory.map((item: MuzakkiTransactionItem) => (
+                    <TableRow key={`${item.source}-${item.id}`}>
+                      <TableCell className="whitespace-nowrap">
+                        {format(new Date(item.tanggal), 'dd MMM yyyy', { locale: idLocale })}
                       </TableCell>
-                      <TableCell>{item.jenis_zakat === 'beras' ? 'Beras' : 'Uang'}</TableCell>
-                      <TableCell className="text-center">{item.jumlah_jiwa}</TableCell>
+                      <TableCell>{item.kategori_label}</TableCell>
+                      <TableCell className="text-center">
+                        {item.jumlah_jiwa ?? '—'}
+                      </TableCell>
                       <TableCell className="text-right">
-                        {item.jenis_zakat === 'beras'
-                          ? `${(item.jumlah_beras_kg || 0).toFixed(2)} kg`
-                          : new Intl.NumberFormat('id-ID', {
+                        {item.jumlah_beras_kg != null
+                          ? `${item.jumlah_beras_kg.toFixed(2)} kg`
+                          : item.jumlah_uang_rp != null
+                          ? new Intl.NumberFormat('id-ID', {
                               style: 'currency',
                               currency: 'IDR',
                               minimumFractionDigits: 0,
-                            }).format(item.jumlah_uang_rp || 0)}
+                            }).format(item.jumlah_uang_rp)
+                          : '—'}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {item.catatan ?? '—'}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Button variant="ghost" size="sm" onClick={() => handlePrint(item)}>
-                          Cetak
-                        </Button>
+                        {item.source === 'pembayaran_zakat' && item.raw_pembayaran ? (
+                          <Button variant="ghost" size="sm" onClick={() => handlePrint(item)}>
+                            Cetak
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

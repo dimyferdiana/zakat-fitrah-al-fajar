@@ -299,6 +299,36 @@ export function useDeleteMuzakki() {
   });
 }
 
+// ──────────────────────────────────────────────────────────
+// Unified transaction item for Riwayat Transaksi modal
+// ──────────────────────────────────────────────────────────
+export interface MuzakkiTransactionItem {
+  id: string;
+  source: 'pembayaran_zakat' | 'pemasukan_uang' | 'pemasukan_beras';
+  tanggal: string;
+  kategori_label: string;
+  jumlah_jiwa?: number | null;
+  jumlah_beras_kg?: number | null;
+  jumlah_uang_rp?: number | null;
+  akun?: string | null;
+  catatan?: string | null;
+  raw_pembayaran?: PembayaranZakat;
+}
+
+const KATEGORI_LABEL_UANG: Record<string, string> = {
+  zakat_fitrah_uang: 'Zakat Fitrah Uang',
+  fidyah_uang: 'Fidyah Uang',
+  maal_penghasilan_uang: 'Maal/Penghasilan',
+  infak_sedekah_uang: 'Infak/Sedekah Uang',
+};
+
+const KATEGORI_LABEL_BERAS: Record<string, string> = {
+  zakat_fitrah_beras: 'Zakat Fitrah Beras',
+  fidyah_beras: 'Fidyah Beras',
+  infak_sedekah_beras: 'Infak/Sedekah Beras',
+  maal_beras: 'Maal Beras',
+};
+
 interface MuzakkiTransactionHistoryParams {
   muzakkiId: string | null;
   tahunZakatId?: string;
@@ -307,41 +337,111 @@ interface MuzakkiTransactionHistoryParams {
 export function useMuzakkiTransactionHistory(params: MuzakkiTransactionHistoryParams) {
   return useQuery({
     queryKey: ['muzakki-transaction-history', params],
-    queryFn: async (): Promise<PembayaranZakat[]> => {
+    queryFn: async (): Promise<MuzakkiTransactionItem[]> => {
       if (!params.muzakkiId) return [];
 
       if (OFFLINE_MODE) {
-        let items = offlineStore.pembayaran.filter((item) => item.muzakki_id === params.muzakkiId);
+        let pz = offlineStore.pembayaran.filter((item) => item.muzakki_id === params.muzakkiId);
         if (params.tahunZakatId) {
-          items = items.filter((item) => item.tahun_zakat_id === params.tahunZakatId);
+          pz = pz.filter((item) => item.tahun_zakat_id === params.tahunZakatId);
         }
-        return items.sort((a, b) => b.tanggal_bayar.localeCompare(a.tanggal_bayar));
+        const pzItems: MuzakkiTransactionItem[] = pz.map((item) => ({
+          id: item.id,
+          source: 'pembayaran_zakat',
+          tanggal: item.tanggal_bayar,
+          kategori_label: item.jenis_zakat === 'beras' ? 'Zakat Fitrah Beras' : 'Zakat Fitrah Uang',
+          jumlah_jiwa: item.jumlah_jiwa,
+          jumlah_beras_kg: item.jumlah_beras_kg,
+          jumlah_uang_rp: item.jumlah_uang_rp,
+          raw_pembayaran: item as unknown as PembayaranZakat,
+        }));
+
+        let pu = offlineStore.pemasukanUang.filter((item) => item.muzakki_id === params.muzakkiId);
+        if (params.tahunZakatId) pu = pu.filter((item) => item.tahun_zakat_id === params.tahunZakatId);
+        const puItems: MuzakkiTransactionItem[] = pu.map((item) => ({
+          id: item.id,
+          source: 'pemasukan_uang',
+          tanggal: item.tanggal,
+          kategori_label: KATEGORI_LABEL_UANG[item.kategori] ?? item.kategori,
+          jumlah_uang_rp: item.jumlah_uang_rp,
+          akun: item.akun,
+          catatan: item.catatan,
+        }));
+
+        let pb = offlineStore.pemasukanBeras.filter((item) => item.muzakki_id === params.muzakkiId);
+        if (params.tahunZakatId) pb = pb.filter((item) => item.tahun_zakat_id === params.tahunZakatId);
+        const pbItems: MuzakkiTransactionItem[] = pb.map((item) => ({
+          id: item.id,
+          source: 'pemasukan_beras',
+          tanggal: item.tanggal,
+          kategori_label: KATEGORI_LABEL_BERAS[item.kategori] ?? item.kategori,
+          jumlah_beras_kg: item.jumlah_beras_kg,
+          catatan: item.catatan,
+        }));
+
+        return [...pzItems, ...puItems, ...pbItems].sort((a, b) => b.tanggal.localeCompare(a.tanggal));
       }
 
-      let query = supabase
+      // ── Online: query all 3 tables in parallel ──
+      let pzQuery = supabase
         .from('pembayaran_zakat')
-        .select(
-          `
-          *,
-          muzakki:muzakki_id (
-            id,
-            nama_kk,
-            alamat,
-            no_telp
-          )
-        `
-        )
+        .select('*')
         .eq('muzakki_id', params.muzakkiId)
         .order('tanggal_bayar', { ascending: false });
+      if (params.tahunZakatId) pzQuery = pzQuery.eq('tahun_zakat_id', params.tahunZakatId);
 
-      if (params.tahunZakatId) {
-        query = query.eq('tahun_zakat_id', params.tahunZakatId);
-      }
+      let puQuery = supabase
+        .from('pemasukan_uang')
+        .select('*')
+        .eq('muzakki_id', params.muzakkiId)
+        .order('tanggal', { ascending: false });
+      if (params.tahunZakatId) puQuery = puQuery.eq('tahun_zakat_id', params.tahunZakatId);
 
-      const { data, error } = await query;
-      if (error) throw error;
+      let pbQuery = supabase
+        .from('pemasukan_beras')
+        .select('*')
+        .eq('muzakki_id', params.muzakkiId)
+        .order('tanggal', { ascending: false });
+      if (params.tahunZakatId) pbQuery = pbQuery.eq('tahun_zakat_id', params.tahunZakatId);
 
-      return (data || []) as unknown as PembayaranZakat[];
+      const [pzRes, puRes, pbRes] = await Promise.all([pzQuery, puQuery, pbQuery]);
+
+      if (pzRes.error) throw pzRes.error;
+      if (puRes.error) throw puRes.error;
+      if (pbRes.error) throw pbRes.error;
+
+      const pzItems: MuzakkiTransactionItem[] = (pzRes.data || []).map((item: any) => ({
+        id: item.id,
+        source: 'pembayaran_zakat' as const,
+        tanggal: item.tanggal_bayar,
+        kategori_label: item.jenis_zakat === 'beras' ? 'Zakat Fitrah Beras' : 'Zakat Fitrah Uang',
+        jumlah_jiwa: item.jumlah_jiwa,
+        jumlah_beras_kg: item.jumlah_beras_kg,
+        jumlah_uang_rp: item.jumlah_uang_rp,
+        akun: item.akun_uang,
+        raw_pembayaran: item as PembayaranZakat,
+      }));
+
+      const puItems: MuzakkiTransactionItem[] = (puRes.data || []).map((item: any) => ({
+        id: item.id,
+        source: 'pemasukan_uang' as const,
+        tanggal: item.tanggal,
+        kategori_label: KATEGORI_LABEL_UANG[item.kategori] ?? item.kategori,
+        jumlah_uang_rp: item.jumlah_uang_rp,
+        akun: item.akun,
+        catatan: item.catatan,
+      }));
+
+      const pbItems: MuzakkiTransactionItem[] = (pbRes.data || []).map((item: any) => ({
+        id: item.id,
+        source: 'pemasukan_beras' as const,
+        tanggal: item.tanggal,
+        kategori_label: KATEGORI_LABEL_BERAS[item.kategori] ?? item.kategori,
+        jumlah_beras_kg: item.jumlah_beras_kg,
+        catatan: item.catatan,
+      }));
+
+      return [...pzItems, ...puItems, ...pbItems].sort((a, b) => b.tanggal.localeCompare(a.tanggal));
     },
     enabled: !!params.muzakkiId,
   });
