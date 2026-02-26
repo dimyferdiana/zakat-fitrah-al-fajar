@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
@@ -26,7 +26,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { DashboardWidget, WidgetType } from '@/types/dashboard';
+import type {
+  DashboardWidget,
+  WidgetType,
+  WidgetConfig,
+  StatCardConfig,
+  DistribusiProgressConfig,
+  TextNoteConfig,
+  HakAmilConfig,
+  AggregationRuleId,
+  StatFormat,
+} from '@/types/dashboard';
 import { AGGREGATION_RULES } from '@/lib/aggregationRules';
 import { useCreateWidget, useUpdateWidget } from '@/hooks/useDashboardConfig';
 
@@ -93,7 +103,8 @@ export function WidgetEditorSheet({
     },
   });
 
-  const widgetType = form.watch('widget_type');
+  const widgetType = useWatch({ control: form.control, name: 'widget_type' });
+  const watchedRule = useWatch({ control: form.control, name: 'rule' });
 
   useEffect(() => {
     if (widget) {
@@ -123,7 +134,7 @@ export function WidgetEditorSheet({
   }, [widget, form, open]);
 
   // Auto-fill label from selected rule when adding new widget
-  const selectedRule = AGGREGATION_RULES.find((r) => r.id === form.watch('rule'));
+  const selectedRule = AGGREGATION_RULES.find((r) => r.id === watchedRule);
   useEffect(() => {
     if (!isEdit && selectedRule && !form.getValues('label')) {
       form.setValue('label', selectedRule.label);
@@ -131,22 +142,22 @@ export function WidgetEditorSheet({
     }
   }, [selectedRule, isEdit, form]);
 
-  const buildConfig = (values: FormValues) => {
+  const buildConfig = (values: FormValues): WidgetConfig => {
     if (values.widget_type === 'stat_card') {
       return {
-        rule: values.rule,
-        label: values.label,
-        format: values.format,
+        rule: (values.rule ?? '') as AggregationRuleId,
+        label: values.label ?? '',
+        format: (values.format ?? 'number') as StatFormat,
         icon: values.icon,
-      };
+      } as StatCardConfig;
     }
     if (values.widget_type === 'distribusi_progress') {
-      return { jenis: values.jenis };
+      return { jenis: (values.jenis ?? 'beras') as 'beras' | 'uang' } as DistribusiProgressConfig;
     }
     if (values.widget_type === 'text_note') {
-      return { content: values.content };
+      return { content: values.content ?? '' } as TextNoteConfig;
     }
-    return {};
+    return {} as HakAmilConfig;
   };
 
   const onSubmit = async (values: FormValues) => {

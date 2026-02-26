@@ -31,10 +31,9 @@ import { WidgetList } from './WidgetList';
 
 interface DashboardCardProps {
   dashboard: DashboardConfig;
-  nextSortOrder: number;
 }
 
-function DashboardCard({ dashboard, nextSortOrder: _nextSortOrder }: DashboardCardProps) {
+function DashboardCard({ dashboard }: DashboardCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -149,8 +148,6 @@ interface DashboardListProps {
 }
 
 export function DashboardList({ dashboards, onCreateNew }: DashboardListProps) {
-  const nextSortOrder = dashboards.length;
-
   if (dashboards.length === 0) {
     return (
       <div className="rounded-md border border-dashed p-10 text-center space-y-3">
@@ -163,7 +160,7 @@ export function DashboardList({ dashboards, onCreateNew }: DashboardListProps) {
   return (
     <div className="space-y-3">
       {dashboards.map((d) => (
-        <DashboardCard key={d.id} dashboard={d} nextSortOrder={nextSortOrder} />
+        <DashboardCard key={d.id} dashboard={d} />
       ))}
     </div>
   );

@@ -241,11 +241,15 @@ export function useUpdateWidget() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: UpdateWidgetInput): Promise<DashboardWidget> => {
-      const { id, dashboard_id: _dashId, ...rest } = input;
+      const payload: Partial<Record<string, unknown>> = {};
+      if (input.widget_type !== undefined) payload.widget_type = input.widget_type;
+      if (input.width !== undefined) payload.width = input.width;
+      if (input.config !== undefined) payload.config = input.config;
+      if (input.sort_order !== undefined) payload.sort_order = input.sort_order;
       const { data, error } = await db
         .from('dashboard_widgets')
-        .update(rest)
-        .eq('id', id)
+        .update(payload)
+        .eq('id', input.id)
         .select()
         .single();
 
@@ -265,10 +269,7 @@ export function useUpdateWidget() {
 export function useDeleteWidget() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      id,
-      dashboard_id: _dashboardId,
-    }: {
+    mutationFn: async ({ id }: {
       id: string;
       dashboard_id: string;
     }): Promise<void> => {

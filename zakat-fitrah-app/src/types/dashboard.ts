@@ -74,9 +74,8 @@ export interface DistribusiProgressConfig {
   jenis: 'beras' | 'uang';
 }
 
-export interface HakAmilConfig {
-  // no extra config needed
-}
+// HakAmil widget has no config options — widget type is self-contained
+export type HakAmilConfig = Record<string, never>;
 
 export interface TextNoteConfig {
   content: string;
