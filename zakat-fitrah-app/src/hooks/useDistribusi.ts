@@ -1,7 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { offlineStore } from '@/lib/offlineStore';
 
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 // Interfaces
 export interface Distribusi {
   id: string;
@@ -59,6 +61,10 @@ export function useDistribusiList(params: DistribusiListParams) {
   return useQuery({
     queryKey: ['distribusi-list', params],
     queryFn: async () => {
+      if (OFFLINE_MODE) {
+        const result = offlineStore.getDistribusiList(params);
+        return { data: result.data, totalCount: result.count };
+      }
       let query = supabase
         .from('distribusi_zakat')
         .select(
@@ -107,6 +113,7 @@ export function useDistribusiDetail(id: string | null) {
     queryKey: ['distribusi-detail', id],
     queryFn: async () => {
       if (!id) return null;
+      if (OFFLINE_MODE) return offlineStore.getDistribusiById(id) ?? null;
 
       const { data, error } = await supabase
         .from('distribusi_zakat')
@@ -138,6 +145,7 @@ export function useStokCheck(tahunZakatId: string | null) {
           sisa_uang: 0,
         };
       }
+      if (OFFLINE_MODE) return offlineStore.getStokSummary(tahunZakatId);
 
       // Get pemasukan totals
       const { data: pemasukanData, error: pemasukanError } = await supabase
@@ -191,6 +199,7 @@ export function useCreateDistribusi() {
 
   return useMutation({
     mutationFn: async (input: CreateDistribusiInput) => {
+      if (OFFLINE_MODE) return offlineStore.addDistribusi({ ...input, catatan: input.catatan ?? null, status: 'pending' }) as any;
       // Prevent double distribution to the same mustahik in the same year
       const { data: existingDistribusi, error: existingError } = await supabase
         .from('distribusi_zakat')
@@ -275,6 +284,7 @@ export function useUpdateDistribusiStatus() {
 
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'pending' | 'selesai' }) => {
+      if (OFFLINE_MODE) return offlineStore.updateDistribusiStatus(id, status) as any;
       const { data, error } = await (supabase
         .from('distribusi_zakat')
         .update as any)({
@@ -309,6 +319,7 @@ export function useDeleteDistribusi() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      if (OFFLINE_MODE) { offlineStore.deleteDistribusi(id); return; }
       const { error } = await supabase
         .from('distribusi_zakat')
         .delete()

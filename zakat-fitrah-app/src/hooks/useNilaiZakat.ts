@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { offlineStore } from '@/lib/offlineStore';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 interface TahunZakat {
   id: string;
@@ -30,6 +33,7 @@ export function useTahunZakatList() {
   return useQuery({
     queryKey: ['tahun-zakat-list'],
     queryFn: async (): Promise<TahunZakat[]> => {
+      if (OFFLINE_MODE) return offlineStore.getTahunZakatList() as TahunZakat[];
       const { data, error } = await supabase
         .from('tahun_zakat')
         .select('*')
@@ -47,6 +51,7 @@ export function useCreateTahunZakat() {
 
   return useMutation({
     mutationFn: async (input: CreateTahunZakatInput) => {
+      if (OFFLINE_MODE) return offlineStore.addTahunZakat(input);
       // If setting as active, deactivate all others first
       if (input.is_active) {
         await (supabase.from('tahun_zakat').update as any)({ is_active: false }).neq('id', '00000000-0000-0000-0000-000000000000');
@@ -80,6 +85,7 @@ export function useUpdateTahunZakat() {
 
   return useMutation({
     mutationFn: async (input: UpdateTahunZakatInput) => {
+      if (OFFLINE_MODE) return offlineStore.updateTahunZakat(input.id, input);
       // If setting as active, deactivate all others first
       if (input.is_active) {
         await (supabase.from('tahun_zakat').update as any)({ is_active: false }).neq('id', input.id);
@@ -114,6 +120,7 @@ export function useToggleTahunZakatActive() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      if (OFFLINE_MODE) return offlineStore.updateTahunZakat(id, { is_active: true });
       // Deactivate all others first
       await (supabase.from('tahun_zakat').update as any)({ is_active: false }).neq('id', id);
 

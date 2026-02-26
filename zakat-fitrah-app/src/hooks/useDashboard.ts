@@ -1,5 +1,30 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { OFFLINE_STATS_2026, OFFLINE_MONTHLY_2026, offlineStore } from '@/lib/offlineStore';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
+
+const EMPTY_DASHBOARD_STATS: DashboardStats = {
+  totalBerasKg: 0,
+  totalUangRp: 0,
+  totalMuzakki: 0,
+  totalMustahikAktif: 0,
+  totalMustahikNonAktif: 0,
+  totalDistribusiBerasKg: 0,
+  totalDistribusiUangRp: 0,
+  sisaBerasKg: 0,
+  sisaUangRp: 0,
+  fidyahUangRp: 0,
+  infakSedekahUangRp: 0,
+  maalPenghasilanUangRp: 0,
+  totalPemasukanUangRp: 0,
+  hakAmilUangRp: 0,
+  sisaUangAfterAmilRp: 0,
+  infakSedekahBerasKg: 0,
+  fidyahBerasKg: 0,
+  zakatFitrahBerasKg: 0,
+  totalPemasukanBerasKg: 0,
+};
 
 export interface DashboardStats {
   totalBerasKg: number;
@@ -41,6 +66,10 @@ export function useDashboardStats(tahunZakatId?: string) {
   return useQuery({
     queryKey: ['dashboard-stats', tahunZakatId],
     queryFn: async (): Promise<DashboardStats> => {
+      if (OFFLINE_MODE) {
+        return OFFLINE_STATS_2026;
+      }
+
       // Get active tahun_zakat if not specified
       let activeTahunId = tahunZakatId;
       if (!activeTahunId) {
@@ -53,27 +82,7 @@ export function useDashboardStats(tahunZakatId?: string) {
       }
 
       if (!activeTahunId) {
-        return {
-          totalBerasKg: 0,
-          totalUangRp: 0,
-          totalMuzakki: 0,
-          totalMustahikAktif: 0,
-          totalMustahikNonAktif: 0,
-          totalDistribusiBerasKg: 0,
-          totalDistribusiUangRp: 0,
-          sisaBerasKg: 0,
-          sisaUangRp: 0,
-          fidyahUangRp: 0,
-          infakSedekahUangRp: 0,
-          maalPenghasilanUangRp: 0,
-          totalPemasukanUangRp: 0,
-          hakAmilUangRp: 0,
-          sisaUangAfterAmilRp: 0,
-          infakSedekahBerasKg: 0,
-          fidyahBerasKg: 0,
-          zakatFitrahBerasKg: 0,
-          totalPemasukanBerasKg: 0,
-        };
+        return EMPTY_DASHBOARD_STATS;
       }
 
       // Total pemasukan beras (from old pembayaran_zakat table)
@@ -254,6 +263,15 @@ export function useTahunZakatList() {
   return useQuery({
     queryKey: ['tahun-zakat-list'],
     queryFn: async (): Promise<TahunZakat[]> => {
+      if (OFFLINE_MODE) {
+        return offlineStore.getTahunZakatList().map((t) => ({
+          id: t.id,
+          tahun_hijriah: t.tahun_hijriah,
+          tahun_masehi: t.tahun_masehi,
+          is_active: t.is_active,
+        }));
+      }
+
       const { data, error } = await supabase
         .from('tahun_zakat')
         .select('id, tahun_hijriah, tahun_masehi, is_active')
@@ -280,6 +298,10 @@ export function useMonthlyPemasukan(tahunZakatId?: string) {
   return useQuery({
     queryKey: ['monthly-pemasukan', tahunZakatId],
     queryFn: async (): Promise<MonthlyPemasukan[]> => {
+      if (OFFLINE_MODE) {
+        return OFFLINE_MONTHLY_2026;
+      }
+
       // Get active tahun_zakat if not specified
       let activeTahunId = tahunZakatId;
       if (!activeTahunId) {

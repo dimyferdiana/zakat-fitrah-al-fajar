@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 import type {
   HakAmilConfig,
   HakAmilSnapshot,
@@ -55,7 +57,7 @@ export function useHakAmilConfig(tahunZakatId?: string) {
   return useQuery({
     queryKey: ['hak-amil-config', tahunZakatId],
     queryFn: async (): Promise<HakAmilConfig | null> => {
-      if (!tahunZakatId) {
+      if (!tahunZakatId || OFFLINE_MODE) {
         return null;
       }
 
@@ -91,7 +93,7 @@ export function useHakAmilMonthlySummary(
   return useQuery({
     queryKey: ['hak-amil-monthly-summary', tahunZakatId, month, year],
     queryFn: async (): Promise<HakAmilSummary> => {
-      if (!tahunZakatId || !month || !year) {
+      if (!tahunZakatId || !month || !year || OFFLINE_MODE) {
         return createEmptySummary();
       }
 
@@ -143,7 +145,7 @@ export function useHakAmilYearlySummary(tahunZakatId?: string) {
   return useQuery({
     queryKey: ['hak-amil-yearly-summary', tahunZakatId],
     queryFn: async (): Promise<HakAmilSummary> => {
-      if (!tahunZakatId) {
+      if (!tahunZakatId || OFFLINE_MODE) {
         return createEmptySummary();
       }
 

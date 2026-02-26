@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 import {
@@ -107,6 +108,9 @@ export function DashboardFormDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{isEdit ? 'Edit Dashboard' : 'Buat Dashboard Baru'}</DialogTitle>
+          <DialogDescription>
+            Atur judul, visibilitas, dan jumlah kolom stat card dashboard.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { offlineStore } from '@/lib/offlineStore';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 // Interfaces
 export interface KategoriMustahik {
@@ -65,6 +68,10 @@ export function useMustahikList(params: MustahikListParams) {
   return useQuery({
     queryKey: ['mustahik-list', params],
     queryFn: async () => {
+      if (OFFLINE_MODE) {
+        const result = offlineStore.getMustahikList(params);
+        return { data: result.data, totalCount: result.count };
+      }
       let query = supabase
         .from('mustahik')
         .select('*, kategori_mustahik(id, nama, deskripsi)', { count: 'exact' })
@@ -112,6 +119,7 @@ export function useMustahikDetail(id: string | null) {
     queryKey: ['mustahik-detail', id],
     queryFn: async () => {
       if (!id) return null;
+      if (OFFLINE_MODE) return offlineStore.getMustahikById(id) ?? null;
 
       const { data, error } = await supabase
         .from('mustahik')
@@ -131,6 +139,7 @@ export function useKategoriMustahik() {
   return useQuery({
     queryKey: ['kategori-mustahik'],
     queryFn: async () => {
+      if (OFFLINE_MODE) return offlineStore.getKategoriMustahikList();
       const { data, error } = await supabase
         .from('kategori_mustahik')
         .select('*')
@@ -148,6 +157,7 @@ export function useMustahikHistory(mustahikId: string | null) {
     queryKey: ['mustahik-history', mustahikId],
     queryFn: async () => {
       if (!mustahikId) return [];
+      if (OFFLINE_MODE) return [];
 
       const { data, error } = await supabase
         .from('distribusi_zakat')
@@ -167,6 +177,7 @@ export function usePreviousYearMustahik(tahunMasehi: number) {
   return useQuery({
     queryKey: ['previous-year-mustahik', tahunMasehi],
     queryFn: async () => {
+      if (OFFLINE_MODE) return [];
       // Get tahun_zakat for previous year
       const { data: tahunZakat, error: tahunError } = await supabase
         .from('tahun_zakat')
@@ -203,6 +214,7 @@ export function useCreateMustahik() {
 
   return useMutation({
     mutationFn: async (input: CreateMustahikInput) => {
+      if (OFFLINE_MODE) return offlineStore.addMustahik(input as any) as any;
       const { data, error } = await (supabase
         .from('mustahik')
         .insert as any)({
@@ -235,6 +247,7 @@ export function useUpdateMustahik() {
 
   return useMutation({
     mutationFn: async (input: UpdateMustahikInput) => {
+      if (OFFLINE_MODE) return offlineStore.updateMustahik(input.id, input as any) as any;
       const { data, error } = await (supabase
         .from('mustahik')
         .update as any)({
@@ -270,6 +283,7 @@ export function useToggleMustahikActive() {
 
   return useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      if (OFFLINE_MODE) return offlineStore.updateMustahik(id, { is_active }) as any;
       const { data, error } = await (supabase
         .from('mustahik')
         .update as any)({ is_active, updated_at: new Date().toISOString() })
@@ -368,6 +382,7 @@ export function useDeleteMustahik() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      if (OFFLINE_MODE) { offlineStore.deleteMustahik(id); return id; }
       const { error } = await (supabase
         .from('mustahik')
         .delete as any)()

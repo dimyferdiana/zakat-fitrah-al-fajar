@@ -7,6 +7,9 @@ import {
   mapKategoriToHakAmil,
   upsertHakAmilSnapshot,
 } from '@/lib/hakAmilSnapshot';
+import { offlineStore } from '@/lib/offlineStore';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 export type PemasukanUangKategori =
   | 'zakat_fitrah_uang'
@@ -56,6 +59,7 @@ export function usePemasukanUangList(params: PemasukanUangListParams) {
       if (!params.tahunZakatId) {
         return { data: [], count: 0 };
       }
+      if (OFFLINE_MODE) return offlineStore.getPemasukanUangList(params);
 
       let query = supabase
         .from('pemasukan_uang')
@@ -101,6 +105,7 @@ export function useCreatePemasukanUang() {
 
   return useMutation({
     mutationFn: async (input: CreatePemasukanInput) => {
+      if (OFFLINE_MODE) return offlineStore.addPemasukanUang(input) as any;
       const { data: auth } = await supabase.auth.getUser();
       const userId = auth.user?.id;
 
@@ -166,6 +171,7 @@ export function useUpdatePemasukanUang() {
 
   return useMutation({
     mutationFn: async (input: UpdatePemasukanInput) => {
+      if (OFFLINE_MODE) { offlineStore.updatePemasukanUang(input.id, input); return offlineStore.getPemasukanUangList({}).data.find(p => p.id === input.id) as any; }
       const { id, ...updateData } = input;
       const payload = {
         ...updateData,
@@ -229,6 +235,7 @@ export function useDeletePemasukanUang() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      if (OFFLINE_MODE) { offlineStore.deletePemasukanUang(id); return id; }
       await supabase
         .from('hak_amil_snapshots')
         .delete()

@@ -37,6 +37,9 @@ import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
+import { offlineStore } from '@/lib/offlineStore';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 const formSchema = z.object({
   nama_kk: z.string().min(3, { message: 'Nama KK minimal 3 karakter' }).max(100),
@@ -149,6 +152,15 @@ export function MuzakkiForm({
   // Fetch active tahun_zakat and nilai per orang
   useEffect(() => {
     const fetchNilaiZakat = async () => {
+      if (OFFLINE_MODE) {
+        const activeTahun = offlineStore.getActiveTahunZakat();
+        if (activeTahun) {
+          setActiveTahunId(activeTahun.id);
+          setNilaiPerOrang({ beras: activeTahun.nilai_beras_kg, uang: activeTahun.nilai_uang_rp });
+        }
+        return;
+      }
+
       const { data, error } = await supabase
         .from('tahun_zakat')
         .select('id, nilai_beras_kg, nilai_uang_rp')

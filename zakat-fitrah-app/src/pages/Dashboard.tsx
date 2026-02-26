@@ -1,16 +1,16 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { PageHeader } from '@/components/common/PageHeader';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { StatCard } from '@/components/dashboard/StatCard';
-import { PemasukanChart } from '@/components/dashboard/PemasukanChart';
-import { DistribusiProgress } from '@/components/dashboard/DistribusiProgress';
-import { HakAmilCard } from '@/components/dashboard/HakAmilCard';
 import {
   useDashboardStats,
   useTahunZakatList,
   useMonthlyPemasukan,
 } from '@/hooks/useDashboard';
+import { useDashboardConfigs, useDashboardWidgets } from '@/hooks/useDashboardConfig';
+import { DashboardTabSwitcher } from '@/components/dashboard/DashboardTabSwitcher';
+import { DashboardRenderer } from '@/components/dashboard/DashboardRenderer';
 import {
   Select,
   SelectContent,
@@ -19,53 +19,56 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Users, Heart, Send, TrendingUp, Package, Coins, RefreshCw, HandHeart, Gift, Banknote, Wheat } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 export function Dashboard() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedTahun, setSelectedTahun] = useState<string | undefined>();
 
+  // Dashboard configs (tab list)
+  const { data: dashboards = [], isLoading: dashboardsLoading } = useDashboardConfigs();
+
+  // Active dashboard — from URL ?d= param, or first in list
+  const urlDashboardId = searchParams.get('d') ?? undefined;
+  const activeDashboardId = urlDashboardId ?? dashboards[0]?.id;
+  const activeDashboard = dashboards.find((d) => d.id === activeDashboardId) ?? dashboards[0];
+
+  // Widgets for active dashboard
+  const { data: widgets = [] } = useDashboardWidgets(activeDashboardId);
+
+  // Stats & chart data
   const { data: tahunList } = useTahunZakatList();
   const {
     data: stats,
     isLoading: statsLoading,
     refetch: refetchStats,
   } = useDashboardStats(selectedTahun);
-  const { data: monthlyData, isLoading: chartLoading } = useMonthlyPemasukan(selectedTahun);
+  const { data: monthlyData = [], isLoading: chartLoading } = useMonthlyPemasukan(selectedTahun);
 
   const activeTahun = tahunList?.find((t) => t.is_active);
+  const resolvedTahunId = selectedTahun || activeTahun?.id;
 
-  const handleRefresh = () => {
-    refetchStats();
+  const handleSelectDashboard = (id: string) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('d', id);
+      return next;
+    });
   };
 
-  if (statsLoading) {
+  if (statsLoading || dashboardsLoading) {
     return <LoadingSpinner text="Memuat data dashboard..." />;
   }
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
-
-  const formatNumber = (value: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
-
   return (
     <div className="space-y-6">
+      {/* Header row */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <PageHeader
           title="Dashboard"
           description={`Selamat datang, ${user?.nama_lengkap}`}
         />
-
         <div className="flex gap-2">
           <Select
             value={selectedTahun || activeTahun?.id}
@@ -83,114 +86,34 @@ export function Dashboard() {
               ))}
             </SelectContent>
           </Select>
-
-          <Button variant="outline" size="icon" onClick={handleRefresh}>
+          <Button variant="outline" size="icon" onClick={() => refetchStats()}>
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <StatCard
-          title="Total Muzakki"
-          value={stats?.totalMuzakki || 0}
-          description="Pembayar zakat tahun ini"
-          icon={Users}
-        />
-        <StatCard
-          title="Mustahik Aktif"
-          value={stats?.totalMustahikAktif || 0}
-          description={`${stats?.totalMustahikNonAktif || 0} non-aktif`}
-          icon={Heart}
-        />
-        <StatCard
-          title="Zakat Beras Terkumpul"
-          value={`${formatNumber(stats?.totalBerasKg || 0)} kg`}
-          description="Total pemasukan beras"
-          icon={Package}
-        />
-        <StatCard
-          title="Zakat Uang Terkumpul"
-          value={formatCurrency(stats?.totalUangRp || 0)}
-          description="Total pemasukan uang"
-          icon={Coins}
-        />
-        <StatCard
-          title="Beras Tersalurkan"
-          value={`${formatNumber(stats?.totalDistribusiBerasKg || 0)} kg`}
-          description="Total distribusi beras"
-          icon={Send}
-        />
-        <StatCard
-          title="Uang Tersalurkan"
-          value={formatCurrency(stats?.totalDistribusiUangRp || 0)}
-          description="Total distribusi uang"
-          icon={TrendingUp}
-        />
-        <StatCard
-          title="Fidyah Uang"
-          value={formatCurrency(stats?.fidyahUangRp || 0)}
-          description="Pemasukan fidyah"
-          icon={HandHeart}
-        />
-        <StatCard
-          title="Infak/Sedekah Uang"
-          value={formatCurrency(stats?.infakSedekahUangRp || 0)}
-          description="Pemasukan infak/sedekah"
-          icon={Gift}
-        />
-        <StatCard
-          title="Infak/Sedekah Beras"
-          value={`${formatNumber(stats?.infakSedekahBerasKg || 0)} kg`}
-          description="Pemasukan infak/sedekah beras"
-          icon={Gift}
-        />
-        <StatCard
-          title="Maal/Penghasilan Uang"
-          value={formatCurrency(stats?.maalPenghasilanUangRp || 0)}
-          description="Pemasukan maal/penghasilan"
-          icon={Coins}
-        />
-        <StatCard
-          title="Total Pemasukan Uang"
-          value={formatCurrency(stats?.totalPemasukanUangRp || 0)}
-          description="Zakat Uang + Fidyah + Infak/Sedekah + Maal + Rekonsiliasi"
-          icon={Banknote}
-        />
-        <StatCard
-          title="Total Pemasukan Beras"
-          value={`${formatNumber(stats?.totalPemasukanBerasKg || 0)} kg`}
-          description="Zakat Beras + Fidyah + Infak/Sedekah"
-          icon={Wheat}
-        />
-      </div>
+      {/* Dashboard tab switcher — only shown when >1 dashboard */}
+      <DashboardTabSwitcher
+        dashboards={dashboards}
+        activeDashboardId={activeDashboardId}
+        onSelect={handleSelectDashboard}
+      />
 
-      {/* Hak Amil Summary Card */}
-      <HakAmilCard tahunZakatId={selectedTahun || activeTahun?.id} />
-
-      {/* Charts and Progress */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <DistribusiProgress
-          totalPemasukan={stats?.totalBerasKg || 0}
-          totalDistribusi={stats?.totalDistribusiBerasKg || 0}
-          sisa={stats?.sisaBerasKg || 0}
-          jenis="beras"
+      {/* Render active dashboard via configurable renderer */}
+      {activeDashboard && stats ? (
+        <DashboardRenderer
+          config={activeDashboard}
+          widgets={widgets}
+          stats={stats}
+          monthlyData={chartLoading ? [] : monthlyData}
+          tahunZakatId={resolvedTahunId}
         />
-        <DistribusiProgress
-          totalPemasukan={stats?.totalPemasukanUangRp || 0}
-          totalDistribusi={stats?.totalDistribusiUangRp || 0}
-          sisa={(stats?.totalPemasukanUangRp || 0) - (stats?.totalDistribusiUangRp || 0)}
-          jenis="uang"
-        />
-      </div>
-
-      {/* Monthly Chart */}
-      {chartLoading ? (
-        <LoadingSpinner text="Memuat grafik..." />
       ) : (
-        monthlyData && monthlyData.length > 0 && (
-          <PemasukanChart data={monthlyData} />
+        !statsLoading && (
+          <p className="text-muted-foreground text-sm">
+            Belum ada dashboard. Buat dashboard baru di{' '}
+            <a href="/dashboard-settings" className="underline">Konfigurasi Dashboard</a>.
+          </p>
         )
       )}
     </div>

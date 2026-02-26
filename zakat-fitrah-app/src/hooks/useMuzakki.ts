@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { offlineStore } from '@/lib/offlineStore';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 interface MuzakkiRecord {
   id: string;
@@ -107,6 +110,17 @@ export function usePembayaranList(params: PembayaranListParams) {
   return useQuery({
     queryKey: ['pembayaran-list', params],
     queryFn: async (): Promise<{ data: PembayaranZakat[]; count: number }> => {
+      if (OFFLINE_MODE) {
+        return offlineStore.getPembayaranList({
+          tahunZakatId: params.tahunZakatId,
+          search: params.search,
+          jenisZakat: params.jenisZakat,
+          page: params.page,
+          pageSize: params.pageSize,
+          sortBy: params.sortBy,
+          sortOrder: params.sortOrder,
+        });
+      }
       let query = supabase
         .from('pembayaran_zakat')
         .select(
@@ -225,6 +239,25 @@ export function useCreatePembayaran() {
 
   return useMutation({
     mutationFn: async (input: CreatePembayaranInput) => {
+      if (OFFLINE_MODE) {
+        const tahunZakat = offlineStore.getTahunZakatList().find((t) => t.id === input.tahun_zakat_id);
+        const nilaiPerJiwa = input.jenis_zakat === 'beras' ? (tahunZakat?.nilai_beras_kg ?? 2.5) : (tahunZakat?.nilai_uang_rp ?? 45000);
+        let mzk = offlineStore.getMuzakkiAll().find((m) => m.nama_kk === input.nama_kk);
+        if (!mzk) mzk = offlineStore.addMuzakki({ nama_kk: input.nama_kk, alamat: input.alamat, no_telp: input.no_telp || null });
+        return offlineStore.addPembayaran({
+          muzakki_id: mzk.id,
+          tahun_zakat_id: input.tahun_zakat_id,
+          tanggal_bayar: input.tanggal_bayar,
+          jumlah_jiwa: input.jumlah_jiwa,
+          jenis_zakat: input.jenis_zakat,
+          jumlah_beras_kg: input.jenis_zakat === 'beras' ? (input.jumlah_beras_dibayar_kg ?? input.jumlah_jiwa * nilaiPerJiwa) : null,
+          jumlah_uang_rp: input.jenis_zakat === 'uang' ? (input.jumlah_uang_dibayar_rp ?? input.jumlah_jiwa * nilaiPerJiwa) : null,
+          akun_uang: input.jenis_zakat === 'uang' ? (input.akun_uang ?? null) : null,
+          jumlah_uang_dibayar_rp: input.jenis_zakat === 'uang' ? (input.jumlah_uang_dibayar_rp ?? null) : null,
+          sedekah_uang: null,
+          sedekah_beras: null,
+        });
+      }
       // First, check if muzakki exists by nama_kk
       const { data: existingMuzakki } = await supabase
         .from('muzakki')
@@ -419,6 +452,17 @@ export function useUpdatePembayaran() {
 
   return useMutation({
     mutationFn: async (input: UpdatePembayaranInput) => {
+      if (OFFLINE_MODE) {
+        return offlineStore.updatePembayaran(input.id, {
+          tanggal_bayar: input.tanggal_bayar,
+          jumlah_jiwa: input.jumlah_jiwa,
+          jenis_zakat: input.jenis_zakat,
+          jumlah_beras_kg: input.jenis_zakat === 'beras' ? (input.jumlah_beras_dibayar_kg ?? null) : null,
+          jumlah_uang_rp: input.jenis_zakat === 'uang' ? (input.jumlah_uang_dibayar_rp ?? null) : null,
+          akun_uang: input.jenis_zakat === 'uang' ? (input.akun_uang ?? null) : null,
+          jumlah_uang_dibayar_rp: input.jenis_zakat === 'uang' ? (input.jumlah_uang_dibayar_rp ?? null) : null,
+        });
+      }
       // Update muzakki
       await (supabase.from('muzakki').update as any)({
         nama_kk: input.nama_kk,
@@ -498,6 +542,7 @@ export function useDeletePembayaran() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      if (OFFLINE_MODE) { offlineStore.deletePembayaran(id); return; }
       const { error } = await supabase.from('pembayaran_zakat').delete().eq('id', id);
 
       if (error) throw error;
@@ -519,6 +564,7 @@ export function usePembayaranDetail(id: string | null) {
     queryKey: ['pembayaran-detail', id],
     queryFn: async (): Promise<PembayaranZakat | null> => {
       if (!id) return null;
+      if (OFFLINE_MODE) return offlineStore.getPembayaranList({}).data.find((p) => p.id === id) ?? null;
 
       const { data, error } = await supabase
         .from('pembayaran_zakat')
