@@ -1,5 +1,11 @@
 # PRD — Dashboard Configuration
 
+## Document Control
+- **Version:** V1.7.0
+- **Created Date:** 2026-02-26
+- **Last Updated:** 2026-02-26
+- **Summary of Addition/Adjustment:** Menambahkan konfigurasi dashboard dinamis multi-view dengan widget terpilih, aturan agregasi, dan visibilitas berbasis role.
+
 ## 1. Introduction / Overview
 
 Saat ini aplikasi hanya memiliki satu halaman Dashboard yang statis, menampilkan semua statistik dan grafik yang telah ditentukan secara hardcoded. Tidak ada cara bagi pengguna untuk menyesuaikan tampilan atau membuat view berbeda untuk kebutuhan yang berbeda (misal: ringkasan untuk pengurus inti vs. laporan lengkap untuk admin).

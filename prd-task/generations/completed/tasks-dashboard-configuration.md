@@ -1,6 +1,12 @@
 # Tasks — Dashboard Configuration
 
-Based on: `prd-task/generations/active/prd-dashboard-configuration.md`
+## Document Control
+- **Version:** V1.7.0
+- **Created Date:** 2026-02-26
+- **Last Updated:** 2026-02-26
+- **Summary of Addition/Adjustment:** Menjabarkan implementasi dashboard dinamis berbasis konfigurasi, widget terpilih, rule agregasi, dan pengaturan visibilitas.
+
+Based on: `prd-task/generations/completed/prd-dashboard-configuration.md`
 
 ## Relevant Files
 

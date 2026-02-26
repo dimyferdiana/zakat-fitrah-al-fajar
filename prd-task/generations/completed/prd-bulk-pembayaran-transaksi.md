@@ -1,5 +1,11 @@
 # PRD: Bulk Pembayaran Transaksi (Multi-Muzakki + Multi-Jenis)
 
+## Document Control
+- **Version:** V1.5.0
+- **Created Date:** 2026-02-22
+- **Last Updated:** 2026-02-26
+- **Summary of Addition/Adjustment:** Menambahkan alur input transaksi massal multi-muzakki dan multi-jenis dengan bukti terima tabel gabungan yang konsisten.
+
 ## 1. Introduction/Overview
 Masjid membutuhkan fitur bulk action untuk mencatat beberapa transaksi pembayaran sekaligus dalam satu waktu. Fitur ini harus mendukung beberapa muzakki, masing-masing muzakki bisa melakukan lebih dari satu jenis transaksi (zakat maal, zakat fitrah, infak/sedekah), dengan pilihan uang dan beras. Sistem juga harus menghasilkan tanda terima berbentuk tabel seperti contoh foto, dengan header dan footer yang sama seperti tanda terima pembayaran muzakki yang sudah ada (hanya konten inti yang berubah).
 

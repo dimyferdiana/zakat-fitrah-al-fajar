@@ -1,3 +1,11 @@
+# Tasks: Phase 2.2.0 Sedekah Receipt
+
+## Document Control
+- **Version:** V1.1.0
+- **Created Date:** 2026-01-23
+- **Last Updated:** 2026-02-26
+- **Summary of Addition/Adjustment:** Merinci implementasi generator bukti sedekah PDF landscape beserta lookup/upsert profil donatur dan validasi output.
+
 ## Relevant Files
 
 - src/pages/SettingsPage.tsx - Potential location for admin/config entry points if needed.

@@ -1,7 +1,10 @@
-# Tasks: Muzakki Creatable Inline in Pemasukan Forms (v2.1.0)
+# Tasks: Muzakki Creatable Inline in Pemasukan Forms
 
 **PRD:** [prd-muzakki-creatable-in-pemasukan.md](./prd-muzakki-creatable-in-pemasukan.md)
-**Version:** v2.1.0
+**Version:** V1.6.0
+**Created Date:** 2026-02-25
+**Last Updated:** 2026-02-26
+**Summary of Addition/Adjustment:** Menjabarkan penggantian select menjadi creatable combobox agar muzakki baru bisa dibuat langsung dari form pemasukan.
 **Branch:** `feature/muzakki-creatable-combobox`
 
 ---

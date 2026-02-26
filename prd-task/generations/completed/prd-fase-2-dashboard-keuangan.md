@@ -1,5 +1,11 @@
 # PRD — Fase 2: Dashboard Keuangan + Pemasukan Uang (Fitrah, Fidyah, Maal Penghasilan)
 
+## Document Control
+- **Version:** V1.0.0
+- **Created Date:** 2026-01-11
+- **Last Updated:** 2026-02-26
+- **Summary of Addition/Adjustment:** Menambahkan ruang lingkup Fase 2 untuk pemasukan uang multi-kategori, Hak Amil manual, dan rekonsiliasi admin-only.
+
 ## 1. Introduction / Overview
 Aplikasi saat ini berfokus pada Zakat Fitrah (pembayaran dan distribusi beras/uang) dan dashboard menampilkan ringkasan pemasukan/distribusi zakat saja.
 

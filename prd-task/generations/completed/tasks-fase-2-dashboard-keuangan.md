@@ -1,3 +1,11 @@
+# Tasks: Fase 2 Dashboard Keuangan
+
+## Document Control
+- **Version:** V1.0.0
+- **Created Date:** 2026-01-11
+- **Last Updated:** 2026-02-26
+- **Summary of Addition/Adjustment:** Merinci langkah implementasi dashboard keuangan fase 2, termasuk pemasukan uang, overpayment, hak amil, dan rekonsiliasi.
+
 ## Relevant Files
 
 - zakat-fitrah-app/src/pages/Dashboard.tsx - Menambah kartu/metrik baru dan komponen progress uang.

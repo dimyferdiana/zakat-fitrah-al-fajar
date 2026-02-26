@@ -1,5 +1,11 @@
 # PRD: Revamp Navigasi + Manajemen Rekening/Kas
 
+## Document Control
+- **Version:** V1.8.0
+- **Created Date:** 2026-02-26
+- **Last Updated:** 2026-02-26
+- **Summary of Addition/Adjustment:** Merombak struktur navigasi dan memperkenalkan manajemen rekening/kas berbasis ledger dengan posting otomatis dan rekonsiliasi.
+
 ## 1) Introduction / Overview
 Aplikasi membutuhkan perombakan struktur navigasi dan pemisahan alur data agar lebih jelas secara operasional. Fokus utama fitur ini adalah dua hal yang sama penting: (1) perbaikan UX melalui menu yang lebih terstruktur dan (2) penguatan kontrol keuangan melalui manajemen rekening/kas dengan ledger transaksi masuk, keluar, dan rekonsiliasi.
 

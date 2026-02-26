@@ -1,3 +1,11 @@
+# Tasks: Revamp Navigasi + Manajemen Rekening/Kas
+
+## Document Control
+- **Version:** V1.8.0
+- **Created Date:** 2026-02-26
+- **Last Updated:** 2026-02-26
+- **Summary of Addition/Adjustment:** Menjabarkan implementasi revamp menu, perubahan terminologi penerimaan, serta manajemen akun/ledger dan alur posting.
+
 ## Relevant Files
 
 - `zakat-fitrah-app/src/components/layouts/MainLayout.tsx` - Struktur menu utama, grouping, label, visibility, dan urutan navigasi.
@@ -49,19 +57,19 @@ Update the file after completing each sub-task, not just after completing an ent
 - [X] 0.0 Create feature branch
   - [X] 0.1 Create and checkout branch baru untuk fitur ini (contoh: `git checkout -b feat/revamp-menu-account-ledger`)
   - [X] 0.2 Push branch awal ke remote dan pastikan bukan branch `main`
-- [ ] 1.0 Implement navigation revamp (grouping, reorder, rename, route move + redirects)
+- [X] 1.0 Implement navigation revamp (grouping, reorder, rename, route move + redirects)
   - [X] 1.1 Finalkan menu map baru berdasarkan PRD (group heading, item, urutan, role visibility)
   - [X] 1.2 Refactor konfigurasi nav di `MainLayout` agar mendukung grouping dan urutan final
   - [X] 1.3 Update route tree di `App.tsx` untuk route/section baru
   - [X] 1.4 Tambahkan redirect route lama ke route baru untuk menjaga deep-link compatibility
   - [X] 1.5 Verifikasi proteksi role-based access tetap sama setelah rename/move route
-  - [ ] 1.6 Uji manual semua menu utama (Admin/Petugas/Bendahara) untuk memastikan tidak ada dead link
-- [ ] 2.0 Replace "Pemasukan" terminology with "Penerimaan" across impacted UI
+  - [X] 1.6 Uji manual semua menu utama (Admin/Petugas/Bendahara) untuk memastikan tidak ada dead link
+- [X] 2.0 Replace "Pemasukan" terminology with "Penerimaan" across impacted UI
   - [X] 2.1 Inventarisasi semua string "Pemasukan" di pages, components, breadcrumbs, tombol, dan helper text
   - [X] 2.2 Ubah label halaman menjadi "Penerimaan Uang" dan "Penerimaan Beras"
   - [X] 2.3 Ubah label action/filter/section yang relevan tanpa mengubah arti bisnis lain
   - [X] 2.4 Pastikan penamaan di menu, judul tab, dan route display name konsisten
-  - [ ] 2.5 Jalankan smoke test UI untuk cek tidak ada label lama yang tertinggal di area terdampak
+  - [X] 2.5 Jalankan smoke test UI untuk cek tidak ada label lama yang tertinggal di area terdampak
 - [X] 3.0 Refactor Muzakki flow into master-data-only CRUD (remove transaction input from create/edit)
   - [X] 3.1 Audit field form create/edit Muzakki dan tandai field transaksi yang harus dihapus
   - [X] 3.2 Refactor `MuzakkiForm` agar hanya menyimpan data master orang/KK
@@ -93,5 +101,5 @@ Update the file after completing each sub-task, not just after completing an ent
   - [X] 6.3 Verifikasi seluruh transaksi baru memiliki linkage akun valid (no orphan transaction)
   - [X] 6.4 Uji role policy untuk akun/ledger di semua operasi (create/update/delete/read)
   - [X] 6.5 Uji konsistensi saldo antara ledger akun dan ringkasan dashboard periode sama
-  - [x] 6.6 Jalankan regression test area terdampak (menu, muzakki, penerimaan, rekonsiliasi)
+  - [X] 6.6 Jalankan regression test area terdampak (menu, muzakki, penerimaan, rekonsiliasi)
   - [X] 6.7 Jalankan `npm run build` dan dokumentasikan hasil validasi sebelum merge

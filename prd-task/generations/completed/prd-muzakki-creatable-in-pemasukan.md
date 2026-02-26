@@ -1,9 +1,12 @@
 # PRD: Muzakki Creatable Inline in Pemasukan Forms
 
-**Version:** v2.1.0  
-**Feature Name:** Muzakki Creatable Combobox  
-**Date:** 2026-02-25  
-**Status:** Draft
+## Document Control
+- **Version:** V1.6.0
+- **Created Date:** 2026-02-25
+- **Last Updated:** 2026-02-26
+- **Feature Name:** Muzakki Creatable Combobox
+- **Status:** Draft
+- **Summary of Addition/Adjustment:** Menambahkan creatable combobox agar muzakki baru dapat dibuat inline langsung dari form pemasukan tanpa pindah halaman.
 
 ---
 

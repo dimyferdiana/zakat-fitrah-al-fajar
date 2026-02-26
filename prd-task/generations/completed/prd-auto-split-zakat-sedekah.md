@@ -1,5 +1,11 @@
 # PRD: Automatic Split of Excess Payment to Sedekah/Infak
 
+## Document Control
+- **Version:** V1.3.0
+- **Created Date:** 2026-02-12
+- **Last Updated:** 2026-02-26
+- **Summary of Addition/Adjustment:** Mengatur pemisahan otomatis kelebihan bayar menjadi zakat dan sedekah/infak dengan breakdown realtime, pencatatan ganda, dan dampak ke laporan.
+
 ## Introduction/Overview
 
 Currently, when a muzakki makes a payment that exceeds the required Nilai Zakat (either in beras or uang), the entire amount is recorded as Zakat. This PRD addresses the need to automatically split overpayments into two categories:

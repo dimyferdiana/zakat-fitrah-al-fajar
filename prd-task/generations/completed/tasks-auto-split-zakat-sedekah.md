@@ -1,5 +1,11 @@
 # Tasks: Automatic Split of Excess Payment to Sedekah/Infak
 
+## Document Control
+- **Version:** V1.3.0
+- **Created Date:** 2026-02-16
+- **Last Updated:** 2026-02-26
+- **Summary of Addition/Adjustment:** Merinci implementasi split otomatis kelebihan bayar ke sedekah/infak, update receipt, dashboard, histori, dan pengujian.
+
 ## Relevant Files
 
 - `zakat-fitrah-app/supabase/migrations/[timestamp]_create_pemasukan_beras.sql` - Migration to create pemasukan_beras table

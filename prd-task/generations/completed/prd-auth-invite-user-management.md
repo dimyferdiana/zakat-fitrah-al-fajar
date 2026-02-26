@@ -1,5 +1,11 @@
 # PRD: Authentication + Invitation-Only Registration + User Management + Profile Settings
 
+## Document Control
+- **Version:** V1.2.0
+- **Created Date:** 2026-02-12
+- **Last Updated:** 2026-02-26
+- **Summary of Addition/Adjustment:** Mendefinisikan autentikasi wajib, registrasi berbasis undangan, manajemen user admin-only, serta penguatan akses lewat RLS.
+
 ## 1. Introduction / Overview
 
 The app currently allows a "viewer" (no login) to access parts of the system. This creates a privacy/security risk, especially for sensitive data such as Mustahik information.

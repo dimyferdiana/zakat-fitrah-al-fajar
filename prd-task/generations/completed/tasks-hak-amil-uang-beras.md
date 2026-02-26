@@ -1,5 +1,11 @@
 # Tasks: Pengaturan Hak Amil (Uang & Beras)
 
+## Document Control
+- **Version:** V1.4.0
+- **Created Date:** 2026-02-21
+- **Last Updated:** 2026-02-26
+- **Summary of Addition/Adjustment:** Merinci implementasi konfigurasi dan snapshot hak amil lintas kategori, integrasi dashboard/laporan, dan export.
+
 ## Relevant Files
 
 - `zakat-fitrah-app/supabase/migrations/023_hak_amil_config_and_snapshots.sql` - Migration untuk konfigurasi hak amil per tahun + snapshot per transaksi.

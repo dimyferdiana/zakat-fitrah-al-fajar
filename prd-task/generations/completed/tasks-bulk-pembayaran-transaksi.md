@@ -1,3 +1,11 @@
+# Tasks: Bulk Pembayaran Transaksi
+
+## Document Control
+- **Version:** V1.5.0
+- **Created Date:** 2026-02-22
+- **Last Updated:** 2026-02-26
+- **Summary of Addition/Adjustment:** Menjabarkan implementasi mode bulk multi-muzakki dan multi-jenis transaksi termasuk bukti terima tabel gabungan.
+
 ## Relevant Files
 
 - `zakat-fitrah-app/src/pages/PemasukanUang.tsx` - Main pemasukan uang page; add Bulk mode toggle here.
