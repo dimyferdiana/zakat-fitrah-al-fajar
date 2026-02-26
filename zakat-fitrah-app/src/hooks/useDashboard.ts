@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 
-interface DashboardStats {
+export interface DashboardStats {
   totalBerasKg: number;
   totalUangRp: number;
   totalMuzakki: number;

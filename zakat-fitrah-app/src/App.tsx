@@ -26,6 +26,7 @@ const Mustahik = lazy(() => import('@/pages/Mustahik'));
 const Distribusi = lazy(() => import('@/pages/Distribusi'));
 const Laporan = lazy(() => import('@/pages/Laporan'));
 const Settings = lazy(() => import('@/pages/Settings'));
+const DashboardSettings = lazy(() => import('@/pages/DashboardSettings').then(m => ({ default: m.DashboardSettings })));
 const SedekahReceipt = lazy(() => import('@/pages/SedekahReceipt'));
 const SuratPengantar = lazy(() => import('@/pages/SuratPengantar'));
 
@@ -126,6 +127,16 @@ function App() {
                   <ProtectedRoute allowedRoles={['admin']}>
                     <MainLayout>
                       <Settings />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard-settings"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <MainLayout>
+                      <DashboardSettings />
                     </MainLayout>
                   </ProtectedRoute>
                 }

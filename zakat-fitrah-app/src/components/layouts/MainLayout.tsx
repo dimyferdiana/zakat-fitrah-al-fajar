@@ -93,6 +93,12 @@ const navItems: NavItem[] = [
     roles: ['admin'],
   },
   {
+    label: 'Konfigurasi Dashboard',
+    path: '/dashboard-settings',
+    icon: LayoutDashboard,
+    roles: ['admin'],
+  },
+  {
     label: 'Pengaturan',
     path: '/settings',
     icon: Settings,
