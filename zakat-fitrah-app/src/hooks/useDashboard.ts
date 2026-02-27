@@ -204,23 +204,36 @@ export function useDashboardStats(tahunZakatId?: string) {
       const rekonsiliasiUangRp = (rekonsiliasiData || [])
         .reduce((sum: number, r: any) => sum + (Number(r.jumlah_uang_rp) || 0), 0);
 
-      // Phase 2: Get Hak Amil manual
-      const { data: hakAmilData } = await supabase
-        .from('hak_amil')
-        .select('jumlah_uang_rp')
-        .eq('tahun_zakat_id', activeTahunId)
-        .maybeSingle();
-
-      const hakAmilUangRp = Number((hakAmilData as { jumlah_uang_rp?: number } | null)?.jumlah_uang_rp) || 0;
-
+      // Hak Amil: compute dynamically from hak_amil_configs percentages
       const { data: hakAmilConfig } = await supabase
         .from('hak_amil_configs')
-        .select('persen_beras')
+        .select('persen_zakat_fitrah, persen_zakat_maal, persen_infak, persen_fidyah, persen_beras')
         .eq('tahun_zakat_id', activeTahunId)
         .maybeSingle();
 
-      const persenHakAmilBeras = Number((hakAmilConfig as { persen_beras?: number } | null)?.persen_beras ?? 12.5);
+      const cfg = hakAmilConfig as {
+        persen_zakat_fitrah?: number;
+        persen_zakat_maal?: number;
+        persen_infak?: number;
+        persen_fidyah?: number;
+        persen_beras?: number;
+      } | null;
+
+      const persenZakatFitrah = Number(cfg?.persen_zakat_fitrah ?? 12.5);
+      const persenZakatMaal   = Number(cfg?.persen_zakat_maal   ?? 12.5);
+      const persenInfak       = Number(cfg?.persen_infak        ?? 20);
+      const persenFidyah      = Number(cfg?.persen_fidyah       ?? 0);
+      const persenHakAmilBeras = Number(cfg?.persen_beras       ?? 0);
+
       const hakAmilBerasKg = totalBerasKg * (persenHakAmilBeras / 100);
+
+      // Dynamic hak amil uang: apply per-category percentages to actual totals
+      const hakAmilUangRp = Math.round(
+        totalUangRp            * (persenZakatFitrah / 100) +
+        maalPenghasilanUangRp  * (persenZakatMaal   / 100) +
+        infakSedekahUangRp     * (persenInfak       / 100) +
+        fidyahUangRp           * (persenFidyah      / 100)
+      );
 
       // Total pemasukan uang (dashboard card) — zakatFitrahUangFromPemasukan already included in totalUangRp
       const totalPemasukanUangRp =
