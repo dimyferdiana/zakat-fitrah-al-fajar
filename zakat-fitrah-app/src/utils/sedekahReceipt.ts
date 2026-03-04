@@ -77,6 +77,14 @@ const DETAILS_TOP_PADDING = 10 * SCALE_FACTOR; // 10px = 2.625mm
 const DIVIDER_HEIGHT = 2 * SCALE_FACTOR; // 2px = 0.525mm
 const TOP_SHIFT = -8; // shift content up by 8mm to center better
 
+function truncateLines(lines: string[], maxLines: number) {
+  if (lines.length <= maxLines) return lines;
+  const safeLines = lines.slice(0, Math.max(1, maxLines));
+  const lastIndex = safeLines.length - 1;
+  safeLines[lastIndex] = `${safeLines[lastIndex].replace(/\s+$/g, '')}...`;
+  return safeLines;
+}
+
 /**
  * Generate Sedekah receipt PDF matching receipt-design.pen layout
  * White background, printer-friendly
@@ -220,30 +228,35 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
   const terbilangText = getTerbilangText(data.amount);
   const terbilangLines = pdf.splitTextToSize(terbilangText, maxAddressWidth);
   pdf.text(': '+ terbilangLines, valueX, yPosition);
-  yPosition += terbilangLines.length * LINE_HEIGHT + SECTION_GAP;
+  yPosition += terbilangLines.length * LINE_HEIGHT + ROW_GAP;
 
   // Row 8: Notes (optional)
   pdf.setFont('Helvetica', 'normal');
   pdf.text('Catatan', leftX, yPosition);
   pdf.setFont('Helvetica', 'bold');
   const notesText = data.notes?.trim() ? data.notes.trim() : '-';
-  const notesLines = pdf.splitTextToSize(notesText, maxAddressWidth);
+  const notesLines = truncateLines(pdf.splitTextToSize(notesText, maxAddressWidth), 2);
   pdf.text(': ' + notesLines, valueX, yPosition);
-  yPosition += notesLines.length * LINE_HEIGHT + SECTION_GAP;
+  yPosition += notesLines.length * LINE_HEIGHT + ROW_GAP;
 
   // ============ DOA TEXT SECTION ============
   // Doa - LEFT aligned (11px normal in design)
   pdf.setFontSize(11 * 0.75);
   pdf.setFont('Helvetica', 'normal');
-  const doaLines = pdf.splitTextToSize(DOA_TEXT, contentWidth);
+  const signatureBlockHeight = 26;
+  const signatureStartY = pageHeight - MARGIN - signatureBlockHeight;
+  const availableDoaHeight = Math.max(LINE_HEIGHT, signatureStartY - yPosition - ROW_GAP);
+  const maxDoaLines = Math.max(1, Math.floor(availableDoaHeight / LINE_HEIGHT));
+  const doaLines = truncateLines(pdf.splitTextToSize(DOA_TEXT, contentWidth), maxDoaLines);
   pdf.text(doaLines, leftX, yPosition);
-  yPosition += doaLines.length * LINE_HEIGHT + SECTION_GAP; // 16px gap after doa
+  yPosition += doaLines.length * LINE_HEIGHT + ROW_GAP;
 
   // ============ SIGNATURE SECTION ============
   // Right-aligned signature box (matching receipt-design.pen)
   // Design: Signature section has justifyContent: end (right-aligned)
   const signatureBoxWidth = 39.7; // 150px stamp width
   const signatureX = pageWidth - MARGIN - signatureBoxWidth / 2;
+  yPosition = signatureStartY;
 
   // Organization name above signature (11px normal)
   pdf.setFontSize(11 * 0.75);
