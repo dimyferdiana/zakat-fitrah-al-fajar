@@ -332,16 +332,14 @@ export function PemasukanBerasForm({
               )}
             />
 
-            <FormItem>
-              <FormLabel>Upload Bukti Bayar (Opsional)</FormLabel>
-              <FormControl>
-                <Input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={handleProofFileChange}
-                  disabled={isSubmitting}
-                />
-              </FormControl>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Upload Bukti Bayar (Opsional)</label>
+              <Input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleProofFileChange}
+                disabled={isSubmitting}
+              />
               <p className="text-xs text-muted-foreground">Maksimal 1 gambar (JPG/PNG/WEBP), ukuran 1 MB.</p>
               {selectedProofFile && (
                 <p className="text-xs text-muted-foreground">
@@ -359,7 +357,7 @@ export function PemasukanBerasForm({
                 </a>
               )}
               {proofError && <p className="text-xs text-destructive">{proofError}</p>}
-            </FormItem>
+            </div>
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
