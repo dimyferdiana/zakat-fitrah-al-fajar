@@ -251,7 +251,7 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
   // Design: Signature section has justifyContent: end (right-aligned)
   const signatureBoxWidth = 39.7; // 150px stamp width
   const signatureX = pageWidth - MARGIN - signatureBoxWidth / 2;
-  yPosition = signatureStartY + 2;
+  yPosition = signatureStartY + 8; // Shift signature block down by 8mm to better align with design
 
   // Organization name above signature (11px normal)
   pdf.setFontSize(11 * 0.75);
