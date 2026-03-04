@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -36,6 +36,7 @@ import { id as idLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import type { PemasukanBerasKategori } from '@/hooks/usePemasukanBeras';
 import { MuzakkiCreatableCombobox } from '@/components/pemasukan/MuzakkiCreatableCombobox';
+import { validatePaymentProofFile } from '@/lib/paymentProof';
 
 const formSchema = z.object({
   tahun_zakat_id: z.string().min(1, { message: 'Tahun zakat wajib dipilih' }),
@@ -67,6 +68,8 @@ interface PemasukanBerasFormProps {
     tanggal: string;
     catatan?: string;
     muzakki_id?: string;
+    bukti_bayar_url?: string;
+    bukti_bayar_file?: File;
   }) => void;
   tahunOptions: TahunOption[];
   defaultTahunId?: string;
@@ -77,6 +80,7 @@ interface PemasukanBerasFormProps {
     tanggal: string;
     catatan?: string;
     muzakki_id?: string;
+    bukti_bayar_url?: string;
   };
   isSubmitting: boolean;
 }
@@ -90,6 +94,9 @@ export function PemasukanBerasForm({
   defaultValues,
   isSubmitting,
 }: PemasukanBerasFormProps) {
+  const [selectedProofFile, setSelectedProofFile] = useState<File | undefined>(undefined);
+  const [proofError, setProofError] = useState<string | null>(null);
+
   const form = useForm<PemasukanBerasFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues ? {
@@ -115,12 +122,59 @@ export function PemasukanBerasForm({
     }
   }, [defaultTahunId, form]);
 
+  useEffect(() => {
+    if (defaultValues) {
+      setSelectedProofFile(undefined);
+      setProofError(null);
+      form.reset({
+        tahun_zakat_id: defaultValues.tahun_zakat_id,
+        kategori: defaultValues.kategori,
+        jumlah_beras_kg: defaultValues.jumlah_beras_kg,
+        tanggal: new Date(defaultValues.tanggal),
+        catatan: defaultValues.catatan || '',
+        muzakki_id: defaultValues.muzakki_id,
+      });
+    }
+  }, [defaultValues, form]);
+
+  useEffect(() => {
+    if (!open) {
+      setSelectedProofFile(undefined);
+      setProofError(null);
+    }
+  }, [open]);
+
   const handleSubmit = (values: PemasukanBerasFormValues) => {
+    if (proofError) {
+      return;
+    }
+
     onSubmit({
       ...values,
       catatan: values.catatan || undefined,
+      bukti_bayar_url: defaultValues?.bukti_bayar_url,
+      bukti_bayar_file: selectedProofFile,
       tanggal: values.tanggal.toISOString().split('T')[0],
     });
+  };
+
+  const handleProofFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setSelectedProofFile(undefined);
+      setProofError(null);
+      return;
+    }
+
+    const validationError = validatePaymentProofFile(file);
+    if (validationError) {
+      setSelectedProofFile(undefined);
+      setProofError(validationError);
+      return;
+    }
+
+    setSelectedProofFile(file);
+    setProofError(null);
   };
 
   return (
@@ -277,6 +331,35 @@ export function PemasukanBerasForm({
                 </FormItem>
               )}
             />
+
+            <FormItem>
+              <FormLabel>Upload Bukti Bayar (Opsional)</FormLabel>
+              <FormControl>
+                <Input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleProofFileChange}
+                  disabled={isSubmitting}
+                />
+              </FormControl>
+              <p className="text-xs text-muted-foreground">Maksimal 1 gambar (JPG/PNG/WEBP), ukuran 1 MB.</p>
+              {selectedProofFile && (
+                <p className="text-xs text-muted-foreground">
+                  File terpilih: {selectedProofFile.name}
+                </p>
+              )}
+              {!selectedProofFile && defaultValues?.bukti_bayar_url && (
+                <a
+                  className="text-xs text-primary underline"
+                  href={defaultValues.bukti_bayar_url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Lihat bukti bayar saat ini
+                </a>
+              )}
+              {proofError && <p className="text-xs text-destructive">{proofError}</p>}
+            </FormItem>
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>

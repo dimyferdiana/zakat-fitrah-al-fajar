@@ -84,6 +84,8 @@ export function PemasukanBeras() {
     tanggal: string;
     catatan?: string;
     muzakki_id?: string;
+    bukti_bayar_url?: string;
+    bukti_bayar_file?: File;
   }) => {
     if (editingItem) {
       await updateMutation.mutateAsync({ ...values, id: editingItem.id });
@@ -286,6 +288,7 @@ export function PemasukanBeras() {
           tanggal: editingItem.tanggal,
           catatan: editingItem.catatan || undefined,
           muzakki_id: editingItem.muzakki_id || undefined,
+          bukti_bayar_url: editingItem.bukti_bayar_url || undefined,
         } : undefined}
         isSubmitting={createMutation.isPending || updateMutation.isPending}
         onSubmit={(values) => handleSubmit(values)}

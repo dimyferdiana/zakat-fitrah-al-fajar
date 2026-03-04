@@ -222,6 +222,15 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
   pdf.text(': '+ terbilangLines, valueX, yPosition);
   yPosition += terbilangLines.length * LINE_HEIGHT + SECTION_GAP;
 
+  // Row 8: Notes (optional)
+  pdf.setFont('Helvetica', 'normal');
+  pdf.text('Catatan', leftX, yPosition);
+  pdf.setFont('Helvetica', 'bold');
+  const notesText = data.notes?.trim() ? data.notes.trim() : '-';
+  const notesLines = pdf.splitTextToSize(notesText, maxAddressWidth);
+  pdf.text(': ' + notesLines, valueX, yPosition);
+  yPosition += notesLines.length * LINE_HEIGHT + SECTION_GAP;
+
   // ============ DOA TEXT SECTION ============
   // Doa - LEFT aligned (11px normal in design)
   pdf.setFontSize(11 * 0.75);

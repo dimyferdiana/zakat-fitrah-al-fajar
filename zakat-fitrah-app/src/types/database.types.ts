@@ -298,6 +298,7 @@ export interface Database {
           jumlah_uang_rp: number;
           tanggal: string;
           catatan: string | null;
+          bukti_bayar_url: string | null;
           created_by: string;
           created_at: string;
           updated_at: string;
@@ -311,6 +312,7 @@ export interface Database {
           jumlah_uang_rp: number;
           tanggal?: string;
           catatan?: string | null;
+          bukti_bayar_url?: string | null;
           created_by: string;
           created_at?: string;
           updated_at?: string;
@@ -324,6 +326,7 @@ export interface Database {
           jumlah_uang_rp?: number;
           tanggal?: string;
           catatan?: string | null;
+          bukti_bayar_url?: string | null;
           created_by?: string;
           created_at?: string;
           updated_at?: string;
@@ -338,6 +341,7 @@ export interface Database {
           jumlah_beras_kg: number;
           tanggal: string;
           catatan: string | null;
+          bukti_bayar_url: string | null;
           created_by: string;
           created_at: string;
           updated_at: string;
@@ -350,6 +354,7 @@ export interface Database {
           jumlah_beras_kg: number;
           tanggal?: string;
           catatan?: string | null;
+          bukti_bayar_url?: string | null;
           created_by: string;
           created_at?: string;
           updated_at?: string;
@@ -362,6 +367,7 @@ export interface Database {
           jumlah_beras_kg?: number;
           tanggal?: string;
           catatan?: string | null;
+          bukti_bayar_url?: string | null;
           created_by?: string;
           created_at?: string;
           updated_at?: string;

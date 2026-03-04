@@ -109,6 +109,7 @@ export function SedekahReceiptPage() {
                       <th className="py-2 pr-4">Tanggal</th>
                       <th className="py-2 pr-4">Kategori</th>
                       <th className="py-2 pr-4">Donor</th>
+                      <th className="py-2 pr-4">Catatan</th>
                       <th className="py-2 pr-4 text-right">Jumlah</th>
                       <th className="py-2 text-center">Aksi</th>
                     </tr>
@@ -120,6 +121,9 @@ export function SedekahReceiptPage() {
                         <td className="py-2 pr-4">{receipt.tanggal}</td>
                         <td className="py-2 pr-4">{receipt.category}</td>
                         <td className="py-2 pr-4">{receipt.donor_name}</td>
+                        <td className="py-2 pr-4 text-muted-foreground max-w-[220px] truncate" title={receipt.notes || '-'}>
+                          {receipt.notes || '-'}
+                        </td>
                         <td className="py-2 pr-4 text-right">{formatRupiah(receipt.amount)}</td>
                         <td className="py-2 text-center">
                           <div className="flex items-center justify-center gap-1">

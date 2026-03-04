@@ -7,6 +7,7 @@ import {
   mapKategoriToHakAmil,
   upsertHakAmilSnapshot,
 } from '@/lib/hakAmilSnapshot';
+import { uploadPaymentProofImage } from '@/lib/paymentProof';
 import { offlineStore } from '@/lib/offlineStore';
 
 const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
@@ -26,6 +27,7 @@ export interface PemasukanBeras {
   jumlah_beras_kg: number;
   tanggal: string;
   catatan: string | null;
+  bukti_bayar_url?: string | null;
   created_by: string;
   created_at: string;
   updated_at?: string;
@@ -45,6 +47,8 @@ interface CreatePemasukanInput {
   jumlah_beras_kg: number;
   tanggal: string;
   catatan?: string;
+  bukti_bayar_file?: File;
+  bukti_bayar_url?: string;
 }
 
 const DEFAULT_KAS_ACCOUNT_NAME = 'KAS';
@@ -216,13 +220,26 @@ export function useCreatePemasukanBeras() {
         throw new Error('User tidak terautentikasi');
       }
 
+      const { bukti_bayar_file, bukti_bayar_url, ...inputWithoutProofFields } = input;
+
+      let buktiBayarUrl: string | null = bukti_bayar_url || null;
+      if (bukti_bayar_file) {
+        const upload = await uploadPaymentProofImage({
+          file: bukti_bayar_file,
+          entity: 'pemasukan-beras',
+          userId,
+        });
+        buktiBayarUrl = upload.publicUrl;
+      }
+
       const accountId = await resolveKASAccountId();
 
       const payload = {
-        ...input,
+        ...inputWithoutProofFields,
         account_id: accountId,
-        muzakki_id: input.muzakki_id || null,
-        catatan: input.catatan || null,
+        muzakki_id: inputWithoutProofFields.muzakki_id || null,
+        catatan: inputWithoutProofFields.catatan || null,
+        bukti_bayar_url: buktiBayarUrl,
         created_by: userId,
         updated_at: new Date().toISOString(),
       };
@@ -295,12 +312,32 @@ export function useUpdatePemasukanBeras() {
     mutationFn: async (input: UpdatePemasukanInput) => {
       if (OFFLINE_MODE) { offlineStore.updatePemasukanBeras(input.id, input); return offlineStore.getPemasukanBerasList({}).data.find(p => p.id === input.id) as any; }
       const { id, ...updateData } = input;
+      const { data: auth } = await supabase.auth.getUser();
+      const userId = auth.user?.id;
+
+      if (!userId) {
+        throw new Error('User tidak terautentikasi');
+      }
+
+      const { bukti_bayar_file, bukti_bayar_url, ...updateDataWithoutProofFields } = updateData;
+
+      let buktiBayarUrl: string | null = bukti_bayar_url || null;
+      if (bukti_bayar_file) {
+        const upload = await uploadPaymentProofImage({
+          file: bukti_bayar_file,
+          entity: 'pemasukan-beras',
+          userId,
+        });
+        buktiBayarUrl = upload.publicUrl;
+      }
+
       const accountId = await resolveKASAccountId();
       const payload = {
-        ...updateData,
+        ...updateDataWithoutProofFields,
         account_id: accountId,
-        muzakki_id: updateData.muzakki_id || null,
-        catatan: updateData.catatan || null,
+        muzakki_id: updateDataWithoutProofFields.muzakki_id || null,
+        catatan: updateDataWithoutProofFields.catatan || null,
+        bukti_bayar_url: buktiBayarUrl,
         updated_at: new Date().toISOString(),
       };
 
@@ -325,8 +362,6 @@ export function useUpdatePemasukanBeras() {
       });
 
       const hakAmilKategori = mapKategoriToHakAmil(updateData.kategori);
-      const { data: auth } = await supabase.auth.getUser();
-      const userId = auth.user?.id;
 
       if (hakAmilKategori) {
         try {
