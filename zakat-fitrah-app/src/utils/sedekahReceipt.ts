@@ -214,23 +214,18 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
   pdf.text(': '+ data.category, valueX, yPosition);
   yPosition += ROW_GAP + LINE_HEIGHT;
 
-  // Row 6: Amount
+  // Row 6: Amount + Terbilang in parentheses
   pdf.setFont('Helvetica', 'normal');
   pdf.text('Sebesar', leftX, yPosition);
   pdf.setFont('Helvetica', 'bold');
-  pdf.text(': '+ formatRupiah(data.amount), valueX, yPosition);
-  yPosition += ROW_GAP + LINE_HEIGHT;
-
-  // Row 7: Terbilang (with text wrapping, fixed width 400px = ~105mm)
-  pdf.setFont('Helvetica', 'normal');
-  pdf.text('Terbilang', leftX, yPosition);
-  pdf.setFont('Helvetica', 'bold');
+  const amountText = formatRupiah(data.amount);
   const terbilangText = getTerbilangText(data.amount);
-  const terbilangLines = pdf.splitTextToSize(terbilangText, maxAddressWidth);
-  pdf.text(': '+ terbilangLines, valueX, yPosition);
-  yPosition += terbilangLines.length * LINE_HEIGHT + ROW_GAP;
+  const amountAndTerbilang = `${amountText} (${terbilangText})`;
+  const amountLines = truncateLines(pdf.splitTextToSize(amountAndTerbilang, maxAddressWidth), 2);
+  pdf.text(': ' + amountLines, valueX, yPosition);
+  yPosition += amountLines.length * LINE_HEIGHT + ROW_GAP;
 
-  // Row 8: Notes (optional)
+  // Row 7: Notes (optional)
   pdf.setFont('Helvetica', 'normal');
   pdf.text('Catatan', leftX, yPosition);
   pdf.setFont('Helvetica', 'bold');
@@ -256,7 +251,7 @@ export async function generateSedekahReceiptPDF(data: SedekahReceiptData) {
   // Design: Signature section has justifyContent: end (right-aligned)
   const signatureBoxWidth = 39.7; // 150px stamp width
   const signatureX = pageWidth - MARGIN - signatureBoxWidth / 2;
-  yPosition = signatureStartY;
+  yPosition = signatureStartY + 2;
 
   // Organization name above signature (11px normal)
   pdf.setFontSize(11 * 0.75);
