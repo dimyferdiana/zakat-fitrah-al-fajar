@@ -28,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { PemasukanForm } from '@/components/pemasukan/PemasukanForm';
+import { BuktiBayarModal } from '@/components/pemasukan/BuktiBayarModal';
 import { BuktiPemasukanUang } from '@/components/pemasukan/BuktiPemasukanUang';
 import { BulkPemasukanForm } from '@/components/pemasukan/BulkPemasukanForm';
 import {
@@ -65,6 +66,7 @@ export function PemasukanUang() {
   const [formOpen, setFormOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [buktiOpen, setBuktiOpen] = useState(false);
+  const [receiptOpen, setReceiptOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<PemasukanUang | null>(null);
   const [editingItem, setEditingItem] = useState<PemasukanUang | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -138,6 +140,11 @@ export function PemasukanUang() {
   const handleShowBukti = (item: PemasukanUang) => {
     setSelectedItem(item);
     setBuktiOpen(true);
+  };
+
+  const handleShowReceipt = (item: PemasukanUang) => {
+    setSelectedItem(item);
+    setReceiptOpen(true);
   };
 
   const tahunOptions = tahunList || [];
@@ -265,14 +272,6 @@ export function PemasukanUang() {
                       <td className="py-2 pr-4 text-muted-foreground">{item.catatan || '-'}</td>
                       <td className="py-2">
                         <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleShowBukti(item)}
-                          >
-                            <Receipt className="mr-1 h-4 w-4" />
-                            Bukti
-                          </Button>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="sm">
@@ -280,6 +279,14 @@ export function PemasukanUang() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleShowBukti(item)}>
+                                <Receipt className="mr-2 h-4 w-4" />
+                                Lihat Bukti Bayar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleShowReceipt(item)}>
+                                <Receipt className="mr-2 h-4 w-4" />
+                                Lihat Receipt PDF
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleEdit(item)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit
@@ -337,9 +344,17 @@ export function PemasukanUang() {
       />
 
       {selectedItem && (
-        <BuktiPemasukanUang
+        <BuktiBayarModal
           open={buktiOpen}
           onOpenChange={setBuktiOpen}
+          attachmentUrl={selectedItem.bukti_bayar_url}
+        />
+      )}
+
+      {selectedItem && (
+        <BuktiPemasukanUang
+          open={receiptOpen}
+          onOpenChange={setReceiptOpen}
           data={selectedItem}
         />
       )}

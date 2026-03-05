@@ -8,6 +8,7 @@
     "dev:demo": "VITE_OFFLINE_MODE=true vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "health:local": "bash scripts/health-check-local-supabase.sh",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",

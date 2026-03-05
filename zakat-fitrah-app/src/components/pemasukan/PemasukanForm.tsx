@@ -400,15 +400,30 @@ export function PemasukanForm({
                   File terpilih: {selectedProofFile.name}
                 </p>
               )}
-              {!selectedProofFile && defaultValues?.bukti_bayar_url && (
-                <a
-                  className="text-xs text-primary underline"
-                  href={defaultValues.bukti_bayar_url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Lihat bukti bayar saat ini
-                </a>
+              {defaultValues?.bukti_bayar_url && (
+                <div className="space-y-2 rounded-md border p-2">
+                  <p className="text-xs font-medium text-muted-foreground">Bukti bayar saat ini</p>
+                  <a href={defaultValues.bukti_bayar_url} target="_blank" rel="noreferrer">
+                    <img
+                      src={defaultValues.bukti_bayar_url}
+                      alt="Bukti bayar saat ini"
+                      className="h-28 w-auto rounded-md border object-cover"
+                    />
+                  </a>
+                  <a
+                    className="text-xs text-primary underline"
+                    href={defaultValues.bukti_bayar_url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Lihat bukti bayar saat ini
+                  </a>
+                  {selectedProofFile && (
+                    <p className="text-xs text-muted-foreground">
+                      File baru akan menggantikan bukti bayar saat ini setelah disimpan.
+                    </p>
+                  )}
+                </div>
               )}
               {proofError && <p className="text-xs text-destructive">{proofError}</p>}
             </div>
