@@ -1,8 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { submitBulk } from './useBulkPembayaran';
 import type { BulkRow, BulkSubmissionMeta } from '@/types/bulk';
-
-// ─── Hoisted mock function references (needed before vi.mock factory runs) ────
 
 const { mockSingle, mockSelect, mockInsert, mockFrom, mockGetUser } = vi.hoisted(() => {
   const mockSingle = vi.fn();
@@ -12,8 +10,6 @@ const { mockSingle, mockSelect, mockInsert, mockFrom, mockGetUser } = vi.hoisted
   const mockGetUser = vi.fn();
   return { mockSingle, mockSelect, mockInsert, mockFrom, mockGetUser };
 });
-
-// ─── Mocks ────────────────────────────────────────────────────────────────────
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -27,18 +23,16 @@ vi.mock('@/lib/hakAmilSnapshot', () => ({
   mapKategoriToHakAmil: vi.fn((k: string) => {
     const map: Record<string, string> = {
       zakat_fitrah_uang: 'zakat_fitrah',
+      fidyah_uang: 'fidyah',
       maal_penghasilan_uang: 'zakat_maal',
       infak_sedekah_uang: 'infak',
       zakat_fitrah_beras: 'zakat_fitrah',
-      maal_beras: 'zakat_maal',
       infak_sedekah_beras: 'infak',
     };
     return map[k] ?? null;
   }),
   createHakAmilSnapshot: vi.fn().mockResolvedValue(undefined),
 }));
-
-// ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 const meta: BulkSubmissionMeta = {
   operatorId: 'user-123',
@@ -51,23 +45,18 @@ function makeRow(overrides: Partial<BulkRow> = {}): BulkRow {
   return {
     muzakkiId: 'muzakki-001',
     muzakkiNama: 'Ahmad',
-    zakatFitrahBeras: null,
-    zakatFitrahUang: null,
-    zakatMaalBeras: null,
-    zakatMaalUang: null,
-    infakBeras: null,
-    infakUang: null,
+    transactionType: 'zakat_fitrah',
+    paymentMedium: 'uang',
+    amount: 50000,
+    unit: 'rp',
+    notes: '',
     ...overrides,
   };
 }
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
-
 describe('submitBulk', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Default happy path: authenticated user, successful insert
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-123' } } });
     mockSingle.mockResolvedValue({ data: { id: 'record-abc' }, error: null });
     mockSelect.mockReturnValue({ single: mockSingle });
@@ -75,36 +64,64 @@ describe('submitBulk', () => {
     mockFrom.mockReturnValue({ insert: mockInsert });
   });
 
-  it('returns success:true when all rows have valid transactions', async () => {
+  it('returns success:true when all rows are valid', async () => {
     const rows = [
-      makeRow({ zakatFitrahUang: 50000 }),
-      makeRow({ muzakkiId: 'muzakki-002', muzakkiNama: 'Budi', infakUang: 20000 }),
+      makeRow({ transactionType: 'zakat_fitrah', paymentMedium: 'uang', amount: 50000, unit: 'rp' }),
+      makeRow({
+        muzakkiId: 'muzakki-002',
+        muzakkiNama: 'Budi',
+        transactionType: 'infak',
+        paymentMedium: 'beras_kg',
+        amount: 2.5,
+        unit: 'kg',
+      }),
     ];
 
     const result = await submitBulk(rows, meta);
 
     expect(result.success).toBe(true);
     expect(result.errors).toHaveLength(0);
-    expect(result.receiptNo).toBe('BULK-2026-001');
-    expect(result.rows).toHaveLength(2);
+    expect(result.rowOutcomes).toHaveLength(2);
+    expect(result.rowOutcomes.every((x) => x.success)).toBe(true);
   });
 
-  it('skips rows where all transaction values are null/zero', async () => {
+  it('supports beras liter and keeps row success', async () => {
     const rows = [
-      makeRow({ zakatFitrahUang: 50000 }),
-      makeRow({ muzakkiId: 'muzakki-002', muzakkiNama: 'Kosong' }), // no transactions
+      makeRow({
+        transactionType: 'zakat_fitrah',
+        paymentMedium: 'beras_liter',
+        amount: 3,
+        unit: 'liter',
+      }),
+    ];
+
+    const result = await submitBulk(rows, meta);
+
+    expect(result.success).toBe(true);
+    expect(result.errors).toHaveLength(0);
+    // 1 insert row + 1 log insert
+    expect(mockInsert).toHaveBeenCalledTimes(2);
+  });
+
+  it('rejects invalid type-media combo (fidyah with beras)', async () => {
+    const rows = [
+      makeRow({
+        transactionType: 'fidyah',
+        paymentMedium: 'beras_kg',
+        amount: 2,
+        unit: 'kg',
+      }),
     ];
 
     const result = await submitBulk(rows, meta);
 
     expect(result.success).toBe(false);
-    expect(result.errors).toHaveLength(1);
-    expect(result.errors[0]).toContain('Kosong');
-    expect(result.errors[0]).toContain('tidak memiliki transaksi');
+    expect(result.errors[0]).toContain('Maal/Fidyah');
+    expect(result.rowOutcomes[0].success).toBe(false);
   });
 
   it('skips rows where muzakkiId is null', async () => {
-    const rows = [makeRow({ muzakkiId: null, muzakkiNama: 'Tanpa ID', zakatFitrahUang: 10000 })];
+    const rows = [makeRow({ muzakkiId: null, muzakkiNama: 'Tanpa ID' })];
 
     const result = await submitBulk(rows, meta);
 
@@ -113,30 +130,26 @@ describe('submitBulk', () => {
     expect(result.errors[0]).toContain('belum memiliki ID');
   });
 
-  it('processes beras and uang entries independently for each row', async () => {
-    const rows = [
-      makeRow({ zakatFitrahUang: 50000, zakatFitrahBeras: 2.5, infakUang: 10000 }),
-    ];
-
-    const result = await submitBulk(rows, meta);
-
-    expect(result.success).toBe(true);
-    // 3 inserts for entries + 1 for the bulk_submission_log
-    expect(mockInsert).toHaveBeenCalledTimes(4);
-  });
-
-  it('collects errors for failed inserts but continues with other rows', async () => {
+  it('collects errors for failed inserts but continues', async () => {
     let callCount = 0;
     mockSingle.mockImplementation(() => {
       callCount++;
-      if (callCount === 1)
+      if (callCount === 1) {
         return Promise.resolve({ data: null, error: { message: 'DB connection error' } });
+      }
       return Promise.resolve({ data: { id: 'record-ok' }, error: null });
     });
 
     const rows = [
-      makeRow({ zakatFitrahUang: 50000 }),
-      makeRow({ muzakkiId: 'muzakki-002', muzakkiNama: 'Cici', infakUang: 5000 }),
+      makeRow({ transactionType: 'zakat_fitrah', paymentMedium: 'uang', amount: 50000, unit: 'rp' }),
+      makeRow({
+        muzakkiId: 'muzakki-002',
+        muzakkiNama: 'Cici',
+        transactionType: 'infak',
+        paymentMedium: 'uang',
+        amount: 10000,
+        unit: 'rp',
+      }),
     ];
 
     const result = await submitBulk(rows, meta);
@@ -144,17 +157,12 @@ describe('submitBulk', () => {
     expect(result.success).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
     expect(result.errors[0]).toContain('DB connection error');
-  });
-
-  it('returns receipt number matching meta', async () => {
-    const rows = [makeRow({ zakatFitrahUang: 25000 })];
-    const result = await submitBulk(rows, { ...meta, receiptNo: 'BULK-TEST-999' });
-    expect(result.receiptNo).toBe('BULK-TEST-999');
+    expect(result.rowOutcomes.some((x) => !x.success)).toBe(true);
   });
 
   it('throws if user is not authenticated', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
-    const rows = [makeRow({ zakatFitrahUang: 25000 })];
+    const rows = [makeRow()];
     await expect(submitBulk(rows, meta)).rejects.toThrow('tidak terautentikasi');
   });
 });

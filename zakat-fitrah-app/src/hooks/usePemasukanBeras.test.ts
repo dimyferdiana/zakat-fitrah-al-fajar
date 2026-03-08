@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  buildPemasukanBerasPayload,
   createPemasukanBerasLedgerEntry,
   updatePemasukanBerasLedgerEntry,
   deletePemasukanBerasLedgerEntry,
@@ -122,5 +123,46 @@ describe('pemasukan beras ledger lifecycle regression', () => {
     expect(mockSelectEq).toHaveBeenCalledWith('source_pemasukan_beras_id', 'beras-1');
     expect(mockDelete).toHaveBeenCalledTimes(1);
     expect(mockDeleteEq).toHaveBeenCalledWith('id', 'ledger-beras-1');
+  });
+});
+
+describe('buildPemasukanBerasPayload', () => {
+  it('normalizes empty catatan to null and preserves optional bukti URL as null', () => {
+    const payload = buildPemasukanBerasPayload(
+      {
+        tahun_zakat_id: 'tahun-1',
+        kategori: 'zakat_fitrah_beras',
+        jumlah_beras_kg: 2.5,
+        tanggal: '2026-03-08',
+        catatan: '',
+      },
+      'user-1',
+      'acc-kas',
+      null
+    );
+
+    expect(payload.catatan).toBeNull();
+    expect(payload.bukti_bayar_url).toBeNull();
+    expect(payload.muzakki_id).toBeNull();
+  });
+
+  it('keeps provided catatan and existing bukti URL', () => {
+    const payload = buildPemasukanBerasPayload(
+      {
+        tahun_zakat_id: 'tahun-1',
+        muzakki_id: 'muzakki-1',
+        kategori: 'infak_sedekah_beras',
+        jumlah_beras_kg: 1.25,
+        tanggal: '2026-03-08',
+        catatan: 'Catatan beras',
+      },
+      'user-1',
+      'acc-kas',
+      'https://cdn.example.com/bukti-beras.jpg'
+    );
+
+    expect(payload.catatan).toBe('Catatan beras');
+    expect(payload.bukti_bayar_url).toBe('https://cdn.example.com/bukti-beras.jpg');
+    expect(payload.muzakki_id).toBe('muzakki-1');
   });
 });

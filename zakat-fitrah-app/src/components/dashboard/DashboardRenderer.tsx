@@ -4,6 +4,7 @@ import { StatCardWidget } from '@/components/dashboard/widgets/StatCardWidget';
 import { ChartWidget } from '@/components/dashboard/widgets/ChartWidget';
 import { DistribusiProgressWidget } from '@/components/dashboard/widgets/DistribusiProgressWidget';
 import { HakAmilWidget } from '@/components/dashboard/widgets/HakAmilWidget';
+import { HakAmilBerasWidget } from '@/components/dashboard/widgets/HakAmilBerasWidget';
 import { HakAmilTrendWidget } from '@/components/dashboard/widgets/HakAmilTrendWidget';
 import { SectionTitleWidget } from '@/components/dashboard/widgets/SectionTitleWidget';
 import { TextNoteWidget } from '@/components/dashboard/widgets/TextNoteWidget';
@@ -76,6 +77,11 @@ export function DashboardRenderer({
     if (widget.widget_type === 'hak_amil') {
       return (
         <HakAmilWidget key={widget.id} tahunZakatId={tahunZakatId} />
+      );
+    }
+    if (widget.widget_type === 'hak_amil_beras') {
+      return (
+        <HakAmilBerasWidget key={widget.id} tahunZakatId={tahunZakatId} />
       );
     }
     if (widget.widget_type === 'hak_amil_trend') {

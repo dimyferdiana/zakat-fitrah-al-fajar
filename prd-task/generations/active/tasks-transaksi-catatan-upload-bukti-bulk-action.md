@@ -51,25 +51,35 @@
 	- [x] 2.7 Tambahkan preview/indikator file bukti bayar pada mode edit agar file dapat diganti.
 	- [x] 2.8 Tampilkan pesan error yang jelas untuk file invalid (tipe tidak didukung atau >1 MB).
 
-- [ ] 3.0 Revamp bulk action transaction to table input + new payment rules
-	- [ ] 3.1 Redesign struktur `BulkRow` untuk model per baris transaksi dengan kolom tipe, media, nilai, satuan, dan catatan.
-	- [ ] 3.2 Update UI `BulkPemasukanForm` ke format tabel input massal per baris sesuai spec.
-	- [ ] 3.3 Tambahkan opsi tipe transaksi: zakat fitrah, maal, infak, fidyah.
-	- [ ] 3.4 Tambahkan opsi media pembayaran: uang (Rp), beras (kg), beras (liter).
-	- [ ] 3.5 Implement aturan validasi tipe-media: maal/fidyah hanya uang; fitrah/infak dapat uang, beras kg, beras liter.
-	- [ ] 3.6 Implement aturan satu transaksi satu media pembayaran (tidak boleh gabungan).
-	- [ ] 3.7 Update `submitBulk` agar menghasilkan payload pemasukan sesuai mapping tipe-media baru.
-	- [ ] 3.8 Update komponen hasil/rekap bulk agar menampilkan output sukses/gagal per baris dengan alasan error.
+- [x] 3.0 Revamp bulk action transaction to table input + new payment rules
+	- [x] 3.1 Redesign struktur `BulkRow` untuk model per baris transaksi dengan kolom tipe, media, nilai, satuan, dan catatan.
+	- [x] 3.2 Update UI `BulkPemasukanForm` ke format tabel input massal per baris sesuai spec.
+	- [x] 3.3 Tambahkan opsi tipe transaksi: zakat fitrah, maal, infak, fidyah.
+	- [x] 3.4 Tambahkan opsi media pembayaran: uang (Rp), beras (kg), beras (liter).
+	- [x] 3.5 Implement aturan validasi tipe-media: maal/fidyah hanya uang; fitrah/infak dapat uang, beras kg, beras liter.
+	- [x] 3.6 Implement aturan satu transaksi satu media pembayaran (tidak boleh gabungan).
+	- [x] 3.7 Update `submitBulk` agar menghasilkan payload pemasukan sesuai mapping tipe-media baru.
+	- [x] 3.8 Update komponen hasil/rekap bulk agar menampilkan output sukses/gagal per baris dengan alasan error.
 
-- [ ] 4.0 Add validation, error handling, and compatibility safeguards
-	- [ ] 4.1 Tambahkan validasi client-side (Zod/form rules) untuk semua field baru dan conditional field bulk.
-	- [ ] 4.2 Tambahkan validasi server-side (hook/service layer) untuk mencegah bypass aturan tipe-media.
-	- [ ] 4.3 Pastikan kompatibilitas data existing (record lama tetap terbaca normal tanpa bukti bayar).
-	- [ ] 4.4 Cek dampak ke receipt lama/reprint agar tidak memutus alur operasional yang sudah berjalan.
+- [x] 4.0 Add validation, error handling, and compatibility safeguards
+	- [x] 4.1 Tambahkan validasi client-side (Zod/form rules) untuk semua field baru dan conditional field bulk.
+	- [x] 4.2 Tambahkan validasi server-side (hook/service layer) untuk mencegah bypass aturan tipe-media.
+	- [x] 4.3 Pastikan kompatibilitas data existing (record lama tetap terbaca normal tanpa bukti bayar).
+	- [x] 4.4 Cek dampak ke receipt lama/reprint agar tidak memutus alur operasional yang sudah berjalan.
 
-- [ ] 5.0 Add/update tests and run build verification
-	- [ ] 5.1 Update unit test `useBulkPembayaran.test.ts` untuk skenario media beras liter dan aturan tipe-media.
-	- [ ] 5.2 Tambah/update test hook pemasukan untuk field bukti bayar dan fallback catatan.
-	- [ ] 5.3 Tambahkan test validasi form (minimal untuk batas ukuran file 1 MB dan tipe file gambar).
-	- [ ] 5.4 Jalankan test terfokus fitur transaksi/bulk/sedekah receipt.
-	- [ ] 5.5 Jalankan `npm run build` dan pastikan hasil lulus tanpa error.
+- [x] 5.0 Add/update tests and run build verification
+	- [x] 5.1 Update unit test `useBulkPembayaran.test.ts` untuk skenario media beras liter dan aturan tipe-media.
+	- [x] 5.2 Tambah/update test hook pemasukan untuk field bukti bayar dan fallback catatan.
+	- [x] 5.3 Tambahkan test validasi form (minimal untuk batas ukuran file 1 MB dan tipe file gambar).
+	- [x] 5.4 Jalankan test terfokus fitur transaksi/bulk/sedekah receipt.
+	- [x] 5.5 Jalankan `npm run build` dan pastikan hasil lulus tanpa error.
+
+- [x] 6.0 Bug fix widget Hak Amil: pisahkan perhitungan uang dan beras
+	- [x] 6.1 Reproduksi bug pada skenario transaksi beras (contoh: Fidyah Beras 5,4 kg) dan dokumentasikan sumber double-counting.
+	- [x] 6.2 Hapus komponen/perhitungan beras dari widget Hak Amil berbasis uang agar tidak ikut akumulasi nominal Rupiah.
+	- [x] 6.3 Buat widget baru khusus Hak Amil Beras (terpisah dari Hak Amil uang) dengan tampilan dan agregasi satuan beras.
+	- [x] 6.4 Pastikan widget Hak Amil Beras tidak melakukan konversi ke Rupiah dalam kondisi apa pun.
+	- [x] 6.5 Sesuaikan perhitungan widget Hak Amil Beras untuk mendukung satuan `kg` dan `liter` dari perubahan terakhir.
+	- [x] 6.6 Update konfigurasi editor/list widget agar tipe widget Hak Amil Uang dan Hak Amil Beras dapat dipilih terpisah.
+	- [x] 6.7 Tambahkan/update test unit/integrasi untuk mencegah regresi konversi beras->Rupiah dan validasi total per media.
+	- [x] 6.8 Jalankan verifikasi akhir (`npm run test` terkait dashboard/hak amil + `npm run build`).

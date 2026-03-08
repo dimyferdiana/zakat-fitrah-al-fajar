@@ -4,10 +4,17 @@
  * Locked in Wave 0. Do not change without PM approval and agent re-sync.
  */
 
+export type BulkTransactionType = 'zakat_fitrah' | 'maal' | 'infak' | 'fidyah';
+
+export type BulkPaymentMedium = 'uang' | 'beras_kg' | 'beras_liter';
+
+export type BulkUnit = 'rp' | 'kg' | 'liter';
+
+export const BULK_BERAS_KG_PER_LITER = 0.8;
+
 /**
  * One row in the bulk input table.
- * Each field represents beras (kg) or uang (Rp) for a given zakat/infak category.
- * null = not filled / not applicable for this muzakki.
+ * Each row represents exactly one transaction for one muzakki.
  */
 export interface BulkRow {
   /** Existing muzakki ID from the `muzakki` table. null if newly created inline. */
@@ -15,17 +22,16 @@ export interface BulkRow {
   /** Display name — always required, used as label when muzakkiId is null mid-creation. */
   muzakkiNama: string;
 
-  // Zakat Fitrah
-  zakatFitrahBeras: number | null;
-  zakatFitrahUang: number | null;
-
-  // Zakat Maal
-  zakatMaalBeras: number | null;
-  zakatMaalUang: number | null;
-
-  // Infak / Sedekah
-  infakBeras: number | null;
-  infakUang: number | null;
+  /** Tipe transaksi: zakat fitrah, maal, infak, atau fidyah. */
+  transactionType: BulkTransactionType | null;
+  /** Media pembayaran: uang, beras kg, atau beras liter. */
+  paymentMedium: BulkPaymentMedium | null;
+  /** Nominal/kuantitas sesuai media yang dipilih. */
+  amount: number | null;
+  /** Satuan yang mengikuti media pembayaran. */
+  unit: BulkUnit | null;
+  /** Catatan per transaksi (opsional). */
+  notes: string;
 }
 
 /**
@@ -55,9 +61,18 @@ export interface BulkResult {
   receiptNo: string;
   /** The rows that were attempted (for receipt rendering). */
   rows: BulkRow[];
+  /** Rekap hasil proses per baris transaksi. */
+  rowOutcomes: BulkRowOutcome[];
   /**
    * Human-readable error messages for any rows that failed.
    * Empty array when success === true.
    */
   errors: string[];
+}
+
+export interface BulkRowOutcome {
+  rowIndex: number;
+  muzakkiNama: string;
+  success: boolean;
+  message: string;
 }

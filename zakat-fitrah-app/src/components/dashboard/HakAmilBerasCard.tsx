@@ -16,9 +16,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { CircleDollarSign } from 'lucide-react';
+import { Wheat } from 'lucide-react';
 import {
-  useHakAmilDateRangeSummary,
+  useHakAmilBerasDateRangeSummary,
   getDateRangeForPeriod,
   type HakAmilPeriod,
 } from '@/hooks/useHakAmil';
@@ -40,27 +40,24 @@ const CATEGORY_LABELS: Record<HakAmilKategori, string> = {
   beras: 'Beras',
 };
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-  }).format(value);
+const formatWeight = (value: number) =>
+  `${new Intl.NumberFormat('id-ID', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value)} kg`;
 
 const formatPct = (value: number) =>
-  new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
-    value
-  );
+  new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
 
-interface HakAmilCardProps {
+interface HakAmilBerasCardProps {
   tahunZakatId?: string;
 }
 
-export function HakAmilCard({ tahunZakatId }: HakAmilCardProps) {
+export function HakAmilBerasCard({ tahunZakatId }: HakAmilBerasCardProps) {
   const [period, setPeriod] = useState<HakAmilPeriod>('this_month');
   const { startDate, endDate, label } = getDateRangeForPeriod(period);
 
-  const { data: summary, isLoading } = useHakAmilDateRangeSummary(
+  const { data: summary, isLoading } = useHakAmilBerasDateRangeSummary(
     tahunZakatId,
     startDate,
     endDate
@@ -70,7 +67,7 @@ export function HakAmilCard({ tahunZakatId }: HakAmilCardProps) {
     <Card className="md:col-span-2 lg:col-span-3">
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div>
-          <CardTitle className="text-sm font-medium">Hak Amil Uang</CardTitle>
+          <CardTitle className="text-sm font-medium">Hak Amil Beras</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">{label}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -86,7 +83,7 @@ export function HakAmilCard({ tahunZakatId }: HakAmilCardProps) {
               ))}
             </SelectContent>
           </Select>
-          <CircleDollarSign className="h-4 w-4 text-muted-foreground shrink-0" />
+          <Wheat className="h-4 w-4 text-muted-foreground shrink-0" />
         </div>
       </CardHeader>
 
@@ -95,36 +92,34 @@ export function HakAmilCard({ tahunZakatId }: HakAmilCardProps) {
           <div className="flex items-center justify-center py-8">
             <div className="text-sm text-muted-foreground">Memuat data...</div>
           </div>
-        ) : !summary || summary.grand_total_hak_amil === 0 ? (
+        ) : !summary || summary.grand_total_neto_kg === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <p className="text-sm text-muted-foreground">
-              Belum ada data hak amil untuk periode ini
+              Belum ada data hak amil beras untuk periode ini
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Data akan muncul setelah ada transaksi pemasukan
+              Data akan muncul setelah ada transaksi penerimaan beras
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Grand Total */}
             <div className="flex items-center justify-between border-b pb-2">
-              <span className="text-sm font-semibold">Total Hak Amil</span>
+              <span className="text-sm font-semibold">Total Hak Amil Beras</span>
               <span className="text-lg font-bold text-primary">
-                {formatCurrency(summary.grand_total_hak_amil)}
+                {formatWeight(summary.grand_total_hak_amil_kg)}
               </span>
             </div>
 
-            {/* Category Breakdown Table */}
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Kategori</TableHead>
-                    <TableHead className="text-right">Bruto</TableHead>
-                    <TableHead className="text-right">Rekonsiliasi</TableHead>
-                    <TableHead className="text-right">Neto</TableHead>
+                    <TableHead className="text-right">Bruto (kg)</TableHead>
+                    <TableHead className="text-right">Rekonsiliasi (kg)</TableHead>
+                    <TableHead className="text-right">Neto (kg)</TableHead>
                     <TableHead className="text-right">%</TableHead>
-                    <TableHead className="text-right">Nominal Hak Amil</TableHead>
+                    <TableHead className="text-right">Nominal Hak Amil (kg)</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -142,49 +137,44 @@ export function HakAmilCard({ tahunZakatId }: HakAmilCardProps) {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">{formatCurrency(category.total_bruto)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(category.total_rekonsiliasi)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(category.total_neto)}</TableCell>
-                      <TableCell className="text-right">
-                        {formatPct(category.persen_hak_amil)}%
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">{formatCurrency(category.nominal_hak_amil)}</TableCell>
+                      <TableCell className="text-right">{formatWeight(category.total_bruto_kg)}</TableCell>
+                      <TableCell className="text-right">{formatWeight(category.total_rekonsiliasi_kg)}</TableCell>
+                      <TableCell className="text-right">{formatWeight(category.total_neto_kg)}</TableCell>
+                      <TableCell className="text-right">{formatPct(category.persen_hak_amil)}%</TableCell>
+                      <TableCell className="text-right font-semibold">{formatWeight(category.nominal_hak_amil_kg)}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="bg-muted/50 font-semibold">
                     <TableCell>Total</TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(summary.grand_total_bruto)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(summary.grand_total_rekonsiliasi)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(summary.grand_total_neto)}
-                    </TableCell>
-                    <TableCell className="text-right">—</TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(summary.grand_total_hak_amil)}
-                    </TableCell>
+                    <TableCell className="text-right">{formatWeight(summary.grand_total_bruto_kg)}</TableCell>
+                    <TableCell className="text-right">{formatWeight(summary.grand_total_rekonsiliasi_kg)}</TableCell>
+                    <TableCell className="text-right">{formatWeight(summary.grand_total_neto_kg)}</TableCell>
+                    <TableCell className="text-right">-</TableCell>
+                    <TableCell className="text-right">{formatWeight(summary.grand_total_hak_amil_kg)}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </div>
 
             <div className="rounded-md border bg-muted/20 p-3">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Cakupan Transaksi</p>
+              <p className="text-xs font-medium text-muted-foreground mb-1">Cakupan Satuan Beras</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
                 <div>
-                  <span className="text-muted-foreground">Pembayaran Zakat:</span>{' '}
-                  <span className="font-semibold">{summary.coverage_debug?.pembayaran_zakat_count ?? 0}</span>
+                  <span className="text-muted-foreground">Input kg:</span>{' '}
+                  <span className="font-semibold">{formatWeight(summary.unit_breakdown?.source_kg_kg ?? 0)}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Pemasukan Uang:</span>{' '}
-                  <span className="font-semibold">{summary.coverage_debug?.pemasukan_uang_count ?? 0}</span>
+                  <span className="text-muted-foreground">Input liter:</span>{' '}
+                  <span className="font-semibold">
+                    {new Intl.NumberFormat('id-ID', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }).format(summary.unit_breakdown?.source_liter_liter ?? 0)} liter
+                  </span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Pemasukan Beras:</span>{' '}
-                  <span className="font-semibold">{summary.coverage_debug?.pemasukan_beras_count ?? 0}</span>
+                  <span className="text-muted-foreground">Liter ke kg:</span>{' '}
+                  <span className="font-semibold">{formatWeight(summary.unit_breakdown?.source_liter_to_kg ?? 0)}</span>
                 </div>
               </div>
             </div>

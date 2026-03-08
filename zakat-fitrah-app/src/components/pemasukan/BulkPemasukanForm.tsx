@@ -1,8 +1,12 @@
-import { useState, useCallback, useId } from 'react';
+import { Fragment, useCallback, useId, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
+import { ChevronsUpDown, Loader2, Plus, Receipt, Trash2, UserPlus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { offlineStore } from '@/lib/offlineStore';
-import { toast } from 'sonner';
+import { submitBulk } from '@/hooks/useBulkPembayaran';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,15 +15,26 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Trash2, ChevronsUpDown, UserPlus, Receipt } from 'lucide-react';
-import { format } from 'date-fns';
-import { submitBulk } from '@/hooks/useBulkPembayaran';
 import { BulkTandaTerima } from './BulkTandaTerima';
-import type { BulkRow, BulkResult } from '@/types/bulk';
+import {
+  BULK_BERAS_KG_PER_LITER,
+  type BulkPaymentMedium,
+  type BulkResult,
+  type BulkRow,
+  type BulkTransactionType,
+  type BulkUnit,
+} from '@/types/bulk';
+import {
+  allowedMediaForType,
+  unitForMedium,
+  validateBulkRow,
+} from '@/lib/bulkValidation';
 
 const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
+
+type FieldErrorKey = 'muzakkiId' | 'transactionType' | 'paymentMedium' | 'amount';
 
 interface MuzakkiOption {
   id: string;
@@ -37,6 +52,7 @@ interface BulkUangRecord {
   muzakki_id: string | null;
   kategori: string;
   jumlah_uang_rp: number;
+  catatan: string | null;
   muzakki?: { id: string; nama_kk: string } | null;
 }
 
@@ -44,26 +60,44 @@ interface BulkBerasRecord {
   muzakki_id: string | null;
   kategori: string;
   jumlah_beras_kg: number;
+  catatan: string | null;
   muzakki?: { id: string; nama_kk: string } | null;
 }
 
 interface BulkPemasukanFormProps {
   tahunZakatId: string;
-  /** Max rows per submission. Reads from admin settings; default 10. */
   rowLimit?: number;
 }
+
+const transactionTypeOptions: Array<{ value: BulkTransactionType; label: string }> = [
+  { value: 'zakat_fitrah', label: 'Zakat Fitrah' },
+  { value: 'maal', label: 'Maal' },
+  { value: 'infak', label: 'Infak' },
+  { value: 'fidyah', label: 'Fidyah' },
+];
+
+const paymentMediumOptions: Array<{ value: BulkPaymentMedium; label: string }> = [
+  { value: 'uang', label: 'Uang (Rp)' },
+  { value: 'beras_kg', label: 'Beras (kg)' },
+  { value: 'beras_liter', label: 'Beras (liter)' },
+];
 
 function makeEmptyRow(muzakkiId: string | null, muzakkiNama: string): BulkRow {
   return {
     muzakkiId,
     muzakkiNama,
-    zakatFitrahBeras: null,
-    zakatFitrahUang: null,
-    zakatMaalBeras: null,
-    zakatMaalUang: null,
-    infakBeras: null,
-    infakUang: null,
+    transactionType: null,
+    paymentMedium: null,
+    amount: null,
+    unit: null,
+    notes: '',
   };
+}
+
+function parsePosFloat(raw: string): number | null {
+  const v = parseFloat(raw.replace(',', '.'));
+  if (Number.isNaN(v) || v < 0) return null;
+  return v > 0 ? v : null;
 }
 
 function generateReceiptNo(): string {
@@ -72,22 +106,101 @@ function generateReceiptNo(): string {
   return `BULK-${date}-${rand}`;
 }
 
-function parsePosFloat(raw: string): number | null {
-  const v = parseFloat(raw.replace(',', '.'));
-  if (isNaN(v) || v < 0) return null;
-  return v > 0 ? v : null;
+function getUnitForMediumNullable(medium: BulkPaymentMedium | null): BulkUnit | null {
+  if (!medium) return null;
+  return unitForMedium(medium);
 }
 
-const NUM_COLS = [
-  { key: 'zakatFitrahBeras', label: 'ZF Beras (kg)', short: 'ZF Beras' },
-  { key: 'zakatFitrahUang', label: 'ZF Uang (Rp)', short: 'ZF Uang' },
-  { key: 'zakatMaalBeras', label: 'ZM Beras (kg)', short: 'ZM Beras' },
-  { key: 'zakatMaalUang', label: 'ZM Uang (Rp)', short: 'ZM Uang' },
-  { key: 'infakBeras', label: 'Infak Beras (kg)', short: 'Inf Beras' },
-  { key: 'infakUang', label: 'Infak Uang (Rp)', short: 'Inf Uang' },
-] as const;
+function unitLabel(unit: BulkUnit | null): string {
+  if (unit === 'rp') return 'Rp';
+  if (unit === 'kg') return 'kg';
+  if (unit === 'liter') return 'liter';
+  return '-';
+}
 
-type NumColKey = (typeof NUM_COLS)[number]['key'];
+function mapUangRecordToRow(record: BulkUangRecord): Omit<BulkRow, 'muzakkiId' | 'muzakkiNama' | 'notes'> | null {
+  const amount = Number(record.jumlah_uang_rp ?? 0);
+  if (amount <= 0) return null;
+
+  if (record.kategori === 'zakat_fitrah_uang') {
+    return { transactionType: 'zakat_fitrah', paymentMedium: 'uang', amount, unit: 'rp' };
+  }
+  if (record.kategori === 'maal_penghasilan_uang') {
+    return { transactionType: 'maal', paymentMedium: 'uang', amount, unit: 'rp' };
+  }
+  if (record.kategori === 'infak_sedekah_uang') {
+    return { transactionType: 'infak', paymentMedium: 'uang', amount, unit: 'rp' };
+  }
+  if (record.kategori === 'fidyah_uang') {
+    return { transactionType: 'fidyah', paymentMedium: 'uang', amount, unit: 'rp' };
+  }
+
+  return null;
+}
+
+function mapBerasRecordToRow(record: BulkBerasRecord): Omit<BulkRow, 'muzakkiId' | 'muzakkiNama' | 'notes'> | null {
+  const jumlahKg = Number(record.jumlah_beras_kg ?? 0);
+  if (jumlahKg <= 0) return null;
+
+  const isLiter = record.catatan?.includes('media:beras_liter') ?? false;
+  const amount = isLiter
+    ? Number((jumlahKg / BULK_BERAS_KG_PER_LITER).toFixed(2))
+    : jumlahKg;
+
+  if (record.kategori === 'zakat_fitrah_beras') {
+    return {
+      transactionType: 'zakat_fitrah',
+      paymentMedium: isLiter ? 'beras_liter' : 'beras_kg',
+      amount,
+      unit: isLiter ? 'liter' : 'kg',
+    };
+  }
+
+  // Legacy compatibility: historical rows may contain maal_beras/fidyah_beras.
+  if (record.kategori === 'maal_beras') {
+    return {
+      transactionType: 'maal',
+      paymentMedium: isLiter ? 'beras_liter' : 'beras_kg',
+      amount,
+      unit: isLiter ? 'liter' : 'kg',
+    };
+  }
+
+  if (record.kategori === 'fidyah_beras') {
+    return {
+      transactionType: 'fidyah',
+      paymentMedium: isLiter ? 'beras_liter' : 'beras_kg',
+      amount,
+      unit: isLiter ? 'liter' : 'kg',
+    };
+  }
+
+  if (record.kategori === 'infak_sedekah_beras') {
+    return {
+      transactionType: 'infak',
+      paymentMedium: isLiter ? 'beras_liter' : 'beras_kg',
+      amount,
+      unit: isLiter ? 'liter' : 'kg',
+    };
+  }
+
+  return null;
+}
+
+function extractNotes(catatan: string | null, receiptNo: string): string {
+  if (!catatan) return '';
+
+  const prefix = `Bulk #${receiptNo}`;
+  let notes = catatan.startsWith(prefix) ? catatan.slice(prefix.length).trim() : catatan.trim();
+
+  if (notes.startsWith('|')) notes = notes.slice(1).trim();
+  if (notes.startsWith('media:beras_liter')) {
+    notes = notes.slice('media:beras_liter'.length).trim();
+    if (notes.startsWith('|')) notes = notes.slice(1).trim();
+  }
+
+  return notes;
+}
 
 export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukanFormProps) {
   const formId = useId();
@@ -95,15 +208,13 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
 
   const [rows, setRows] = useState<BulkRow[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [rowErrors, setRowErrors] = useState<Record<number, string>>({});
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [result, setResult] = useState<BulkResult | null>(null);
   const [receiptOpen, setReceiptOpen] = useState(false);
 
-  // Muzakki search combobox state
   const [comboOpen, setComboOpen] = useState(false);
   const [muzakkiSearch, setMuzakkiSearch] = useState('');
 
-  // Inline new muzakki popover state
   const [newMuzakkiOpen, setNewMuzakkiOpen] = useState(false);
   const [newMuzakkiNama, setNewMuzakkiNama] = useState('');
   const [isCreatingMuzakki, setIsCreatingMuzakki] = useState(false);
@@ -123,6 +234,7 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
         .from('muzakki')
         .select('id, nama_kk')
         .order('nama_kk');
+
       if (error) throw error;
       return (data ?? []) as MuzakkiOption[];
     },
@@ -139,6 +251,7 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
         .eq('tahun_zakat_id', tahunZakatId)
         .order('created_at', { ascending: false })
         .limit(8);
+
       if (error) throw error;
       return (data ?? []) as BulkHistoryItem[];
     },
@@ -148,12 +261,20 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
   const alreadyAddedIds = new Set(rows.map((r) => r.muzakkiId).filter(Boolean));
 
   const filteredMuzakki = muzakkiOptions.filter(
-    (m) =>
-      !alreadyAddedIds.has(m.id) &&
-      m.nama_kk.toLowerCase().includes(muzakkiSearch.toLowerCase())
+    (m) => !alreadyAddedIds.has(m.id) && m.nama_kk.toLowerCase().includes(muzakkiSearch.toLowerCase())
   );
 
-  // ── Row mutations ─────────────────────────────────────────────────────────
+  const errKey = (idx: number, field: FieldErrorKey) => `${idx}.${field}`;
+
+  const clearRowErrors = useCallback((idx: number) => {
+    setFieldErrors((prev) => {
+      const next: Record<string, string> = {};
+      for (const [key, value] of Object.entries(prev)) {
+        if (!key.startsWith(`${idx}.`)) next[key] = value;
+      }
+      return next;
+    });
+  }, []);
 
   const addRow = useCallback((muzakkiId: string, muzakkiNama: string) => {
     setRows((prev) => [...prev, makeEmptyRow(muzakkiId, muzakkiNama)]);
@@ -163,38 +284,32 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
 
   const removeRow = useCallback((idx: number) => {
     setRows((prev) => prev.filter((_, i) => i !== idx));
-    setRowErrors((prev) => {
-      const next = { ...prev };
-      delete next[idx];
+    setFieldErrors((prev) => {
+      const next: Record<string, string> = {};
+      for (const [key, value] of Object.entries(prev)) {
+        const [rawIndex, field] = key.split('.');
+        const currentIndex = Number(rawIndex);
+        if (currentIndex === idx) continue;
+        if (currentIndex > idx) next[`${currentIndex - 1}.${field}`] = value;
+        else next[key] = value;
+      }
       return next;
     });
   }, []);
 
-  const updateCell = useCallback((idx: number, key: NumColKey, raw: string) => {
-    const value = raw === '' ? null : parsePosFloat(raw);
-    setRows((prev) =>
-      prev.map((row, i) => (i === idx ? { ...row, [key]: value } : row))
-    );
-    // Clear error for this row when user edits
-    setRowErrors((prev) => {
-      if (!prev[idx]) return prev;
-      const next = { ...prev };
-      delete next[idx];
-      return next;
-    });
-  }, []);
+  const updateRow = useCallback((idx: number, patch: Partial<BulkRow>) => {
+    setRows((prev) => prev.map((row, i) => (i === idx ? { ...row, ...patch } : row)));
+    clearRowErrors(idx);
+  }, [clearRowErrors]);
 
   const createAndAddMuzakki = async () => {
     const nama = newMuzakkiNama.trim();
     if (!nama) return;
+
     setIsCreatingMuzakki(true);
     try {
       if (OFFLINE_MODE) {
-        const created = offlineStore.addMuzakki({
-          nama_kk: nama,
-          alamat: '',
-          no_telp: null,
-        });
+        const created = offlineStore.addMuzakki({ nama_kk: nama, alamat: '', no_telp: null });
         addRow(created.id, nama);
         queryClient.invalidateQueries({ queryKey: ['muzakki-options'] });
         setNewMuzakkiNama('');
@@ -211,9 +326,10 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
       })
         .select('id')
         .single();
+
       if (error) throw error;
-      const newId: string = data.id;
-      addRow(newId, nama);
+
+      addRow(data.id as string, nama);
       queryClient.invalidateQueries({ queryKey: ['muzakki-options'] });
       setNewMuzakkiNama('');
       setNewMuzakkiOpen(false);
@@ -233,54 +349,49 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
       const [uangRes, berasRes] = await Promise.all([
         supabase
           .from('pemasukan_uang')
-          .select('muzakki_id, kategori, jumlah_uang_rp, muzakki:muzakki_id(id, nama_kk)')
+          .select('muzakki_id, kategori, jumlah_uang_rp, catatan, muzakki:muzakki_id(id, nama_kk)')
           .eq('tahun_zakat_id', tahunZakatId)
-          .eq('catatan', catatanRef),
+          .ilike('catatan', `${catatanRef}%`),
         supabase
           .from('pemasukan_beras')
-          .select('muzakki_id, kategori, jumlah_beras_kg, muzakki:muzakki_id(id, nama_kk)')
+          .select('muzakki_id, kategori, jumlah_beras_kg, catatan, muzakki:muzakki_id(id, nama_kk)')
           .eq('tahun_zakat_id', tahunZakatId)
-          .eq('catatan', catatanRef),
+          .ilike('catatan', `${catatanRef}%`),
       ]);
 
       if (uangRes.error) throw uangRes.error;
       if (berasRes.error) throw berasRes.error;
 
-      const uangRows = (uangRes.data ?? []) as BulkUangRecord[];
-      const berasRows = (berasRes.data ?? []) as BulkBerasRecord[];
+      const rebuiltRows: BulkRow[] = [];
 
-      const grouped = new Map<string, BulkRow>();
-
-      const ensureRow = (muzakkiId: string | null, muzakkiNama: string): BulkRow => {
-        const key = muzakkiId ?? `unknown-${muzakkiNama}`;
-        const existing = grouped.get(key);
-        if (existing) return existing;
-        const created = makeEmptyRow(muzakkiId, muzakkiNama || 'Tanpa Nama');
-        grouped.set(key, created);
-        return created;
-      };
-
-      for (const r of uangRows) {
-        const row = ensureRow(r.muzakki_id, r.muzakki?.nama_kk ?? 'Tanpa Nama');
-        const nominal = Number(r.jumlah_uang_rp ?? 0);
-        if (r.kategori === 'zakat_fitrah_uang') row.zakatFitrahUang = (row.zakatFitrahUang ?? 0) + nominal;
-        else if (r.kategori === 'maal_penghasilan_uang') row.zakatMaalUang = (row.zakatMaalUang ?? 0) + nominal;
-        else if (r.kategori === 'infak_sedekah_uang' || r.kategori === 'fidyah_uang') {
-          row.infakUang = (row.infakUang ?? 0) + nominal;
-        }
+      for (const record of (uangRes.data ?? []) as BulkUangRecord[]) {
+        const mapped = mapUangRecordToRow(record);
+        if (!mapped) continue;
+        rebuiltRows.push({
+          muzakkiId: record.muzakki_id,
+          muzakkiNama: record.muzakki?.nama_kk ?? 'Tanpa Nama',
+          transactionType: mapped.transactionType,
+          paymentMedium: mapped.paymentMedium,
+          amount: mapped.amount,
+          unit: mapped.unit,
+          notes: extractNotes(record.catatan, receiptNo),
+        });
       }
 
-      for (const r of berasRows) {
-        const row = ensureRow(r.muzakki_id, r.muzakki?.nama_kk ?? 'Tanpa Nama');
-        const jumlah = Number(r.jumlah_beras_kg ?? 0);
-        if (r.kategori === 'zakat_fitrah_beras') row.zakatFitrahBeras = (row.zakatFitrahBeras ?? 0) + jumlah;
-        else if (r.kategori === 'maal_beras') row.zakatMaalBeras = (row.zakatMaalBeras ?? 0) + jumlah;
-        else if (r.kategori === 'infak_sedekah_beras' || r.kategori === 'fidyah_beras') {
-          row.infakBeras = (row.infakBeras ?? 0) + jumlah;
-        }
+      for (const record of (berasRes.data ?? []) as BulkBerasRecord[]) {
+        const mapped = mapBerasRecordToRow(record);
+        if (!mapped) continue;
+        rebuiltRows.push({
+          muzakkiId: record.muzakki_id,
+          muzakkiNama: record.muzakki?.nama_kk ?? 'Tanpa Nama',
+          transactionType: mapped.transactionType,
+          paymentMedium: mapped.paymentMedium,
+          amount: mapped.amount,
+          unit: mapped.unit,
+          notes: extractNotes(record.catatan, receiptNo),
+        });
       }
 
-      const rebuiltRows = Array.from(grouped.values());
       if (rebuiltRows.length === 0) {
         toast.error('Data transaksi untuk receipt ini tidak ditemukan');
         return;
@@ -290,6 +401,12 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
         success: true,
         receiptNo,
         rows: rebuiltRows,
+        rowOutcomes: rebuiltRows.map((row, index) => ({
+          rowIndex: index,
+          muzakkiNama: row.muzakkiNama,
+          success: true,
+          message: `Baris #${index + 1} dimuat dari riwayat.`,
+        })),
         errors: [],
       });
       setReceiptOpen(true);
@@ -301,30 +418,35 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
     }
   };
 
-  // ── Validation ────────────────────────────────────────────────────────────
-
   function validate(): boolean {
-    const errors: Record<number, string> = {};
+    const errors: Record<string, string> = {};
+
     rows.forEach((row, idx) => {
-      const vals = NUM_COLS.map((c) => row[c.key]);
-      const allEmpty = vals.every((v) => v === null || v === 0);
-      if (allEmpty) {
-        errors[idx] = 'Minimal satu kolom harus diisi';
+      if (!row.muzakkiId) errors[errKey(idx, 'muzakkiId')] = 'Muzakki belum valid.';
+      if (!row.transactionType) errors[errKey(idx, 'transactionType')] = 'Pilih tipe transaksi.';
+      if (!row.paymentMedium) errors[errKey(idx, 'paymentMedium')] = 'Pilih media pembayaran.';
+      if (row.amount === null || row.amount <= 0) errors[errKey(idx, 'amount')] = 'Nilai harus lebih dari 0.';
+
+      if (row.transactionType && row.paymentMedium && row.amount !== null && row.unit) {
+        const businessRule = validateBulkRow({ ...row, muzakkiId: row.muzakkiId ?? '' });
+        if (!businessRule.ok) {
+          errors[errKey(idx, 'paymentMedium')] = businessRule.message;
+        }
       }
     });
-    setRowErrors(errors);
+
+    setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   }
 
-  // ── Submit ────────────────────────────────────────────────────────────────
-
   const handleSubmit = async () => {
     if (rows.length === 0) {
-      toast.error('Tambahkan minimal satu muzakki');
+      toast.error('Tambahkan minimal satu transaksi');
       return;
     }
+
     if (!validate()) {
-      toast.error('Ada baris yang belum diisi — silakan periksa kembali');
+      toast.error('Ada baris yang belum valid. Periksa error di tabel.');
       return;
     }
 
@@ -348,14 +470,12 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
       setResult(bulkResult);
 
       if (bulkResult.success) {
-        toast.success(`Berhasil menyimpan ${rows.length} muzakki — No. ${receiptNo}`);
+        toast.success(`Berhasil menyimpan ${rows.length} transaksi — No. ${receiptNo}`);
         setReceiptOpen(true);
         setRows([]);
-        setRowErrors({});
+        setFieldErrors({});
       } else {
-        toast.warning(
-          `Tersimpan dengan ${bulkResult.errors.length} error — cek detail di bawah`
-        );
+        toast.warning(`Tersimpan dengan ${bulkResult.errors.length} error — cek rekap per baris`);
         setReceiptOpen(true);
       }
     } catch (err) {
@@ -365,23 +485,15 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
     }
   };
 
-  // ── Summary calculations ──────────────────────────────────────────────────
-
-  const totalUang = rows.reduce(
-    (sum, r) =>
-      sum +
-      (r.zakatFitrahUang ?? 0) +
-      (r.zakatMaalUang ?? 0) +
-      (r.infakUang ?? 0),
-    0
-  );
-  const totalBeras = rows.reduce(
-    (sum, r) =>
-      sum +
-      (r.zakatFitrahBeras ?? 0) +
-      (r.zakatMaalBeras ?? 0) +
-      (r.infakBeras ?? 0),
-    0
+  const totals = rows.reduce(
+    (acc, row) => {
+      if (!row.amount || !row.paymentMedium) return acc;
+      if (row.paymentMedium === 'uang') acc.totalUang += row.amount;
+      if (row.paymentMedium === 'beras_kg') acc.totalBerasKg += row.amount;
+      if (row.paymentMedium === 'beras_liter') acc.totalBerasLiter += row.amount;
+      return acc;
+    },
+    { totalUang: 0, totalBerasKg: 0, totalBerasLiter: 0 }
   );
 
   const formatRp = (v: number) =>
@@ -393,28 +505,18 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
 
   const atLimit = rows.length >= rowLimit;
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
   return (
     <div className="space-y-4" id={formId}>
-      {/* Responsive notice for small screens */}
       <div className="block sm:hidden rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
         Mode bulk lebih nyaman digunakan pada layar yang lebih besar.
       </div>
 
-      {/* Toolbar: muzakki search + add new */}
       <div className="flex flex-wrap gap-2 items-center">
-        {/* Existing muzakki combobox */}
         <Popover open={comboOpen} onOpenChange={setComboOpen}>
           <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={atLimit}
-              className="gap-2"
-            >
+            <Button variant="outline" size="sm" disabled={atLimit} className="gap-2">
               <Plus className="h-4 w-4" />
-              Tambah Muzakki
+              Tambah Baris Transaksi
               <ChevronsUpDown className="h-3 w-3 opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -430,16 +532,14 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
             </div>
             <div className="max-h-52 overflow-y-auto">
               {filteredMuzakki.length === 0 ? (
-                <p className="p-3 text-xs text-muted-foreground text-center">
-                  Muzakki tidak ditemukan
-                </p>
+                <p className="p-3 text-xs text-muted-foreground text-center">Muzakki tidak ditemukan</p>
               ) : (
                 filteredMuzakki.map((m) => (
                   <button
                     key={m.id}
                     type="button"
                     className="w-full text-left px-3 py-1.5 text-sm hover:bg-accent cursor-pointer"
-                    onClick={() => { addRow(m.id, m.nama_kk); }}
+                    onClick={() => addRow(m.id, m.nama_kk)}
                   >
                     {m.nama_kk}
                   </button>
@@ -449,15 +549,9 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
           </PopoverContent>
         </Popover>
 
-        {/* Create new muzakki inline */}
         <Popover open={newMuzakkiOpen} onOpenChange={setNewMuzakkiOpen}>
           <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={atLimit}
-              className="gap-2"
-            >
+            <Button variant="outline" size="sm" disabled={atLimit} className="gap-2">
               <UserPlus className="h-4 w-4" />
               Muzakki Baru
             </Button>
@@ -465,9 +559,7 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
           <PopoverContent className="w-64 p-3 space-y-3" align="start">
             <p className="text-xs font-medium">Tambah Muzakki Baru</p>
             <div className="space-y-1">
-              <Label htmlFor={`${formId}-new-nama`} className="text-xs">
-                Nama KK
-              </Label>
+              <Label htmlFor={`${formId}-new-nama`} className="text-xs">Nama KK</Label>
               <Input
                 id={`${formId}-new-nama`}
                 placeholder="Masukkan nama..."
@@ -490,11 +582,7 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
               >
                 Batal
               </Button>
-              <Button
-                size="sm"
-                onClick={createAndAddMuzakki}
-                disabled={!newMuzakkiNama.trim() || isCreatingMuzakki}
-              >
+              <Button size="sm" onClick={createAndAddMuzakki} disabled={!newMuzakkiNama.trim() || isCreatingMuzakki}>
                 {isCreatingMuzakki && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
                 Simpan
               </Button>
@@ -502,72 +590,130 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
           </PopoverContent>
         </Popover>
 
-        {atLimit && (
-          <span className="text-xs text-muted-foreground">
-            Batas {rowLimit} muzakki per resi tercapai
-          </span>
-        )}
+        {atLimit && <span className="text-xs text-muted-foreground">Batas {rowLimit} baris per resi tercapai</span>}
       </div>
 
-      {/* Spreadsheet table */}
       {rows.length > 0 && (
         <div className="overflow-x-auto rounded-md border">
           <table className="min-w-full text-xs">
             <thead>
               <tr className="bg-muted/50 border-b">
                 <th className="px-2 py-2 text-left font-medium w-8">No</th>
-                <th className="px-2 py-2 text-left font-medium w-40">Nama Muzakki</th>
-                {NUM_COLS.map((col) => (
-                  <th key={col.key} className="px-2 py-2 text-right font-medium min-w-[90px]">
-                    {col.short}
-                  </th>
-                ))}
+                <th className="px-2 py-2 text-left font-medium min-w-[180px]">Nama Muzakki</th>
+                <th className="px-2 py-2 text-left font-medium min-w-[160px]">Tipe</th>
+                <th className="px-2 py-2 text-left font-medium min-w-[160px]">Media</th>
+                <th className="px-2 py-2 text-right font-medium min-w-[130px]">Nilai</th>
+                <th className="px-2 py-2 text-left font-medium min-w-[90px]">Satuan</th>
+                <th className="px-2 py-2 text-left font-medium min-w-[170px]">Catatan</th>
                 <th className="px-2 py-2 w-8" />
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, idx) => (
-                <>
-                  <tr
-                    key={`${row.muzakkiId ?? row.muzakkiNama}-${idx}`}
-                    className={`border-b last:border-0 ${rowErrors[idx] ? 'bg-red-50' : ''}`}
-                  >
-                    <td className="px-2 py-1 text-muted-foreground">{idx + 1}</td>
-                    <td className="px-2 py-1 font-medium">{row.muzakkiNama}</td>
-                    {NUM_COLS.map((col) => (
-                      <td key={col.key} className="px-1 py-1">
+              {rows.map((row, idx) => {
+                const rowErrorMessages = Object.entries(fieldErrors)
+                  .filter(([key]) => key.startsWith(`${idx}.`))
+                  .map(([, value]) => value);
+                const allowedMedia = row.transactionType
+                  ? allowedMediaForType(row.transactionType)
+                  : [];
+
+                return (
+                  <Fragment key={`${row.muzakkiId ?? row.muzakkiNama}-${idx}`}>
+                    <tr className={`border-b last:border-0 ${rowErrorMessages.length > 0 ? 'bg-red-50/40' : ''}`}>
+                      <td className="px-2 py-1 text-muted-foreground">{idx + 1}</td>
+                      <td className="px-2 py-1 font-medium">{row.muzakkiNama}</td>
+                      <td className="px-2 py-1">
+                        <Select
+                          value={row.transactionType ?? undefined}
+                          onValueChange={(value) => {
+                            const transactionType = value as BulkTransactionType;
+                            const nextAllowed = allowedMediaForType(transactionType);
+                            const isCurrentMediaValid = row.paymentMedium !== null && nextAllowed.includes(row.paymentMedium);
+                            const nextMedium = isCurrentMediaValid ? row.paymentMedium : null;
+                            updateRow(idx, {
+                              transactionType,
+                              paymentMedium: nextMedium,
+                              unit: getUnitForMediumNullable(nextMedium),
+                            });
+                          }}
+                        >
+                          <SelectTrigger className={`h-8 ${fieldErrors[errKey(idx, 'transactionType')] ? 'border-red-500' : ''}`}>
+                            <SelectValue placeholder="Pilih tipe" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {transactionTypeOptions.map((item) => (
+                              <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="px-2 py-1">
+                        <Select
+                          value={row.paymentMedium ?? undefined}
+                          onValueChange={(value) => {
+                            const paymentMedium = value as BulkPaymentMedium;
+                            updateRow(idx, { paymentMedium, unit: getUnitForMediumNullable(paymentMedium) });
+                          }}
+                        >
+                          <SelectTrigger className={`h-8 ${fieldErrors[errKey(idx, 'paymentMedium')] ? 'border-red-500' : ''}`}>
+                            <SelectValue placeholder="Pilih media" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {paymentMediumOptions.map((item) => (
+                              <SelectItem
+                                key={item.value}
+                                value={item.value}
+                                disabled={row.transactionType !== null && !allowedMedia.includes(item.value)}
+                              >
+                                {item.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="px-2 py-1">
                         <Input
                           type="number"
                           min="0"
-                          step={col.key.endsWith('Beras') ? '0.01' : '1000'}
-                          className="h-7 text-right text-xs w-full font-mono"
-                          placeholder="—"
-                          value={row[col.key] ?? ''}
-                          onChange={(e) => updateCell(idx, col.key, e.target.value)}
+                          step={row.paymentMedium === 'uang' ? '1000' : '0.01'}
+                          className={`h-8 text-right text-xs w-full font-mono ${fieldErrors[errKey(idx, 'amount')] ? 'border-red-500' : ''}`}
+                          placeholder="0"
+                          value={row.amount ?? ''}
+                          onChange={(e) => updateRow(idx, { amount: e.target.value === '' ? null : parsePosFloat(e.target.value) })}
                         />
                       </td>
-                    ))}
-                    <td className="px-1 py-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-red-600"
-                        onClick={() => removeRow(idx)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </td>
-                  </tr>
-                  {rowErrors[idx] && (
-                    <tr key={`err-${idx}`} className="bg-red-50">
-                      <td />
-                      <td colSpan={NUM_COLS.length + 2} className="px-2 pb-1 text-[10px] text-red-600">
-                        {rowErrors[idx]}
+                      <td className="px-2 py-1"><Badge variant="outline">{unitLabel(row.unit)}</Badge></td>
+                      <td className="px-2 py-1">
+                        <Input
+                          className="h-8 text-xs"
+                          maxLength={255}
+                          placeholder="Catatan (opsional)"
+                          value={row.notes}
+                          onChange={(e) => updateRow(idx, { notes: e.target.value })}
+                        />
+                      </td>
+                      <td className="px-1 py-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-red-600"
+                          onClick={() => removeRow(idx)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       </td>
                     </tr>
-                  )}
-                </>
-              ))}
+                    {rowErrorMessages.length > 0 && (
+                      <tr className="bg-red-50">
+                        <td />
+                        <td colSpan={7} className="px-2 pb-1 text-[10px] text-red-600">
+                          {Array.from(new Set(rowErrorMessages)).join(' ')}
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -575,73 +721,61 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
 
       {rows.length === 0 && (
         <div className="rounded-md border border-dashed py-10 text-center text-sm text-muted-foreground">
-          Belum ada muzakki — klik "Tambah Muzakki" untuk mulai
+          Belum ada transaksi. Klik "Tambah Baris Transaksi" untuk mulai.
         </div>
       )}
 
-      {/* Summary bar */}
       {rows.length > 0 && (
         <>
           <Separator />
           <div className="flex flex-wrap gap-6 text-sm">
             <div>
-              <span className="text-muted-foreground">Jumlah Muzakki: </span>
+              <span className="text-muted-foreground">Jumlah Baris: </span>
               <Badge variant="secondary">{rows.length}</Badge>
             </div>
             <div>
               <span className="text-muted-foreground">Total Uang: </span>
-              <span className="font-semibold">{formatRp(totalUang)}</span>
+              <span className="font-semibold">{formatRp(totals.totalUang)}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Total Beras: </span>
-              <span className="font-semibold">{totalBeras.toFixed(2)} kg</span>
+              <span className="text-muted-foreground">Total Beras (kg): </span>
+              <span className="font-semibold">{totals.totalBerasKg.toFixed(2)} kg</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Total Beras (liter): </span>
+              <span className="font-semibold">{totals.totalBerasLiter.toFixed(2)} liter</span>
             </div>
           </div>
         </>
       )}
 
-      {/* Submit + re-open receipt */}
       <div className="flex flex-wrap items-center justify-end gap-2">
         {result && (
-          <Button
-            variant="outline"
-            onClick={() => setReceiptOpen(true)}
-            className="gap-2"
-          >
+          <Button variant="outline" onClick={() => setReceiptOpen(true)} className="gap-2">
             <Receipt className="h-4 w-4" />
             Lihat Tanda Terima ({result.receiptNo})
           </Button>
         )}
-        <Button
-          onClick={handleSubmit}
-          disabled={isSubmitting || rows.length === 0}
-          className="min-w-[140px]"
-        >
+        <Button onClick={handleSubmit} disabled={isSubmitting || rows.length === 0} className="min-w-[140px]">
           {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isSubmitting ? 'Menyimpan...' : 'Simpan & Cetak Resi'}
         </Button>
       </div>
 
-      {/* Bulk receipt history */}
       <div className="rounded-md border p-3 space-y-2">
         <p className="text-sm font-medium">Riwayat Bulk Receipt</p>
-        {historyLoading && (
-          <p className="text-xs text-muted-foreground">Memuat riwayat...</p>
-        )}
+        {historyLoading && <p className="text-xs text-muted-foreground">Memuat riwayat...</p>}
         {!historyLoading && bulkHistory.length === 0 && (
           <p className="text-xs text-muted-foreground">Belum ada riwayat bulk untuk tahun ini.</p>
         )}
         {!historyLoading && bulkHistory.length > 0 && (
           <div className="space-y-2">
             {bulkHistory.map((item) => (
-              <div
-                key={item.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded border px-3 py-2"
-              >
+              <div key={item.id} className="flex flex-wrap items-center justify-between gap-2 rounded border px-3 py-2">
                 <div className="text-xs">
                   <p className="font-medium">{item.receipt_no}</p>
                   <p className="text-muted-foreground">
-                    {new Date(item.created_at).toLocaleString('id-ID')} • {item.row_count} muzakki
+                    {new Date(item.created_at).toLocaleString('id-ID')} • {item.row_count} baris
                   </p>
                 </div>
                 <Button
@@ -650,9 +784,7 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
                   onClick={() => handleReprintFromHistory(item.receipt_no)}
                   disabled={reprintLoadingReceiptNo === item.receipt_no}
                 >
-                  {reprintLoadingReceiptNo === item.receipt_no && (
-                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                  )}
+                  {reprintLoadingReceiptNo === item.receipt_no && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
                   Reprint
                 </Button>
               </div>
@@ -661,24 +793,32 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
         )}
       </div>
 
-      {/* Submission errors */}
+      {result && result.rowOutcomes.length > 0 && (
+        <div className="rounded-md border p-3 text-xs space-y-2">
+          <p className="font-semibold">Rekap Hasil Per Baris</p>
+          <div className="space-y-1">
+            {result.rowOutcomes.map((item) => (
+              <div
+                key={`${item.rowIndex}-${item.message}`}
+                className={`rounded px-2 py-1 ${item.success ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}
+              >
+                {item.message}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {result && result.errors.length > 0 && (
         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-xs space-y-1">
-          <p className="font-semibold text-red-700">Beberapa baris gagal disimpan:</p>
+          <p className="font-semibold text-red-700">Ringkasan Error:</p>
           {result.errors.map((e, i) => (
             <p key={i} className="text-red-600">{e}</p>
           ))}
         </div>
       )}
 
-      {/* Receipt dialog */}
-      {result && (
-        <BulkTandaTerima
-          open={receiptOpen}
-          onOpenChange={setReceiptOpen}
-          result={result}
-        />
-      )}
+      {result && <BulkTandaTerima open={receiptOpen} onOpenChange={setReceiptOpen} result={result} />}
     </div>
   );
 }

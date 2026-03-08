@@ -58,6 +58,22 @@ interface CreatePemasukanInput {
   bukti_bayar_url?: string;
 }
 
+export function buildPemasukanUangPayload(
+  input: Omit<CreatePemasukanInput, 'bukti_bayar_file' | 'bukti_bayar_url'>,
+  userId: string,
+  buktiBayarUrl: string | null
+) {
+  return {
+    ...input,
+    account_id: input.account_id,
+    muzakki_id: input.muzakki_id || null,
+    catatan: input.catatan || null,
+    bukti_bayar_url: buktiBayarUrl,
+    created_by: userId,
+    updated_at: new Date().toISOString(),
+  };
+}
+
 const DEFAULT_KAS_ACCOUNT_NAME = 'KAS';
 const DEFAULT_BANK_ACCOUNT_NAME = 'BCA-SYARIAH : MPZ LAZ AL FAJAR ZAKAT';
 
@@ -235,15 +251,11 @@ export function useCreatePemasukanUang() {
         buktiBayarUrl = upload.publicUrl;
       }
 
-      const payload = {
-        ...inputWithoutProofFields,
-        account_id: inputWithoutProofFields.account_id,
-        muzakki_id: inputWithoutProofFields.muzakki_id || null,
-        catatan: inputWithoutProofFields.catatan || null,
-        bukti_bayar_url: buktiBayarUrl,
-        created_by: userId,
-        updated_at: new Date().toISOString(),
-      };
+      const payload = buildPemasukanUangPayload(
+        inputWithoutProofFields,
+        userId,
+        buktiBayarUrl
+      );
 
       const { data, error } = await (supabase.from('pemasukan_uang').insert as any)(payload)
         .select('*')
@@ -331,12 +343,15 @@ export function useUpdatePemasukanUang() {
         buktiBayarUrl = upload.publicUrl;
       }
 
+      const normalizedPayload = buildPemasukanUangPayload(
+        updateDataWithoutProofFields,
+        userId,
+        buktiBayarUrl
+      );
+      const { created_by: _ignoreCreatedBy, ...normalizedWithoutCreatedBy } = normalizedPayload;
+
       const payload = {
-        ...updateDataWithoutProofFields,
-        account_id: updateDataWithoutProofFields.account_id,
-        muzakki_id: updateDataWithoutProofFields.muzakki_id || null,
-        catatan: updateDataWithoutProofFields.catatan || null,
-        bukti_bayar_url: buktiBayarUrl,
+        ...normalizedWithoutCreatedBy,
         updated_at: new Date().toISOString(),
       };
 

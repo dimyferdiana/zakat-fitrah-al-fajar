@@ -51,6 +51,23 @@ interface CreatePemasukanInput {
   bukti_bayar_url?: string;
 }
 
+export function buildPemasukanBerasPayload(
+  input: Omit<CreatePemasukanInput, 'bukti_bayar_file' | 'bukti_bayar_url'>,
+  userId: string,
+  accountId: string,
+  buktiBayarUrl: string | null
+) {
+  return {
+    ...input,
+    account_id: accountId,
+    muzakki_id: input.muzakki_id || null,
+    catatan: input.catatan || null,
+    bukti_bayar_url: buktiBayarUrl,
+    created_by: userId,
+    updated_at: new Date().toISOString(),
+  };
+}
+
 const DEFAULT_KAS_ACCOUNT_NAME = 'KAS';
 
 async function resolveKASAccountId(): Promise<string> {
@@ -234,15 +251,12 @@ export function useCreatePemasukanBeras() {
 
       const accountId = await resolveKASAccountId();
 
-      const payload = {
-        ...inputWithoutProofFields,
-        account_id: accountId,
-        muzakki_id: inputWithoutProofFields.muzakki_id || null,
-        catatan: inputWithoutProofFields.catatan || null,
-        bukti_bayar_url: buktiBayarUrl,
-        created_by: userId,
-        updated_at: new Date().toISOString(),
-      };
+      const payload = buildPemasukanBerasPayload(
+        inputWithoutProofFields,
+        userId,
+        accountId,
+        buktiBayarUrl
+      );
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase.from('pemasukan_beras').insert as any)(payload)
@@ -332,12 +346,16 @@ export function useUpdatePemasukanBeras() {
       }
 
       const accountId = await resolveKASAccountId();
+      const normalizedPayload = buildPemasukanBerasPayload(
+        updateDataWithoutProofFields,
+        userId,
+        accountId,
+        buktiBayarUrl
+      );
+      const { created_by: _ignoreCreatedBy, ...normalizedWithoutCreatedBy } = normalizedPayload;
+
       const payload = {
-        ...updateDataWithoutProofFields,
-        account_id: accountId,
-        muzakki_id: updateDataWithoutProofFields.muzakki_id || null,
-        catatan: updateDataWithoutProofFields.catatan || null,
-        bukti_bayar_url: buktiBayarUrl,
+        ...normalizedWithoutCreatedBy,
         updated_at: new Date().toISOString(),
       };
 

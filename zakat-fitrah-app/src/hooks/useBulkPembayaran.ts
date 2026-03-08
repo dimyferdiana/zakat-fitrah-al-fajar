@@ -4,7 +4,14 @@ import {
   fetchBasisModeForTahun,
   mapKategoriToHakAmil,
 } from '@/lib/hakAmilSnapshot';
-import type { BulkRow, BulkSubmissionMeta, BulkResult } from '@/types/bulk';
+import { validateBulkRow } from '@/lib/bulkValidation';
+import { BULK_BERAS_KG_PER_LITER } from '@/types/bulk';
+import type {
+  BulkRow,
+  BulkSubmissionMeta,
+  BulkResult,
+  BulkTransactionType,
+} from '@/types/bulk';
 import { format } from 'date-fns';
 
 // ─── Internal type helpers ────────────────────────────────────────────────────
@@ -28,31 +35,86 @@ interface UangEntry {
 
 interface BerasEntry {
   kategori: BerasKategori;
-  jumlah: number;
+  jumlahKg: number;
 }
 
 // ─── Row-to-entry mapping ─────────────────────────────────────────────────────
 
-function getUangEntries(row: BulkRow): UangEntry[] {
-  const entries: UangEntry[] = [];
-  if (row.zakatFitrahUang && row.zakatFitrahUang > 0)
-    entries.push({ kategori: 'zakat_fitrah_uang', jumlah: row.zakatFitrahUang });
-  if (row.zakatMaalUang && row.zakatMaalUang > 0)
-    entries.push({ kategori: 'maal_penghasilan_uang', jumlah: row.zakatMaalUang });
-  if (row.infakUang && row.infakUang > 0)
-    entries.push({ kategori: 'infak_sedekah_uang', jumlah: row.infakUang });
-  return entries;
+function mapUangKategori(type: BulkTransactionType): UangKategori {
+  if (type === 'zakat_fitrah') return 'zakat_fitrah_uang';
+  if (type === 'maal') return 'maal_penghasilan_uang';
+  if (type === 'infak') return 'infak_sedekah_uang';
+  return 'fidyah_uang';
 }
 
-function getBerasEntries(row: BulkRow): BerasEntry[] {
-  const entries: BerasEntry[] = [];
-  if (row.zakatFitrahBeras && row.zakatFitrahBeras > 0)
-    entries.push({ kategori: 'zakat_fitrah_beras', jumlah: row.zakatFitrahBeras });
-  if (row.zakatMaalBeras && row.zakatMaalBeras > 0)
-    entries.push({ kategori: 'maal_beras', jumlah: row.zakatMaalBeras });
-  if (row.infakBeras && row.infakBeras > 0)
-    entries.push({ kategori: 'infak_sedekah_beras', jumlah: row.infakBeras });
-  return entries;
+function mapBerasKategori(type: BulkTransactionType): BerasKategori {
+  if (type === 'zakat_fitrah') return 'zakat_fitrah_beras';
+  return 'infak_sedekah_beras';
+}
+
+function buildRowCatatan(catatanRef: string, row: BulkRow): string {
+  const notes = row.notes.trim();
+  const parts = [catatanRef];
+
+  if (row.paymentMedium === 'beras_liter') {
+    parts.push('media:beras_liter');
+  }
+  if (notes.length > 0) {
+    parts.push(notes);
+  }
+
+  return parts.join(' | ');
+}
+
+function mapRowToEntries(
+  row: BulkRow
+): { uangEntry: UangEntry | null; berasEntry: BerasEntry | null; error: string | null } {
+  const validation = validateBulkRow({ ...row, muzakkiId: row.muzakkiId ?? '' });
+  if (!validation.ok) {
+    return {
+      uangEntry: null,
+      berasEntry: null,
+      error: validation.message,
+    };
+  }
+
+  const transactionType = row.transactionType;
+  const paymentMedium = row.paymentMedium;
+  const amount = row.amount;
+  if (!transactionType || !paymentMedium || amount === null) {
+    return {
+      uangEntry: null,
+      berasEntry: null,
+      error: 'Baris bulk belum lengkap.',
+    };
+  }
+
+  if (paymentMedium === 'uang') {
+    return {
+      uangEntry: { kategori: mapUangKategori(transactionType), jumlah: amount },
+      berasEntry: null,
+      error: null,
+    };
+  }
+
+  if (transactionType === 'maal' || transactionType === 'fidyah') {
+    return {
+      uangEntry: null,
+      berasEntry: null,
+      error: 'Maal/Fidyah tidak dapat menggunakan media beras.',
+    };
+  }
+
+  const jumlahKg =
+    paymentMedium === 'beras_liter'
+      ? Number((amount * BULK_BERAS_KG_PER_LITER).toFixed(2))
+      : amount;
+
+  return {
+    uangEntry: null,
+    berasEntry: { kategori: mapBerasKategori(transactionType), jumlahKg },
+    error: null,
+  };
 }
 
 // ─── Core submit function (plain async, no React dependency) ─────────────────
@@ -78,118 +140,131 @@ export async function submitBulk(
 
   const today = format(new Date(), 'yyyy-MM-dd');
   const errors: string[] = [];
+  const rowOutcomes: BulkResult['rowOutcomes'] = [];
 
   // Fetch basis mode once for the whole batch (same tahun_zakat for all rows)
   const basisMode = await fetchBasisModeForTahun(meta.tahunZakatId);
   const catatanRef = `Bulk #${meta.receiptNo}`;
 
-  for (const row of rows) {
+  for (const [rowIndex, row] of rows.entries()) {
     if (!row.muzakkiId) {
-      errors.push(
-        `Muzakki "${row.muzakkiNama}" belum memiliki ID — baris dilewati.`
-      );
+      const message = `Muzakki "${row.muzakkiNama}" belum memiliki ID — baris dilewati.`;
+      errors.push(message);
+      rowOutcomes.push({ rowIndex, muzakkiNama: row.muzakkiNama, success: false, message });
       continue;
     }
 
-    const uangEntries = getUangEntries(row);
-    const berasEntries = getBerasEntries(row);
-
-    if (uangEntries.length === 0 && berasEntries.length === 0) {
-      errors.push(
-        `Muzakki "${row.muzakkiNama}" tidak memiliki transaksi — baris dilewati.`
-      );
+    const { uangEntry, berasEntry, error } = mapRowToEntries(row);
+    if (error) {
+      const message = `Baris #${rowIndex + 1} (${row.muzakkiNama}): ${error}`;
+      errors.push(message);
+      rowOutcomes.push({ rowIndex, muzakkiNama: row.muzakkiNama, success: false, message });
       continue;
     }
 
-    // ── Insert pemasukan_uang rows ──────────────────────────────────────────
-    for (const entry of uangEntries) {
+    const rowCatatan = buildRowCatatan(catatanRef, row);
+
+    if (uangEntry) {
       try {
         const payload = {
           tahun_zakat_id: meta.tahunZakatId,
           muzakki_id: row.muzakkiId,
-          kategori: entry.kategori,
+          kategori: uangEntry.kategori,
           akun: 'kas' as const,
-          jumlah_uang_rp: entry.jumlah,
+          jumlah_uang_rp: uangEntry.jumlah,
           tanggal: today,
-          catatan: catatanRef,
+          catatan: rowCatatan,
           created_by: userId,
           updated_at: new Date().toISOString(),
         };
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = await (supabase.from('pemasukan_uang').insert as any)(
+        const { data, error: insertError } = await (supabase.from('pemasukan_uang').insert as any)(
           payload
         )
           .select('id')
           .single();
 
-        if (error) throw error;
+        if (insertError) throw insertError;
 
-        // Hak amil snapshot (non-blocking)
-        const hakAmilKategori = mapKategoriToHakAmil(entry.kategori);
+        const hakAmilKategori = mapKategoriToHakAmil(uangEntry.kategori);
         if (hakAmilKategori && data?.id) {
           await createHakAmilSnapshot({
             tahunZakatId: meta.tahunZakatId,
             kategori: hakAmilKategori,
             tanggal: today,
-            grossAmount: entry.jumlah,
+            grossAmount: uangEntry.jumlah,
             reconciliationAmount: 0,
             basisMode,
             sourceType: 'pemasukan_uang',
             sourceId: data.id,
-            catatan: catatanRef,
+            catatan: rowCatatan,
             createdBy: userId,
           });
         }
+
+        rowOutcomes.push({
+          rowIndex,
+          muzakkiNama: row.muzakkiNama,
+          success: true,
+          message: `Baris #${rowIndex + 1} berhasil disimpan (${uangEntry.kategori}).`,
+        });
       } catch (err) {
-        errors.push(
-          `Muzakki "${row.muzakkiNama}" — ${entry.kategori}: ${(err as Error).message}`
-        );
+        const message = `Baris #${rowIndex + 1} (${row.muzakkiNama}) gagal: ${(err as Error).message}`;
+        errors.push(message);
+        rowOutcomes.push({ rowIndex, muzakkiNama: row.muzakkiNama, success: false, message });
       }
+      continue;
     }
 
-    // ── Insert pemasukan_beras rows ─────────────────────────────────────────
-    for (const entry of berasEntries) {
+    if (berasEntry) {
       try {
         const payload = {
           tahun_zakat_id: meta.tahunZakatId,
           muzakki_id: row.muzakkiId,
-          kategori: entry.kategori,
-          jumlah_beras_kg: entry.jumlah,
+          kategori: berasEntry.kategori,
+          jumlah_beras_kg: berasEntry.jumlahKg,
           tanggal: today,
-          catatan: catatanRef,
+          catatan: rowCatatan,
           created_by: userId,
           updated_at: new Date().toISOString(),
         };
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = await (supabase.from('pemasukan_beras').insert as any)(
+        const { data, error: insertError } = await (supabase.from('pemasukan_beras').insert as any)(
           payload
         )
           .select('id')
           .single();
 
-        if (error) throw error;
+        if (insertError) throw insertError;
 
-        const hakAmilKategori = mapKategoriToHakAmil(entry.kategori);
+        const hakAmilKategori = mapKategoriToHakAmil(berasEntry.kategori);
         if (hakAmilKategori && data?.id) {
           await createHakAmilSnapshot({
             tahunZakatId: meta.tahunZakatId,
             kategori: hakAmilKategori,
             tanggal: today,
-            grossAmount: entry.jumlah,
+            grossAmount: berasEntry.jumlahKg,
             reconciliationAmount: 0,
             basisMode,
             sourceType: 'pemasukan_beras',
             sourceId: data.id,
-            catatan: catatanRef,
+            catatan: rowCatatan,
             createdBy: userId,
           });
         }
+
+        rowOutcomes.push({
+          rowIndex,
+          muzakkiNama: row.muzakkiNama,
+          success: true,
+          message: `Baris #${rowIndex + 1} berhasil disimpan (${berasEntry.kategori}).`,
+        });
       } catch (err) {
-        errors.push(
-          `Muzakki "${row.muzakkiNama}" — ${entry.kategori}: ${(err as Error).message}`
-        );
+        const message = `Baris #${rowIndex + 1} (${row.muzakkiNama}) gagal: ${(err as Error).message}`;
+        errors.push(message);
+        rowOutcomes.push({ rowIndex, muzakkiNama: row.muzakkiNama, success: false, message });
       }
     }
   }
@@ -211,6 +286,7 @@ export async function submitBulk(
     success: errors.length === 0,
     receiptNo: meta.receiptNo,
     rows,
+    rowOutcomes,
     errors,
   };
 }

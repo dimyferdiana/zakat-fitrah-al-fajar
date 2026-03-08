@@ -25,6 +25,7 @@ export type WidgetType =
   | 'chart'
   | 'distribusi_progress'
   | 'hak_amil'
+  | 'hak_amil_beras'
   | 'hak_amil_trend'
   | 'section_title'
   | 'text_note';

@@ -59,6 +59,7 @@ const MONITORING_TEMPLATE: Omit<TemplateWidget, 'sort_order'>[] = [
 const HAK_AMIL_FOCUS_TEMPLATE: Omit<TemplateWidget, 'sort_order'>[] = [
   { widget_type: 'section_title', width: 'full', config: { title: 'Ringkasan Hak Amil' } },
   { widget_type: 'hak_amil', width: 'full', config: {} },
+  { widget_type: 'hak_amil_beras', width: 'full', config: {} },
   { widget_type: 'hak_amil_trend', width: 'full', config: {} },
   { widget_type: 'stat_card', width: 'full', config: { label: 'Hak Amil Uang', icon: 'Coins', rule: 'hak_amil_uang', format: 'currency' } },
   { widget_type: 'stat_card', width: 'full', config: { label: 'Hak Amil Beras', icon: 'Wheat', rule: 'hak_amil_beras', format: 'weight' } },

@@ -60,12 +60,13 @@ export const DEFAULT_DASHBOARD_WIDGETS: DefaultWidget[] = [
   { widget_type: 'stat_card', sort_order: 20, width: 'half', config: { label: 'Hak Amil Uang', icon: 'Coins', rule: 'hak_amil_uang', format: 'currency' } },
   { widget_type: 'stat_card', sort_order: 21, width: 'half', config: { label: 'Hak Amil Beras', icon: 'Wheat', rule: 'hak_amil_beras', format: 'weight' } },
   { widget_type: 'hak_amil', sort_order: 22, width: 'full', config: {} },
-  { widget_type: 'hak_amil_trend', sort_order: 23, width: 'full', config: {} },
+  { widget_type: 'hak_amil_beras', sort_order: 23, width: 'full', config: {} },
+  { widget_type: 'hak_amil_trend', sort_order: 24, width: 'full', config: {} },
 
   // Tren pemasukan
-  { widget_type: 'section_title', sort_order: 24, width: 'full', config: { title: 'Tren Pemasukan' } },
-  { widget_type: 'chart', sort_order: 25, width: 'full', config: { data_type: 'uang', categories: [] } },
-  { widget_type: 'chart', sort_order: 26, width: 'full', config: { data_type: 'beras', categories: [] } },
+  { widget_type: 'section_title', sort_order: 25, width: 'full', config: { title: 'Tren Pemasukan' } },
+  { widget_type: 'chart', sort_order: 26, width: 'full', config: { data_type: 'uang', categories: [] } },
+  { widget_type: 'chart', sort_order: 27, width: 'full', config: { data_type: 'beras', categories: [] } },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────

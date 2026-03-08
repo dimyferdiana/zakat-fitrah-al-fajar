@@ -1,16 +1,16 @@
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
+import { format } from 'date-fns';
+import { id as idLocale } from 'date-fns/locale';
+import { Printer } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
-import { format } from 'date-fns';
-import { id as idLocale } from 'date-fns/locale';
 import { ReceiptShell } from './ReceiptShell';
 import type { BulkResult, BulkRow } from '@/types/bulk';
 
@@ -20,40 +20,39 @@ interface BulkTandaTerimaProps {
   result: BulkResult;
 }
 
-const TABLE_COLS = [
-  { key: 'zakatFitrahBeras', label: 'ZF Beras (kg)', beras: true },
-  { key: 'zakatFitrahUang',  label: 'ZF Uang (Rp)',  beras: false },
-  { key: 'zakatMaalBeras',   label: 'ZM Beras (kg)', beras: true },
-  { key: 'zakatMaalUang',    label: 'ZM Uang (Rp)',  beras: false },
-  { key: 'infakBeras',       label: 'Inf/Sed Beras (kg)', beras: true },
-  { key: 'infakUang',        label: 'Inf/Sed Uang (Rp)',  beras: false },
-] as const;
-
-type ColKey = (typeof TABLE_COLS)[number]['key'];
-
-function formatRp(v: number | null) {
-  if (!v) return '—';
-  return new Intl.NumberFormat('id-ID', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(v);
+function formatTypeLabel(type: BulkRow['transactionType']) {
+  if (type === 'zakat_fitrah') return 'Zakat Fitrah';
+  if (type === 'maal') return 'Maal';
+  if (type === 'infak') return 'Infak';
+  if (type === 'fidyah') return 'Fidyah';
+  return '-';
 }
 
-function formatKg(v: number | null) {
-  if (!v) return '—';
-  return v.toFixed(2);
+function formatMediumLabel(medium: BulkRow['paymentMedium']) {
+  if (medium === 'uang') return 'Uang';
+  if (medium === 'beras_kg') return 'Beras';
+  if (medium === 'beras_liter') return 'Beras';
+  return '-';
 }
 
-function colValue(row: BulkRow, key: ColKey, beras: boolean): string {
-  const v = row[key];
-  if (!v || v === 0) return '—';
-  return beras ? formatKg(v) : formatRp(v);
+function formatUnitLabel(unit: BulkRow['unit']) {
+  if (unit === 'rp') return 'Rp';
+  if (unit === 'kg') return 'kg';
+  if (unit === 'liter') return 'liter';
+  return '-';
 }
 
-function colTotal(rows: BulkRow[], key: ColKey, beras: boolean): string {
-  const total = rows.reduce((sum, r) => sum + (r[key] ?? 0), 0);
-  if (total === 0) return '—';
-  return beras ? total.toFixed(2) : formatRp(total);
+function formatAmount(row: BulkRow) {
+  if (!row.amount) return '-';
+
+  if (row.paymentMedium === 'uang') {
+    return new Intl.NumberFormat('id-ID', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(row.amount);
+  }
+
+  return row.amount.toFixed(2);
 }
 
 export function BulkTandaTerima({ open, onOpenChange, result }: BulkTandaTerimaProps) {
@@ -64,16 +63,18 @@ export function BulkTandaTerima({ open, onOpenChange, result }: BulkTandaTerimaP
     documentTitle: `Tanda-Terima-Bulk-${result.receiptNo}`,
   });
 
-  const validRows = result.rows.filter((r) => r.muzakkiId !== null);
   const today = format(new Date(), 'dd MMMM yyyy', { locale: idLocale });
+  const validRows = result.rows.filter((row) => row.muzakkiId !== null);
 
-  const totalUang = result.rows.reduce(
-    (s, r) => s + (r.zakatFitrahUang ?? 0) + (r.zakatMaalUang ?? 0) + (r.infakUang ?? 0),
-    0
-  );
-  const totalBeras = result.rows.reduce(
-    (s, r) => s + (r.zakatFitrahBeras ?? 0) + (r.zakatMaalBeras ?? 0) + (r.infakBeras ?? 0),
-    0
+  const totals = result.rows.reduce(
+    (acc, row) => {
+      if (!row.amount || !row.paymentMedium) return acc;
+      if (row.paymentMedium === 'uang') acc.uang += row.amount;
+      if (row.paymentMedium === 'beras_kg') acc.kg += row.amount;
+      if (row.paymentMedium === 'beras_liter') acc.liter += row.amount;
+      return acc;
+    },
+    { uang: 0, kg: 0, liter: 0 }
   );
 
   return (
@@ -81,16 +82,15 @@ export function BulkTandaTerima({ open, onOpenChange, result }: BulkTandaTerimaP
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto print:shadow-none print:max-h-none print:overflow-visible">
           <DialogHeader className="print:hidden">
-            <DialogTitle>Tanda Terima Zakat — Penerimaan Massal</DialogTitle>
+            <DialogTitle>Tanda Terima Zakat - Penerimaan Massal</DialogTitle>
             <DialogDescription>
               No. Resi: <span className="font-mono font-semibold">{result.receiptNo}</span>
-              {' · '}{validRows.length} muzakki · {today}
+              {' · '}
+              {validRows.length} baris · {today}
             </DialogDescription>
           </DialogHeader>
 
-          {/* ── Printable area ── */}
-          <ReceiptShell ref={contentRef} title="TANDA TERIMA ZAKAT (FITRAH / MAL)">
-            {/* Receipt meta */}
+          <ReceiptShell ref={contentRef} title="TANDA TERIMA ZAKAT (BULK)">
             <div className="flex justify-between text-xs mb-2">
               <div>
                 <span className="text-muted-foreground">No. Resi: </span>
@@ -101,20 +101,35 @@ export function BulkTandaTerima({ open, onOpenChange, result }: BulkTandaTerimaP
                 <span className="font-medium">{today}</span>
               </div>
             </div>
+
             <div className="text-xs mb-3">
-              <span className="text-muted-foreground">Penerimaan Massal — </span>
-              <span className="font-semibold">{validRows.length} Muzakki</span>
-              {totalUang > 0 && (
-                <> · Total Uang: <span className="font-semibold">
-                  {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalUang)}
-                </span></>
+              <span className="text-muted-foreground">Penerimaan Massal - </span>
+              <span className="font-semibold">{validRows.length} Baris</span>
+              {totals.uang > 0 && (
+                <>
+                  {' · '}Total Uang:{' '}
+                  <span className="font-semibold">
+                    {new Intl.NumberFormat('id-ID', {
+                      style: 'currency',
+                      currency: 'IDR',
+                      minimumFractionDigits: 0,
+                    }).format(totals.uang)}
+                  </span>
+                </>
               )}
-              {totalBeras > 0 && (
-                <> · Total Beras: <span className="font-semibold">{totalBeras.toFixed(2)} kg</span></>
+              {totals.kg > 0 && (
+                <>
+                  {' · '}Total Beras (kg): <span className="font-semibold">{totals.kg.toFixed(2)} kg</span>
+                </>
+              )}
+              {totals.liter > 0 && (
+                <>
+                  {' · '}Total Beras (liter):{' '}
+                  <span className="font-semibold">{totals.liter.toFixed(2)} liter</span>
+                </>
               )}
             </div>
 
-            {/* Perincian table */}
             <p className="text-[10px] font-semibold mb-1 uppercase tracking-wide text-muted-foreground">Perincian</p>
             <div className="overflow-x-auto">
               <table className="min-w-full text-[10px] border border-foreground/20">
@@ -122,56 +137,41 @@ export function BulkTandaTerima({ open, onOpenChange, result }: BulkTandaTerimaP
                   <tr className="bg-muted/40">
                     <th className="border border-foreground/20 px-1 py-1 text-center w-7">No</th>
                     <th className="border border-foreground/20 px-2 py-1 text-left min-w-[120px]">Nama Muzakki</th>
-                    {TABLE_COLS.map((col) => (
-                      <th key={col.key} className="border border-foreground/20 px-1 py-1 text-right min-w-[70px]">
-                        {col.label}
-                      </th>
-                    ))}
+                    <th className="border border-foreground/20 px-2 py-1 text-left min-w-[80px]">Tipe</th>
+                    <th className="border border-foreground/20 px-2 py-1 text-left min-w-[70px]">Media</th>
+                    <th className="border border-foreground/20 px-1 py-1 text-right min-w-[80px]">Nilai</th>
+                    <th className="border border-foreground/20 px-2 py-1 text-left min-w-[60px]">Satuan</th>
+                    <th className="border border-foreground/20 px-2 py-1 text-left min-w-[120px]">Catatan</th>
                   </tr>
                 </thead>
                 <tbody>
                   {result.rows.map((row, idx) => (
-                    <tr key={idx} className="even:bg-muted/10">
+                    <tr key={`${row.muzakkiId ?? row.muzakkiNama}-${idx}`} className="even:bg-muted/10">
                       <td className="border border-foreground/20 px-1 py-1 text-center text-muted-foreground">
                         {idx + 1}
                       </td>
-                      <td className="border border-foreground/20 px-2 py-1 font-medium">
-                        {row.muzakkiNama}
-                      </td>
-                      {TABLE_COLS.map((col) => (
-                        <td key={col.key} className="border border-foreground/20 px-1 py-1 text-right font-mono">
-                          {colValue(row, col.key, col.beras)}
-                        </td>
-                      ))}
+                      <td className="border border-foreground/20 px-2 py-1 font-medium">{row.muzakkiNama}</td>
+                      <td className="border border-foreground/20 px-2 py-1">{formatTypeLabel(row.transactionType)}</td>
+                      <td className="border border-foreground/20 px-2 py-1">{formatMediumLabel(row.paymentMedium)}</td>
+                      <td className="border border-foreground/20 px-1 py-1 text-right font-mono">{formatAmount(row)}</td>
+                      <td className="border border-foreground/20 px-2 py-1">{formatUnitLabel(row.unit)}</td>
+                      <td className="border border-foreground/20 px-2 py-1">{row.notes.trim() || '-'}</td>
                     </tr>
                   ))}
                 </tbody>
-                {/* Totals row */}
-                <tfoot>
-                  <tr className="bg-muted/30 font-semibold">
-                    <td colSpan={2} className="border border-foreground/20 px-2 py-1 text-right">
-                      Total
-                    </td>
-                    {TABLE_COLS.map((col) => (
-                      <td key={col.key} className="border border-foreground/20 px-1 py-1 text-right font-mono">
-                        {colTotal(result.rows, col.key, col.beras)}
-                      </td>
-                    ))}
-                  </tr>
-                </tfoot>
               </table>
             </div>
 
-            {/* Submission errors if any */}
             {result.errors.length > 0 && (
               <div className="mt-3 text-[9px] text-red-600 space-y-0.5 print:hidden">
                 <p className="font-semibold">Catatan error:</p>
-                {result.errors.map((e, i) => <p key={i}>{e}</p>)}
+                {result.errors.map((e, i) => (
+                  <p key={i}>{e}</p>
+                ))}
               </div>
             )}
           </ReceiptShell>
 
-          {/* Actions */}
           <div className="flex gap-2 print:hidden">
             <Button onClick={handlePrint} className="flex-1">
               <Printer className="mr-2 h-4 w-4" />
@@ -184,7 +184,6 @@ export function BulkTandaTerima({ open, onOpenChange, result }: BulkTandaTerimaP
         </DialogContent>
       </Dialog>
 
-      {/* Landscape print styles */}
       <style>{`
         @media print {
           @page {

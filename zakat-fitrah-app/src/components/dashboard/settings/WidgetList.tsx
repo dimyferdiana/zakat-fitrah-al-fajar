@@ -37,7 +37,8 @@ const WIDGET_TYPE_LABELS: Record<string, string> = {
   stat_card: 'Stat Card',
   chart: 'Grafik',
   distribusi_progress: 'Progress Distribusi',
-  hak_amil: 'Hak Amil',
+  hak_amil: 'Hak Amil Uang',
+  hak_amil_beras: 'Hak Amil Beras',
   section_title: 'Judul Bagian',
   text_note: 'Catatan',
 };

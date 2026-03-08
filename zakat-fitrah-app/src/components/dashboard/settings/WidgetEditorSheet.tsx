@@ -45,7 +45,8 @@ const WIDGET_TYPES: { value: WidgetType; label: string }[] = [
   { value: 'stat_card', label: 'Stat Card — Angka Ringkasan' },
   { value: 'chart', label: 'Grafik Bulanan' },
   { value: 'distribusi_progress', label: 'Progress Distribusi' },
-  { value: 'hak_amil', label: 'Hak Amil' },
+  { value: 'hak_amil', label: 'Hak Amil Uang' },
+  { value: 'hak_amil_beras', label: 'Hak Amil Beras' },
   { value: 'hak_amil_trend', label: 'Tren Hak Amil' },
   { value: 'section_title', label: 'Judul Bagian' },
   { value: 'text_note', label: 'Catatan Teks' },
@@ -58,7 +59,7 @@ const STAT_CARD_FORMATS = [
 ];
 
 const schema = z.object({
-  widget_type: z.enum(['stat_card', 'chart', 'distribusi_progress', 'hak_amil', 'hak_amil_trend', 'section_title', 'text_note']),
+  widget_type: z.enum(['stat_card', 'chart', 'distribusi_progress', 'hak_amil', 'hak_amil_beras', 'hak_amil_trend', 'section_title', 'text_note']),
   width: z.enum(['full', 'half']),
   // stat_card specific
   rule: z.string().optional(),
