@@ -26,6 +26,8 @@ type AkunUang = 'kas' | 'bank';
 interface PemasukanUang {
   id: string;
   tahun_zakat_id: string;
+  account_id?: string | null;
+  account_name?: string | null;
   muzakki_id: string | null;
   muzakki?: { id: string; nama_kk: string } | null;
   kategori: PemasukanUangKategori;
@@ -64,8 +66,12 @@ export function BuktiPemasukanUang({ open, onOpenChange, data }: BuktiPemasukanU
     return labels[kategori] || kategori;
   };
 
-  const getAkunLabel = (akun: AkunUang) => {
-    return akun === 'kas' ? 'Kas' : 'Bank';
+  const getAkunLabel = (akun: AkunUang, accountName?: string | null) => {
+    const channelLabel = akun === 'kas' ? 'Kas' : 'Bank';
+    if (!accountName || accountName.trim().length === 0) {
+      return channelLabel;
+    }
+    return `${channelLabel} - ${accountName}`;
   };
 
   const handlePrint = useReactToPrint({
@@ -170,7 +176,7 @@ export function BuktiPemasukanUang({ open, onOpenChange, data }: BuktiPemasukanU
     yPosition += 5;
 
     doc.text(`Akun:`, detailLabelX, yPosition);
-    doc.text(getAkunLabel(data.akun), detailValueX, yPosition);
+    doc.text(getAkunLabel(data.akun, data.account_name), detailValueX, yPosition);
     yPosition += 5;
 
     if (data.muzakki) {
@@ -283,7 +289,7 @@ export function BuktiPemasukanUang({ open, onOpenChange, data }: BuktiPemasukanU
                 </div>
                 <div>
                   <p className="text-muted-foreground">Akun</p>
-                  <p className="font-medium">{getAkunLabel(data.akun)}</p>
+                  <p className="font-medium">{getAkunLabel(data.akun, data.account_name)}</p>
                 </div>
                 {data.muzakki && (
                   <div>

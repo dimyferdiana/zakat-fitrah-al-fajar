@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useId, useState } from 'react';
+import { Fragment, useCallback, useEffect, useId, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { useAccountsList } from '@/hooks/useAccountsLedger';
 import { BulkTandaTerima } from './BulkTandaTerima';
 import {
   BULK_BERAS_KG_PER_LITER,
@@ -51,9 +52,12 @@ interface BulkHistoryItem {
 interface BulkUangRecord {
   muzakki_id: string | null;
   kategori: string;
+  akun: 'kas' | 'bank' | null;
+  account_id: string | null;
   jumlah_uang_rp: number;
   catatan: string | null;
   muzakki?: { id: string; nama_kk: string } | null;
+  accounts?: { account_name: string; account_channel: 'kas' | 'bank' | 'qris' } | null;
 }
 
 interface BulkBerasRecord {
@@ -67,6 +71,12 @@ interface BulkBerasRecord {
 interface BulkPemasukanFormProps {
   tahunZakatId: string;
   rowLimit?: number;
+}
+
+interface MoneyAccountOption {
+  id: string;
+  account_name: string;
+  account_channel: 'kas' | 'bank' | 'qris';
 }
 
 const transactionTypeOptions: Array<{ value: BulkTransactionType; label: string }> = [
@@ -219,6 +229,27 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
   const [newMuzakkiNama, setNewMuzakkiNama] = useState('');
   const [isCreatingMuzakki, setIsCreatingMuzakki] = useState(false);
   const [reprintLoadingReceiptNo, setReprintLoadingReceiptNo] = useState<string | null>(null);
+  const [selectedMoneyAccountId, setSelectedMoneyAccountId] = useState('');
+
+  const accountsQuery = useAccountsList({ is_active: true });
+  const moneyAccountOptions: MoneyAccountOption[] = (accountsQuery.data || [])
+    .filter((account) => account.account_channel === 'kas' || account.account_channel === 'bank')
+    .map((account) => ({
+      id: account.id,
+      account_name: account.account_name,
+      account_channel: account.account_channel,
+    }));
+
+  const hasAnyMoneyRows = rows.some((row) => row.paymentMedium === 'uang' && (row.amount ?? 0) > 0);
+
+  useEffect(() => {
+    if (hasAnyMoneyRows && !selectedMoneyAccountId && moneyAccountOptions.length > 0) {
+      setSelectedMoneyAccountId(moneyAccountOptions[0].id);
+    }
+    if (!hasAnyMoneyRows) {
+      setSelectedMoneyAccountId('');
+    }
+  }, [hasAnyMoneyRows, moneyAccountOptions, selectedMoneyAccountId]);
 
   const { data: muzakkiOptions = [] } = useQuery<MuzakkiOption[]>({
     queryKey: ['muzakki-options'],
@@ -258,10 +289,8 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
     staleTime: 10_000,
   });
 
-  const alreadyAddedIds = new Set(rows.map((r) => r.muzakkiId).filter(Boolean));
-
   const filteredMuzakki = muzakkiOptions.filter(
-    (m) => !alreadyAddedIds.has(m.id) && m.nama_kk.toLowerCase().includes(muzakkiSearch.toLowerCase())
+    (m) => m.nama_kk.toLowerCase().includes(muzakkiSearch.toLowerCase())
   );
 
   const errKey = (idx: number, field: FieldErrorKey) => `${idx}.${field}`;
@@ -349,7 +378,7 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
       const [uangRes, berasRes] = await Promise.all([
         supabase
           .from('pemasukan_uang')
-          .select('muzakki_id, kategori, jumlah_uang_rp, catatan, muzakki:muzakki_id(id, nama_kk)')
+          .select('muzakki_id, kategori, akun, account_id, jumlah_uang_rp, catatan, muzakki:muzakki_id(id, nama_kk), accounts:account_id(account_name, account_channel)')
           .eq('tahun_zakat_id', tahunZakatId)
           .ilike('catatan', `${catatanRef}%`),
         supabase
@@ -375,6 +404,9 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
           amount: mapped.amount,
           unit: mapped.unit,
           notes: extractNotes(record.catatan, receiptNo),
+          accountId: record.account_id,
+          accountName: record.accounts?.account_name ?? null,
+          accountChannel: record.accounts?.account_channel ?? record.akun ?? null,
         });
       }
 
@@ -450,6 +482,28 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
       return;
     }
 
+    const hasMoneyRows = rows.some((row) => row.paymentMedium === 'uang' && (row.amount ?? 0) > 0);
+    if (hasMoneyRows && !selectedMoneyAccountId) {
+      toast.error('Pilih rekening kas/bank untuk semua transaksi uang pada bulk ini.');
+      return;
+    }
+
+    const selectedMoneyAccount = moneyAccountOptions.find((a) => a.id === selectedMoneyAccountId);
+    if (hasMoneyRows && !selectedMoneyAccount) {
+      toast.error('Rekening uang tidak valid. Pilih rekening kas/bank yang aktif.');
+      return;
+    }
+
+    const rowsForSubmit: BulkRow[] = rows.map((row) => {
+      if (row.paymentMedium !== 'uang') return row;
+      return {
+        ...row,
+        accountId: selectedMoneyAccount?.id ?? null,
+        accountName: selectedMoneyAccount?.account_name ?? null,
+        accountChannel: selectedMoneyAccount?.account_channel ?? null,
+      };
+    });
+
     const { data: auth } = await supabase.auth.getUser();
     const userId = auth.user?.id;
     if (!userId) {
@@ -460,11 +514,14 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
     setIsSubmitting(true);
     try {
       const receiptNo = generateReceiptNo();
-      const bulkResult = await submitBulk(rows, {
+      const bulkResult = await submitBulk(rowsForSubmit, {
         operatorId: userId,
         tahunZakatId,
         receiptNo,
         rowLimit,
+        moneyAccountId: selectedMoneyAccount?.id,
+        moneyAccountName: selectedMoneyAccount?.account_name,
+        moneyAccountChannel: selectedMoneyAccount?.account_channel,
       });
 
       setResult(bulkResult);
@@ -512,6 +569,21 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
       </div>
 
       <div className="flex flex-wrap gap-2 items-center">
+        {hasAnyMoneyRows && (
+          <Select value={selectedMoneyAccountId || undefined} onValueChange={setSelectedMoneyAccountId}>
+            <SelectTrigger className="w-[280px] h-9">
+              <SelectValue placeholder="Pilih rekening kas/bank untuk transaksi uang" />
+            </SelectTrigger>
+            <SelectContent>
+              {moneyAccountOptions.map((account) => (
+                <SelectItem key={account.id} value={account.id}>
+                  {account.account_name} ({account.account_channel.toUpperCase()})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
         <Popover open={comboOpen} onOpenChange={setComboOpen}>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" disabled={atLimit} className="gap-2">
@@ -616,10 +688,11 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
                 const allowedMedia = row.transactionType
                   ? allowedMediaForType(row.transactionType)
                   : [];
+                const isMoneyRowWithoutAccount = row.paymentMedium === 'uang' && !selectedMoneyAccountId;
 
                 return (
                   <Fragment key={`${row.muzakkiId ?? row.muzakkiNama}-${idx}`}>
-                    <tr className={`border-b last:border-0 ${rowErrorMessages.length > 0 ? 'bg-red-50/40' : ''}`}>
+                    <tr className={`border-b last:border-0 ${rowErrorMessages.length > 0 ? 'bg-red-50/40' : isMoneyRowWithoutAccount ? 'bg-yellow-50/60' : ''}`}>
                       <td className="px-2 py-1 text-muted-foreground">{idx + 1}</td>
                       <td className="px-2 py-1 font-medium">{row.muzakkiNama}</td>
                       <td className="px-2 py-1">

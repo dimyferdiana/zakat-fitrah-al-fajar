@@ -39,6 +39,9 @@ const meta: BulkSubmissionMeta = {
   tahunZakatId: 'tahun-001',
   receiptNo: 'BULK-2026-001',
   rowLimit: 10,
+  moneyAccountId: 'acc-kas-001',
+  moneyAccountName: 'Kas Utama',
+  moneyAccountChannel: 'kas',
 };
 
 function makeRow(overrides: Partial<BulkRow> = {}): BulkRow {
@@ -164,5 +167,19 @@ describe('submitBulk', () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
     const rows = [makeRow()];
     await expect(submitBulk(rows, meta)).rejects.toThrow('tidak terautentikasi');
+  });
+
+  it('throws if money rows are submitted without account metadata', async () => {
+    const rows = [makeRow({ paymentMedium: 'uang', amount: 10000, unit: 'rp' })];
+    const invalidMeta: BulkSubmissionMeta = {
+      operatorId: 'user-123',
+      tahunZakatId: 'tahun-001',
+      receiptNo: 'BULK-2026-002',
+      rowLimit: 10,
+    };
+
+    await expect(submitBulk(rows, invalidMeta)).rejects.toThrow(
+      'wajib memilih rekening kas/bank'
+    );
   });
 });

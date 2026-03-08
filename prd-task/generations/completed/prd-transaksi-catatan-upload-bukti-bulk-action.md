@@ -22,6 +22,7 @@ Tujuan:
    - **Maal** dan **fidyah**: hanya uang.
    - **Fitrah** dan **infak**: uang, beras (kg), atau beras (liter).
    - Satu transaksi hanya boleh satu media pembayaran.
+6. Memperbaiki bug widget **Hak Amil** yang mencampur perhitungan uang dan beras, dengan memisahkan widget Hak Amil Uang dan widget Hak Amil Beras secara independen.
 
 ## 3) User Stories
 1. Sebagai amil, saya ingin mengisi catatan pada transaksi agar informasi tambahan muncul pada Bukti Sedekah dan PDF sebagai arsip.
@@ -64,6 +65,13 @@ Tujuan:
 24. Sistem harus menampilkan ringkasan hasil proses bulk (berhasil/gagal dan alasan gagal per baris).
 25. Sistem harus mempertahankan output akhir sesuai format transaksi yang digunakan modul laporan saat ini (tanpa memecahkan kompatibilitas data existing).
 
+### Phase 4 (Bug Fix, Sudah Selesai): Pisahkan Widget Hak Amil Uang dan Beras
+26. Sistem harus memisahkan perhitungan widget Hak Amil Uang dari widget Hak Amil Beras agar tidak terjadi double-counting atau konversi satuan yang salah.
+27. Widget Hak Amil Uang hanya beroperasi pada nominal Rupiah (tidak boleh menghitung beras sebagai Rp).
+28. Widget Hak Amil Beras hanya beroperasi pada satuan beras (`kg` dan `liter`) dan tidak melakukan konversi ke Rupiah dalam kondisi apa pun.
+29. Konfigurasi editor/list widget harus menyediakan dua tipe terpisah: **Hak Amil Uang** dan **Hak Amil Beras**, yang dapat dipilih secara independen.
+30. Semua existing widget Hak Amil yang sebelumnya menggabungkan keduanya harus dimigrasikan ke tipe baru tanpa kehilangan data konfigurasi.
+
 ## 5) Non-Goals (Out of Scope)
 1. Tidak mencakup OCR/ekstraksi otomatis dari gambar bukti bayar.
 2. Tidak mencakup dukungan multi-file bukti bayar per transaksi.
@@ -88,6 +96,7 @@ Tujuan:
 2. >= 95% upload bukti bayar valid berhasil di percobaan pertama (error hanya untuk file invalid).
 3. Penurunan kesalahan input transaksi massal (baris invalid karena aturan tipe-media) minimal 50% dalam 1 bulan setelah rilis.
 4. Waktu input transaksi massal berkurang dibanding proses lama (indikator operasional internal).
+5. Widget dashboard Hak Amil Uang dan Hak Amil Beras menampilkan nilai yang benar secara independen tanpa cross-contamination.
 
 ## 9) Open Questions
 1. Referensi gambar final untuk format bulk action perlu dilampirkan agar detail layout/kolom 100% presisi.
@@ -97,6 +106,7 @@ Tujuan:
 5. Apakah riwayat penggantian file bukti bayar perlu disimpan (versioning) atau cukup file terbaru.
 
 ## 10) Delivery Priority Plan
-1. **Priority 1 (Easiest):** Catatan transaksi tampil di Bukti Sedekah dan PDF.
-2. **Priority 2:** Upload 1 gambar bukti bayar (maks 1 MB) di transaksi Penerimaan Uang dan Penerimaan Beras.
-3. **Priority 3 (Most Complex):** Revamp bulk action transaction dengan tabel input massal + aturan tipe-media + output hasil proses.
+1. **Priority 1 (Easiest, SELESAI):** Catatan transaksi tampil di Bukti Sedekah dan PDF.
+2. **Priority 2 (SELESAI):** Upload 1 gambar bukti bayar (maks 1 MB) di transaksi Penerimaan Uang dan Penerimaan Beras.
+3. **Priority 3 (SELESAI):** Revamp bulk action transaction dengan tabel input massal + aturan tipe-media + output hasil proses.
+4. **Priority 4 (Bug Fix, SELESAI):** Pisahkan widget Hak Amil Uang dan Hak Amil Beras agar tidak terjadi double-counting.

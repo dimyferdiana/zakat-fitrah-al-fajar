@@ -355,7 +355,10 @@ export function PemasukanUang() {
         <BuktiPemasukanUang
           open={receiptOpen}
           onOpenChange={setReceiptOpen}
-          data={selectedItem}
+          data={{
+            ...selectedItem,
+            account_name: accountNameMap.get(selectedItem.account_id || '') || null,
+          }}
         />
       )}
 

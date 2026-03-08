@@ -146,6 +146,11 @@ export async function submitBulk(
   const basisMode = await fetchBasisModeForTahun(meta.tahunZakatId);
   const catatanRef = `Bulk #${meta.receiptNo}`;
 
+  const hasMoneyRows = rows.some((row) => row.paymentMedium === 'uang' && (row.amount ?? 0) > 0);
+  if (hasMoneyRows && (!meta.moneyAccountId || !meta.moneyAccountChannel)) {
+    throw new Error('Transaksi uang bulk wajib memilih rekening kas/bank yang valid.');
+  }
+
   for (const [rowIndex, row] of rows.entries()) {
     if (!row.muzakkiId) {
       const message = `Muzakki "${row.muzakkiNama}" belum memiliki ID — baris dilewati.`;
@@ -166,11 +171,15 @@ export async function submitBulk(
 
     if (uangEntry) {
       try {
+        const akunForInsert: 'kas' | 'bank' =
+          meta.moneyAccountChannel === 'kas' ? 'kas' : 'bank';
+
         const payload = {
           tahun_zakat_id: meta.tahunZakatId,
           muzakki_id: row.muzakkiId,
           kategori: uangEntry.kategori,
-          akun: 'kas' as const,
+          akun: akunForInsert,
+          account_id: meta.moneyAccountId,
           jumlah_uang_rp: uangEntry.jumlah,
           tanggal: today,
           catatan: rowCatatan,

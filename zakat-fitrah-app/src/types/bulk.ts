@@ -32,6 +32,12 @@ export interface BulkRow {
   unit: BulkUnit | null;
   /** Catatan per transaksi (opsional). */
   notes: string;
+  /** Rekening sumber untuk transaksi uang (opsional untuk transaksi beras). */
+  accountId?: string | null;
+  /** Nama rekening untuk kebutuhan receipt. */
+  accountName?: string | null;
+  /** Channel rekening untuk kebutuhan receipt. */
+  accountChannel?: 'kas' | 'bank' | 'qris' | null;
 }
 
 /**
@@ -49,6 +55,10 @@ export interface BulkSubmissionMeta {
   receiptNo: string;
   /** Max rows allowed per receipt (admin-configurable; default 10). */
   rowLimit: number;
+  /** Rekening uang yang dipakai untuk seluruh transaksi uang dalam satu batch. */
+  moneyAccountId?: string;
+  moneyAccountName?: string;
+  moneyAccountChannel?: 'kas' | 'bank' | 'qris';
 }
 
 /**
