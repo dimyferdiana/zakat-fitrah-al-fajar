@@ -212,6 +212,10 @@ function extractNotes(catatan: string | null, receiptNo: string): string {
   return notes;
 }
 
+function normalizeMuzakkiName(value: string): string {
+  return value.trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
 export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukanFormProps) {
   const formId = useId();
   const queryClient = useQueryClient();
@@ -292,6 +296,10 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
   const filteredMuzakki = muzakkiOptions.filter(
     (m) => m.nama_kk.toLowerCase().includes(muzakkiSearch.toLowerCase())
   );
+  const normalizedNewMuzakkiName = normalizeMuzakkiName(newMuzakkiNama);
+  const isDuplicateNewMuzakkiName =
+    normalizedNewMuzakkiName.length > 0 &&
+    muzakkiOptions.some((m) => normalizeMuzakkiName(m.nama_kk) === normalizedNewMuzakkiName);
 
   const errKey = (idx: number, field: FieldErrorKey) => `${idx}.${field}`;
 
@@ -332,8 +340,13 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
   }, [clearRowErrors]);
 
   const createAndAddMuzakki = async () => {
-    const nama = newMuzakkiNama.trim();
+    const nama = newMuzakkiNama.trim().replace(/\s+/g, ' ');
     if (!nama) return;
+
+    if (muzakkiOptions.some((m) => normalizeMuzakkiName(m.nama_kk) === normalizeMuzakkiName(nama))) {
+      toast.error(`Muzakki "${nama}" sudah ada. Gunakan data yang sudah tersedia.`);
+      return;
+    }
 
     setIsCreatingMuzakki(true);
     try {
@@ -638,10 +651,13 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
                 value={newMuzakkiNama}
                 onChange={(e) => setNewMuzakkiNama(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') createAndAddMuzakki();
+                  if (e.key === 'Enter' && !isDuplicateNewMuzakkiName) createAndAddMuzakki();
                 }}
-                className="h-8 text-sm"
+                className={`h-8 text-sm ${isDuplicateNewMuzakkiName ? 'border-red-500' : ''}`}
               />
+              {isDuplicateNewMuzakkiName && (
+                <p className="text-[11px] text-red-600">Nama muzakki sudah terdaftar.</p>
+              )}
             </div>
             <div className="flex gap-2 justify-end">
               <Button
@@ -654,7 +670,11 @@ export function BulkPemasukanForm({ tahunZakatId, rowLimit = 10 }: BulkPemasukan
               >
                 Batal
               </Button>
-              <Button size="sm" onClick={createAndAddMuzakki} disabled={!newMuzakkiNama.trim() || isCreatingMuzakki}>
+              <Button
+                size="sm"
+                onClick={createAndAddMuzakki}
+                disabled={!newMuzakkiNama.trim() || isCreatingMuzakki || isDuplicateNewMuzakkiName}
+              >
                 {isCreatingMuzakki && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
                 Simpan
               </Button>
