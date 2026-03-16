@@ -20,6 +20,7 @@ import { Printer, CheckCircle2, Trash2, ChevronLeft, ChevronRight } from 'lucide
 import type { Distribusi } from '@/hooks/useDistribusi';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
+import { parseDateOnlyToLocal } from '@/lib/date';
 
 interface DistribusiTableProps {
   data: Distribusi[];
@@ -151,7 +152,7 @@ export function DistribusiTable({
                       : formatCurrency(distribusi.jumlah)}
                   </TableCell>
                   <TableCell>
-                    {format(new Date(distribusi.tanggal_distribusi), 'dd MMM yyyy', {
+                    {format(parseDateOnlyToLocal(distribusi.tanggal_distribusi), 'dd MMM yyyy', {
                       locale: localeId,
                     })}
                   </TableCell>

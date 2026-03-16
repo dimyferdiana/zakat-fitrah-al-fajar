@@ -20,7 +20,7 @@ interface LaporanMustahikProps {
 export function LaporanMustahik({ }: LaporanMustahikProps) {
   const { data: mustahikData, isLoading } = useMustahikList({
     page: 1,
-    limit: 1000, // Get all for report
+    limit: 10000, // Fetch high ceiling to avoid truncated report totals
   });
 
   const { data: kategoriData } = useKategoriMustahik();

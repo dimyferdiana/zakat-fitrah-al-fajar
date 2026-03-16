@@ -85,7 +85,7 @@ export default function Laporan() {
               <SelectValue placeholder="Pilih laporan" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="pemasukan">Pemasukan</SelectItem>
+              <SelectItem value="pemasukan">Penerimaan ZIS+Fidyah</SelectItem>
               <SelectItem value="distribusi">Distribusi</SelectItem>
               <SelectItem value="mustahik">Mustahik</SelectItem>
               <SelectItem value="hakamil">Hak Amil</SelectItem>
@@ -94,7 +94,7 @@ export default function Laporan() {
           </Select>
         ) : (
           <TabsList>
-            <TabsTrigger value="pemasukan">Pemasukan</TabsTrigger>
+            <TabsTrigger value="pemasukan">Penerimaan ZIS+Fidyah</TabsTrigger>
             <TabsTrigger value="distribusi">Distribusi</TabsTrigger>
             <TabsTrigger value="mustahik">Mustahik</TabsTrigger>
             <TabsTrigger value="hakamil">Hak Amil</TabsTrigger>

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { offlineStore } from '@/lib/offlineStore';
+import { formatDateOnlyLocal, parseDateOnlyToLocal } from '@/lib/date';
 
 const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
@@ -640,7 +641,7 @@ export function usePembayaranList(params: PembayaranListParams) {
       // Fetch related sedekah records
       const pembayaranWithSedekah = await Promise.all(
         (data || []).map(async (pembayaran: any) => {
-          const tanggalBayar = new Date(pembayaran.tanggal_bayar).toISOString().split('T')[0];
+          const tanggalBayar = formatDateOnlyLocal(parseDateOnlyToLocal(pembayaran.tanggal_bayar));
           const namaKk = pembayaran.muzakki?.nama_kk || '';
 
           // Query pemasukan_uang for sedekah (jenis_zakat = 'uang')

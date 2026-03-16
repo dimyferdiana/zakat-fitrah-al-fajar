@@ -31,6 +31,25 @@ export interface Distribusi {
   };
 }
 
+type DistribusiRow = Distribusi & {
+  jumlah?: number | null;
+  jumlah_beras_kg?: number | null;
+  jumlah_uang_rp?: number | null;
+};
+
+function resolveDistribusiJumlah(row: DistribusiRow): number {
+  if (typeof row.jumlah === 'number') return row.jumlah;
+  if (row.jenis_distribusi === 'beras') return Number(row.jumlah_beras_kg || 0);
+  return Number(row.jumlah_uang_rp || 0);
+}
+
+function normalizeDistribusiRows(rows: DistribusiRow[]): Distribusi[] {
+  return rows.map((row) => ({
+    ...row,
+    jumlah: resolveDistribusiJumlah(row),
+  })) as Distribusi[];
+}
+
 export interface DistribusiListParams {
   tahun_zakat_id?: string;
   jenis_distribusi?: string;
@@ -107,7 +126,7 @@ export function useDistribusiList(params: DistribusiListParams) {
       if (error) throw error;
 
       return {
-        data: data || [],
+        data: normalizeDistribusiRows((data || []) as DistribusiRow[]),
         totalCount: count || 0,
       };
     },
@@ -131,7 +150,7 @@ export function useDistribusiDetail(id: string | null) {
         .single();
 
       if (error) throw error;
-      return data;
+      return normalizeDistribusiRows([data as DistribusiRow])[0];
     },
     enabled: !!id,
   });
@@ -155,26 +174,54 @@ export function useStokCheck(tahunZakatId: string | null) {
       if (OFFLINE_MODE) return offlineStore.getStokSummary(tahunZakatId);
       if (!isUuid(tahunZakatId)) return offlineStore.getStokSummary(tahunZakatId);
 
-      // Get pemasukan totals
-      const { data: pemasukanData, error: pemasukanError } = await supabase
-        .from('pembayaran_zakat')
-        .select('jenis_zakat, jumlah_beras_kg, jumlah_uang_rp')
-        .eq('tahun_zakat_id', tahunZakatId);
+      const [
+        { data: pembayaranData, error: pembayaranError },
+        { data: pemasukanUangData, error: pemasukanUangError },
+        { data: pemasukanBerasData, error: pemasukanBerasError },
+      ] = await Promise.all([
+        supabase
+          .from('pembayaran_zakat')
+          .select('jenis_zakat, jumlah_beras_kg, jumlah_uang_rp')
+          .eq('tahun_zakat_id', tahunZakatId),
+        supabase
+          .from('pemasukan_uang')
+          .select('jumlah_uang_rp')
+          .eq('tahun_zakat_id', tahunZakatId),
+        supabase
+          .from('pemasukan_beras')
+          .select('jumlah_beras_kg')
+          .eq('tahun_zakat_id', tahunZakatId),
+      ]);
 
-      if (pemasukanError) throw pemasukanError;
+      if (pembayaranError) throw pembayaranError;
+      if (pemasukanUangError) {
+        console.warn('Failed to read pemasukan_uang for stok summary, fallback to pembayaran_zakat only:', pemasukanUangError);
+      }
+      if (pemasukanBerasError) {
+        console.warn('Failed to read pemasukan_beras for stok summary, fallback to pembayaran_zakat only:', pemasukanBerasError);
+      }
 
-      const totalBerasPemasukan = (pemasukanData as any)
+      const totalBerasPembayaran = (pembayaranData as any)
         ?.filter((p: any) => p.jenis_zakat === 'beras')
         .reduce((sum: number, p: any) => sum + (p.jumlah_beras_kg || 0), 0) || 0;
 
-      const totalUangPemasukan = (pemasukanData as any)
+      const totalUangPembayaran = (pembayaranData as any)
         ?.filter((p: any) => p.jenis_zakat === 'uang')
         .reduce((sum: number, p: any) => sum + (p.jumlah_uang_rp || 0), 0) || 0;
+
+      const totalBerasPemasukanTambahan = (pemasukanBerasError ? [] : (pemasukanBerasData as any))
+        ?.reduce((sum: number, p: any) => sum + (p.jumlah_beras_kg || 0), 0) || 0;
+
+      const totalUangPemasukanTambahan = (pemasukanUangError ? [] : (pemasukanUangData as any))
+        ?.reduce((sum: number, p: any) => sum + (p.jumlah_uang_rp || 0), 0) || 0;
+
+      const totalBerasPemasukan = totalBerasPembayaran + totalBerasPemasukanTambahan;
+      const totalUangPemasukan = totalUangPembayaran + totalUangPemasukanTambahan;
 
       // Get distribusi totals
       const { data: distribusiData, error: distribusiError } = await supabase
         .from('distribusi_zakat')
-        .select('jenis_distribusi, jumlah')
+        .select('jenis_distribusi, jumlah_beras_kg, jumlah_uang_rp')
         .eq('tahun_zakat_id', tahunZakatId)
         .eq('status', 'selesai');
 
@@ -182,11 +229,11 @@ export function useStokCheck(tahunZakatId: string | null) {
 
       const totalBerasDistribusi = (distribusiData as any)
         ?.filter((d: any) => d.jenis_distribusi === 'beras')
-        .reduce((sum: number, d: any) => sum + (d.jumlah || 0), 0) || 0;
+        .reduce((sum: number, d: any) => sum + Number(d.jumlah_beras_kg ?? d.jumlah ?? 0), 0) || 0;
 
       const totalUangDistribusi = (distribusiData as any)
         ?.filter((d: any) => d.jenis_distribusi === 'uang')
-        .reduce((sum: number, d: any) => sum + (d.jumlah || 0), 0) || 0;
+        .reduce((sum: number, d: any) => sum + Number(d.jumlah_uang_rp ?? d.jumlah ?? 0), 0) || 0;
 
       return {
         total_pemasukan_beras: totalBerasPemasukan,
@@ -229,24 +276,59 @@ export function useCreateDistribusi() {
       }
 
       // Check stock first
-      const { data: stokData } = await supabase
-        .from('pembayaran_zakat')
-        .select('jenis_zakat, jumlah_beras_kg, jumlah_uang_rp')
-        .eq('tahun_zakat_id', input.tahun_zakat_id);
+      const [
+        { data: pembayaranData, error: pembayaranError },
+        { data: pemasukanUangData, error: pemasukanUangError },
+        { data: pemasukanBerasData, error: pemasukanBerasError },
+        { data: distribusiData, error: distribusiError },
+      ] = await Promise.all([
+        supabase
+          .from('pembayaran_zakat')
+          .select('jenis_zakat, jumlah_beras_kg, jumlah_uang_rp')
+          .eq('tahun_zakat_id', input.tahun_zakat_id),
+        supabase
+          .from('pemasukan_uang')
+          .select('jumlah_uang_rp')
+          .eq('tahun_zakat_id', input.tahun_zakat_id),
+        supabase
+          .from('pemasukan_beras')
+          .select('jumlah_beras_kg')
+          .eq('tahun_zakat_id', input.tahun_zakat_id),
+        supabase
+          .from('distribusi_zakat')
+          .select('jenis_distribusi, jumlah_beras_kg, jumlah_uang_rp')
+          .eq('tahun_zakat_id', input.tahun_zakat_id)
+          .eq('status', 'selesai'),
+      ]);
 
-      const { data: distribusiData } = await supabase
-        .from('distribusi_zakat')
-        .select('jenis_distribusi, jumlah')
-        .eq('tahun_zakat_id', input.tahun_zakat_id)
-        .eq('status', 'selesai');
+      if (pembayaranError) throw pembayaranError;
+      if (pemasukanUangError) {
+        console.warn('Failed to read pemasukan_uang for create distribusi stock check, fallback to pembayaran_zakat only:', pemasukanUangError);
+      }
+      if (pemasukanBerasError) {
+        console.warn('Failed to read pemasukan_beras for create distribusi stock check, fallback to pembayaran_zakat only:', pemasukanBerasError);
+      }
+      if (distribusiError) throw distribusiError;
 
-      const totalPemasukan = input.jenis_distribusi === 'beras'
-        ? (stokData as any)?.filter((p: any) => p.jenis_zakat === 'beras').reduce((s: number, p: any) => s + (p.jumlah_beras_kg || 0), 0) || 0
-        : (stokData as any)?.filter((p: any) => p.jenis_zakat === 'uang').reduce((s: number, p: any) => s + (p.jumlah_uang_rp || 0), 0) || 0;
+      const totalPemasukanBeras =
+        ((pembayaranData as any)
+          ?.filter((p: any) => p.jenis_zakat === 'beras')
+          .reduce((s: number, p: any) => s + (p.jumlah_beras_kg || 0), 0) || 0) +
+        ((pemasukanBerasError ? [] : (pemasukanBerasData as any))
+          ?.reduce((s: number, p: any) => s + (p.jumlah_beras_kg || 0), 0) || 0);
+
+      const totalPemasukanUang =
+        ((pembayaranData as any)
+          ?.filter((p: any) => p.jenis_zakat === 'uang')
+          .reduce((s: number, p: any) => s + (p.jumlah_uang_rp || 0), 0) || 0) +
+        ((pemasukanUangError ? [] : (pemasukanUangData as any))
+          ?.reduce((s: number, p: any) => s + (p.jumlah_uang_rp || 0), 0) || 0);
+
+      const totalPemasukan = input.jenis_distribusi === 'beras' ? totalPemasukanBeras : totalPemasukanUang;
 
       const totalDistribusi = input.jenis_distribusi === 'beras'
-        ? (distribusiData as any)?.filter((d: any) => d.jenis_distribusi === 'beras').reduce((s: number, d: any) => s + (d.jumlah || 0), 0) || 0
-        : (distribusiData as any)?.filter((d: any) => d.jenis_distribusi === 'uang').reduce((s: number, d: any) => s + (d.jumlah || 0), 0) || 0;
+        ? (distribusiData as any)?.filter((d: any) => d.jenis_distribusi === 'beras').reduce((s: number, d: any) => s + Number(d.jumlah_beras_kg ?? d.jumlah ?? 0), 0) || 0
+        : (distribusiData as any)?.filter((d: any) => d.jenis_distribusi === 'uang').reduce((s: number, d: any) => s + Number(d.jumlah_uang_rp ?? d.jumlah ?? 0), 0) || 0;
 
       const sisaStok = totalPemasukan - totalDistribusi;
 
@@ -260,25 +342,44 @@ export function useCreateDistribusi() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await (supabase
-        .from('distribusi_zakat')
-        .insert as any)({
-          mustahik_id: input.mustahik_id,
-          tahun_zakat_id: input.tahun_zakat_id,
-          jenis_distribusi: input.jenis_distribusi,
-          jumlah: input.jumlah, // Legacy column (NOT NULL in prod)
-          jumlah_beras_kg: input.jenis_distribusi === 'beras' ? input.jumlah : null,
-          jumlah_uang_rp: input.jenis_distribusi === 'uang' ? input.jumlah : null,
-          tanggal_distribusi: input.tanggal_distribusi,
-          catatan: input.catatan || null,
-          status: 'pending',
-          petugas_distribusi: user.id,
-          created_by: user.id,
-        })
-        .select();
+      const legacyPayload = {
+        mustahik_id: input.mustahik_id,
+        tahun_zakat_id: input.tahun_zakat_id,
+        jenis_distribusi: input.jenis_distribusi,
+        jumlah: input.jumlah,
+        jumlah_beras_kg: input.jenis_distribusi === 'beras' ? input.jumlah : null,
+        jumlah_uang_rp: input.jenis_distribusi === 'uang' ? input.jumlah : null,
+        tanggal_distribusi: input.tanggal_distribusi,
+        catatan: input.catatan || null,
+        status: 'pending',
+        petugas_distribusi: user.id,
+        created_by: user.id,
+      };
+
+      const modernPayload = {
+        mustahik_id: input.mustahik_id,
+        tahun_zakat_id: input.tahun_zakat_id,
+        jenis_distribusi: input.jenis_distribusi,
+        jumlah_beras_kg: input.jenis_distribusi === 'beras' ? input.jumlah : null,
+        jumlah_uang_rp: input.jenis_distribusi === 'uang' ? input.jumlah : null,
+        tanggal_distribusi: input.tanggal_distribusi,
+        catatan: input.catatan || null,
+        status: 'pending',
+        petugas_distribusi: user.id,
+        created_by: user.id,
+      };
+
+      let data: unknown;
+      let error: unknown;
+
+      ({ data, error } = await (supabase.from('distribusi_zakat').insert as any)(legacyPayload).select());
+
+      if (error && String((error as { message?: string }).message || '').toLowerCase().includes('jumlah')) {
+        ({ data, error } = await (supabase.from('distribusi_zakat').insert as any)(modernPayload).select());
+      }
 
       if (error) throw error;
-      return data;
+      return normalizeDistribusiRows((data || []) as DistribusiRow[]);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['distribusi-list'] });
@@ -299,6 +400,96 @@ export function useUpdateDistribusiStatus() {
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'pending' | 'selesai' }) => {
       if (OFFLINE_MODE) return offlineStore.updateDistribusiStatus(id, status) as any;
+
+      if (status === 'selesai') {
+        const { data: targetRaw, error: targetError } = await supabase
+          .from('distribusi_zakat')
+          .select('id, tahun_zakat_id, jenis_distribusi, jumlah, jumlah_beras_kg, jumlah_uang_rp')
+          .eq('id', id)
+          .single();
+
+        if (targetError) throw targetError;
+        const target = targetRaw as {
+          id: string;
+          tahun_zakat_id: string;
+          jenis_distribusi: 'beras' | 'uang';
+          jumlah?: number | null;
+          jumlah_beras_kg?: number | null;
+          jumlah_uang_rp?: number | null;
+        } | null;
+        if (!target) {
+          throw new Error('Data distribusi tidak ditemukan');
+        }
+
+        const targetAmount = resolveDistribusiJumlah(target as DistribusiRow);
+
+        const [
+          { data: pembayaranData, error: pembayaranError },
+          { data: pemasukanUangData, error: pemasukanUangError },
+          { data: pemasukanBerasData, error: pemasukanBerasError },
+          { data: distribusiData, error: distribusiError },
+        ] = await Promise.all([
+          supabase
+            .from('pembayaran_zakat')
+            .select('jenis_zakat, jumlah_beras_kg, jumlah_uang_rp')
+            .eq('tahun_zakat_id', target.tahun_zakat_id),
+          supabase
+            .from('pemasukan_uang')
+            .select('jumlah_uang_rp')
+            .eq('tahun_zakat_id', target.tahun_zakat_id),
+          supabase
+            .from('pemasukan_beras')
+            .select('jumlah_beras_kg')
+            .eq('tahun_zakat_id', target.tahun_zakat_id),
+          supabase
+            .from('distribusi_zakat')
+            .select('id, jenis_distribusi, jumlah, jumlah_beras_kg, jumlah_uang_rp')
+            .eq('tahun_zakat_id', target.tahun_zakat_id)
+            .eq('status', 'selesai'),
+        ]);
+
+        if (pembayaranError) throw pembayaranError;
+        if (pemasukanUangError) {
+          console.warn('Failed to read pemasukan_uang for update distribusi stock check, fallback to pembayaran_zakat only:', pemasukanUangError);
+        }
+        if (pemasukanBerasError) {
+          console.warn('Failed to read pemasukan_beras for update distribusi stock check, fallback to pembayaran_zakat only:', pemasukanBerasError);
+        }
+        if (distribusiError) throw distribusiError;
+
+        const totalPemasukanBeras =
+          ((pembayaranData as any)
+            ?.filter((p: any) => p.jenis_zakat === 'beras')
+            .reduce((s: number, p: any) => s + (p.jumlah_beras_kg || 0), 0) || 0) +
+          ((pemasukanBerasError ? [] : (pemasukanBerasData as any))
+            ?.reduce((s: number, p: any) => s + (p.jumlah_beras_kg || 0), 0) || 0);
+
+        const totalPemasukanUang =
+          ((pembayaranData as any)
+            ?.filter((p: any) => p.jenis_zakat === 'uang')
+            .reduce((s: number, p: any) => s + (p.jumlah_uang_rp || 0), 0) || 0) +
+          ((pemasukanUangError ? [] : (pemasukanUangData as any))
+            ?.reduce((s: number, p: any) => s + (p.jumlah_uang_rp || 0), 0) || 0);
+
+        const totalDistribusiBeras = (distribusiData as any)
+          ?.filter((d: any) => d.jenis_distribusi === 'beras' && d.id !== id)
+          .reduce((s: number, d: any) => s + Number(d.jumlah_beras_kg ?? d.jumlah ?? 0), 0) || 0;
+
+        const totalDistribusiUang = (distribusiData as any)
+          ?.filter((d: any) => d.jenis_distribusi === 'uang' && d.id !== id)
+          .reduce((s: number, d: any) => s + Number(d.jumlah_uang_rp ?? d.jumlah ?? 0), 0) || 0;
+
+        const sisa = target.jenis_distribusi === 'beras'
+          ? totalPemasukanBeras - totalDistribusiBeras
+          : totalPemasukanUang - totalDistribusiUang;
+
+        if (targetAmount > sisa) {
+          throw new Error(
+            `Stok tidak mencukupi untuk menandai selesai. Sisa stok saat ini: ${sisa.toFixed(2)} ${target.jenis_distribusi === 'beras' ? 'kg' : 'Rp'}`
+          );
+        }
+      }
+
       const { data, error } = await (supabase
         .from('distribusi_zakat')
         .update as any)({
@@ -309,7 +500,7 @@ export function useUpdateDistribusiStatus() {
         .select();
 
       if (error) throw error;
-      return data;
+      return normalizeDistribusiRows((data || []) as DistribusiRow[]);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['distribusi-list'] });

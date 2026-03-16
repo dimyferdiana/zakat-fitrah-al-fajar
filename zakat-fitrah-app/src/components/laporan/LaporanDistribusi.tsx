@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,9 +28,13 @@ import { Download, FileText, Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { useDistribusiList } from '@/hooks/useDistribusi';
 import { useKategoriMustahik } from '@/hooks/useMustahik';
+import { supabase } from '@/lib/supabase';
+import { offlineStore } from '@/lib/offlineStore';
+import { formatDateOnlyLocal } from '@/lib/date';
 import { exportDistribusiPDF, exportDistribusiExcel } from '@/utils/export';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 interface LaporanDistribusiProps {
   tahunZakatId: string;
@@ -41,27 +46,79 @@ export function LaporanDistribusi({ tahunZakatId }: LaporanDistribusiProps) {
   const [kategoriFilter, setKategoriFilter] = useState<string>('semua');
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: distribusiData, isLoading } = useDistribusiList({
-    tahun_zakat_id: tahunZakatId,
-    page: currentPage,
-    limit: 20,
+  const pageSize = 20;
+
+  const { data: distribusiAllData, isLoading } = useQuery({
+    queryKey: ['laporan-distribusi-all', tahunZakatId],
+    queryFn: async () => {
+      if (!tahunZakatId) return [];
+
+      if (OFFLINE_MODE) {
+        return offlineStore.getDistribusiList({
+          tahun_zakat_id: tahunZakatId,
+          status: 'semua',
+          page: 1,
+          limit: 10000,
+        }).data;
+      }
+
+      const { data, error } = await supabase
+        .from('distribusi_zakat')
+        .select('*, mustahik(id, nama, alamat, kategori_id, kategori_mustahik(nama)), tahun_zakat(tahun_hijriah, tahun_masehi)')
+        .eq('tahun_zakat_id', tahunZakatId)
+        .order('tanggal_distribusi', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!tahunZakatId,
   });
 
   const { data: kategoriData } = useKategoriMustahik();
   const kategoriList = kategoriData || [];
 
-  const distribusiList = distribusiData?.data || [];
-  const totalCount = distribusiData?.totalCount || 0;
+  const distribusiList = distribusiAllData || [];
 
-  // Filter by kategori (client-side for now)
-  const filteredList = kategoriFilter === 'semua'
-    ? distribusiList
-    : distribusiList.filter((d: any) => d.mustahik?.kategori_id === kategoriFilter);
+  const filteredList = useMemo(() => {
+    const fromStr = dateFrom ? formatDateOnlyLocal(dateFrom) : null;
+    const toStr = dateTo ? formatDateOnlyLocal(dateTo) : null;
+
+    const resolveKategoriId = (item: any) => {
+      if (item.mustahik?.kategori_id) return item.mustahik.kategori_id as string;
+      const kategoriName = item.mustahik?.kategori_mustahik?.nama;
+      if (!kategoriName) return null;
+      return (kategoriList.find((kategori: any) => kategori.nama === kategoriName)?.id as string) || null;
+    };
+
+    return distribusiList.filter((d: any) => {
+      const tanggal = d.tanggal_distribusi ? String(d.tanggal_distribusi).slice(0, 10) : null;
+      if (!tanggal) return false;
+
+      if (fromStr && tanggal < fromStr) return false;
+      if (toStr && tanggal > toStr) return false;
+      if (kategoriFilter !== 'semua' && resolveKategoriId(d) !== kategoriFilter) return false;
+      return true;
+    });
+  }, [distribusiList, dateFrom, dateTo, kategoriFilter, kategoriList]);
+
+  const totalCount = filteredList.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const pagedList = useMemo(
+    () => filteredList.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filteredList, currentPage]
+  );
+
+  const resolveKategoriId = (item: any) => {
+    if (item.mustahik?.kategori_id) return item.mustahik.kategori_id as string;
+    const kategoriName = item.mustahik?.kategori_mustahik?.nama;
+    if (!kategoriName) return null;
+    return (kategoriList.find((kategori: any) => kategori.nama === kategoriName)?.id as string) || null;
+  };
 
   // Calculate summary per kategori
   const summaryByKategori = kategoriList.map((kategori: any) => {
     const distribusiKategori = filteredList.filter(
-      (d: any) => d.mustahik?.kategori_id === kategori.id
+      (d: any) => resolveKategoriId(d) === kategori.id
     );
 
     const totalBeras = distribusiKategori
@@ -72,7 +129,7 @@ export function LaporanDistribusi({ tahunZakatId }: LaporanDistribusiProps) {
       .filter((d: any) => d.jenis_distribusi === 'uang')
       .reduce((sum: number, d: any) => sum + (d.jumlah || 0), 0);
 
-    const count = distribusiKategori.length;
+    const count = new Set(distribusiKategori.map((d: any) => d.mustahik_id).filter(Boolean)).size;
 
     return {
       kategori: kategori.nama,
@@ -103,7 +160,11 @@ export function LaporanDistribusi({ tahunZakatId }: LaporanDistribusiProps) {
     exportDistribusiExcel(filteredList, summaryByKategori);
   };
 
-  const totalPages = Math.ceil(totalCount / 20);
+  const hasPagination = totalCount > pageSize;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [dateFrom, dateTo, kategoriFilter]);
 
   return (
     <div className="space-y-6">
@@ -274,7 +335,7 @@ export function LaporanDistribusi({ tahunZakatId }: LaporanDistribusiProps) {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredList.map((distribusi: any) => (
+                pagedList.map((distribusi: any) => (
                   <TableRow key={distribusi.id}>
                     <TableCell>
                       {format(new Date(distribusi.tanggal_distribusi), 'dd MMM yyyy', {
@@ -315,7 +376,7 @@ export function LaporanDistribusi({ tahunZakatId }: LaporanDistribusiProps) {
           </Table>
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {hasPagination && (
             <div className="flex items-center justify-between mt-4">
               <p className="text-sm text-muted-foreground">
                 Halaman {currentPage} dari {totalPages} ({totalCount} total)

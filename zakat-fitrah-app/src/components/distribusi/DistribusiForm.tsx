@@ -93,7 +93,7 @@ export function DistribusiForm({
   const { data: mustahikData } = useMustahikList({
     status: 'aktif',
     page: 1,
-    limit: 1000,
+    limit: 10000,
   });
   const { data: stokData, isLoading: loadingStok } = useStokCheck(tahunZakatId);
 

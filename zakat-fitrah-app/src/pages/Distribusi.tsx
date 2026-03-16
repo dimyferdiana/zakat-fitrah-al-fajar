@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,6 +31,7 @@ import {
   useDeleteDistribusi,
 } from '@/hooks/useDistribusi';
 import { useTahunZakatList } from '@/hooks/useDashboard';
+import { formatDateOnlyLocal } from '@/lib/date';
 
 export default function Distribusi() {
   const [selectedTahun, setSelectedTahun] = useState<string>('');
@@ -47,10 +48,11 @@ export default function Distribusi() {
   const tahunZakatList = tahunZakatData || [];
   const activeTahun = tahunZakatList.find((t: any) => t.is_active);
 
-  // Set default selected tahun to active year
-  if (selectedTahun === '' && activeTahun) {
-    setSelectedTahun(activeTahun.id);
-  }
+  useEffect(() => {
+    if (selectedTahun === '' && activeTahun) {
+      setSelectedTahun(activeTahun.id);
+    }
+  }, [selectedTahun, activeTahun]);
 
   const { data: distribusiData, isLoading: loadingDistribusi } = useDistribusiList({
     tahun_zakat_id: selectedTahun,
@@ -82,7 +84,7 @@ export default function Distribusi() {
       tahun_zakat_id: selectedTahun,
       jenis_distribusi: data.jenis_distribusi,
       jumlah: data.jumlah,
-      tanggal_distribusi: data.tanggal_distribusi.toISOString(),
+      tanggal_distribusi: formatDateOnlyLocal(data.tanggal_distribusi),
     });
     handleCloseForm();
   };
@@ -256,8 +258,14 @@ export default function Distribusi() {
             onPrint={handlePrint}
             onMarkSelesai={(id) => setSelesaiId(id)}
             onDelete={(id) => setDeleteId(id)}
-            onFilterJenis={(jenis: string) => setJenisFilter(jenis as 'semua' | 'beras' | 'uang')}
-            onFilterStatus={(status: string) => setStatusFilter(status as 'semua' | 'pending' | 'selesai')}
+            onFilterJenis={(jenis: string) => {
+              setJenisFilter(jenis as 'semua' | 'beras' | 'uang');
+              setCurrentPage(1);
+            }}
+            onFilterStatus={(status: string) => {
+              setStatusFilter(status as 'semua' | 'pending' | 'selesai');
+              setCurrentPage(1);
+            }}
             onPageChange={setCurrentPage}
           />
         </CardContent>

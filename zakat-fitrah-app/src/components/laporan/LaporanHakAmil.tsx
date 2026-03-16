@@ -55,13 +55,17 @@ export function LaporanHakAmil({ tahunZakatId }: LaporanHakAmilProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('tahun_zakat')
-        .select('nama')
+        .select('tahun_hijriah, tahun_masehi')
         .eq('id', tahunZakatId)
         .single();
       if (error) throw error;
-      return data as { nama: string };
+      return data as { tahun_hijriah: string; tahun_masehi: number };
     },
   });
+
+  const tahunZakatLabel = tahunZakat
+    ? `${tahunZakat.tahun_hijriah} (${tahunZakat.tahun_masehi})`
+    : '-';
 
   // Fetch hak amil config for basis mode
   const { data: hakAmilConfig } = useHakAmilConfig(tahunZakatId);
@@ -137,7 +141,7 @@ export function LaporanHakAmil({ tahunZakatId }: LaporanHakAmilProps) {
       ];
       const periode = viewMode === 'monthly' 
         ? `${monthNames[parseInt(selectedMonth) - 1]} ${selectedYear}`
-        : `Tahun ${selectedYear}`;
+        : `Tahun Zakat ${tahunZakatLabel}`;
       
       // Build basis mode label
       const basisModeLabel = hakAmilConfig.basis_mode === 'net_after_reconciliation'
@@ -146,7 +150,7 @@ export function LaporanHakAmil({ tahunZakatId }: LaporanHakAmilProps) {
 
       await exportHakAmilPDF(summary, {
         periode,
-        tahunZakatNama: tahunZakat.nama,
+        tahunZakatNama: tahunZakatLabel,
         basisMode: basisModeLabel,
       });
 
@@ -177,7 +181,7 @@ export function LaporanHakAmil({ tahunZakatId }: LaporanHakAmilProps) {
       ];
       const periode = viewMode === 'monthly' 
         ? `${monthNames[parseInt(selectedMonth) - 1]} ${selectedYear}`
-        : `Tahun ${selectedYear}`;
+        : `Tahun Zakat ${tahunZakatLabel}`;
       
       // Build basis mode label
       const basisModeLabel = hakAmilConfig.basis_mode === 'net_after_reconciliation'
@@ -186,7 +190,7 @@ export function LaporanHakAmil({ tahunZakatId }: LaporanHakAmilProps) {
 
       await exportHakAmilExcel(summary, {
         periode,
-        tahunZakatNama: tahunZakat.nama,
+        tahunZakatNama: tahunZakatLabel,
         basisMode: basisModeLabel,
       });
 
@@ -284,7 +288,6 @@ export function LaporanHakAmil({ tahunZakatId }: LaporanHakAmilProps) {
                   <SelectItem value="zakat_maal">Zakat Maal</SelectItem>
                   <SelectItem value="infak">Infak/Sedekah</SelectItem>
                   <SelectItem value="fidyah">Fidyah</SelectItem>
-                  <SelectItem value="beras">Beras</SelectItem>
                 </SelectContent>
               </Select>
             </div>

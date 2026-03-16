@@ -14,6 +14,9 @@ import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { useTahunZakatList } from '@/hooks/useDashboard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { offlineStore } from '@/lib/offlineStore';
+
+const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 interface YearData {
   tahun_hijriah: string;
@@ -44,47 +47,133 @@ export function PerbandinganTahun() {
         const tahun = tahunZakatList.find((t: any) => t.id === tahunId);
         if (!tahun) return null;
 
-        // Get pemasukan
-        const { data: pemasukanData } = await supabase
-          .from('pembayaran_zakat')
-          .select('jenis_zakat, jumlah_beras_kg, jumlah_uang_rp')
-          .eq('tahun_zakat_id', tahunId);
+        if (OFFLINE_MODE) {
+          const pembayaranData = offlineStore.getPembayaranList({
+            tahunZakatId: tahunId,
+            page: 1,
+            pageSize: 10000,
+          }).data;
+          const pemasukanUangData = offlineStore.getPemasukanUangList({
+            tahunZakatId: tahunId,
+            page: 1,
+            pageSize: 10000,
+          }).data;
+          const pemasukanBerasData = offlineStore.getPemasukanBerasList({
+            tahunZakatId: tahunId,
+            page: 1,
+            pageSize: 10000,
+          }).data;
+          const distribusiData = offlineStore.getDistribusiList({
+            tahun_zakat_id: tahunId,
+            status: 'selesai',
+            page: 1,
+            limit: 10000,
+          }).data;
 
-        const pemasukanBeras = (pemasukanData as any)
-          ?.filter((p: any) => p.jenis_zakat === 'beras')
-          .reduce((sum: number, p: any) => sum + (p.jumlah_beras_kg || 0), 0) || 0;
+          const pembayaranBeras = pembayaranData
+            .filter((p: any) => p.jenis_zakat === 'beras')
+            .reduce((sum: number, p: any) => sum + Number(p.jumlah_beras_kg || 0), 0);
+          const pembayaranUang = pembayaranData
+            .filter((p: any) => p.jenis_zakat === 'uang')
+            .reduce((sum: number, p: any) => sum + Number(p.jumlah_uang_rp || 0), 0);
 
-        const pemasukanUang = (pemasukanData as any)
-          ?.filter((p: any) => p.jenis_zakat === 'uang')
-          .reduce((sum: number, p: any) => sum + (p.jumlah_uang_rp || 0), 0) || 0;
+          const pemasukanBerasTambahan = pemasukanBerasData
+            .reduce((sum: number, p: any) => sum + Number(p.jumlah_beras_kg || 0), 0);
+          const pemasukanUangTambahan = pemasukanUangData
+            .reduce((sum: number, p: any) => sum + Number(p.jumlah_uang_rp || 0), 0);
 
-        // Get distribusi
-        const { data: distribusiData } = await supabase
-          .from('distribusi_zakat')
-          .select('jenis_distribusi, jumlah, status')
-          .eq('tahun_zakat_id', tahunId)
-          .eq('status', 'selesai');
+          const distribusiBeras = distribusiData
+            .filter((d: any) => d.jenis_distribusi === 'beras')
+            .reduce((sum: number, d: any) => sum + Number(d.jumlah || 0), 0);
+          const distribusiUang = distribusiData
+            .filter((d: any) => d.jenis_distribusi === 'uang')
+            .reduce((sum: number, d: any) => sum + Number(d.jumlah || 0), 0);
 
-        const distribusiBeras = (distribusiData as any)
-          ?.filter((d: any) => d.jenis_distribusi === 'beras')
-          .reduce((sum: number, d: any) => sum + (d.jumlah || 0), 0) || 0;
+          const muzakkiSet = new Set<string>();
+          pembayaranData.forEach((p: any) => p.muzakki_id && muzakkiSet.add(p.muzakki_id));
+          pemasukanUangData.forEach((p: any) => p.muzakki_id && muzakkiSet.add(p.muzakki_id));
+          pemasukanBerasData.forEach((p: any) => p.muzakki_id && muzakkiSet.add(p.muzakki_id));
 
-        const distribusiUang = (distribusiData as any)
-          ?.filter((d: any) => d.jenis_distribusi === 'uang')
-          .reduce((sum: number, d: any) => sum + (d.jumlah || 0), 0) || 0;
+          const mustahikSet = new Set<string>();
+          distribusiData.forEach((d: any) => d.mustahik_id && mustahikSet.add(d.mustahik_id));
 
-        // Get muzakki count
-        const { count: muzakkiCount } = await supabase
-          .from('pembayaran_zakat')
-          .select('muzakki_id', { count: 'exact', head: true })
-          .eq('tahun_zakat_id', tahunId);
+          const pemasukanBeras = pembayaranBeras + pemasukanBerasTambahan;
+          const pemasukanUang = pembayaranUang + pemasukanUangTambahan;
 
-        // Get mustahik count
-        const { count: mustahikCount } = await supabase
-          .from('distribusi_zakat')
-          .select('mustahik_id', { count: 'exact', head: true })
-          .eq('tahun_zakat_id', tahunId)
-          .eq('status', 'selesai');
+          return {
+            tahun_hijriah: (tahun as any).tahun_hijriah,
+            tahun_masehi: (tahun as any).tahun_masehi,
+            pemasukan_beras: pemasukanBeras,
+            pemasukan_uang: pemasukanUang,
+            distribusi_beras: distribusiBeras,
+            distribusi_uang: distribusiUang,
+            sisa_beras: pemasukanBeras - distribusiBeras,
+            sisa_uang: pemasukanUang - distribusiUang,
+            total_muzakki: muzakkiSet.size,
+            total_mustahik: mustahikSet.size,
+          } as YearData;
+        }
+
+        const [
+          { data: pembayaranData, error: pembayaranError },
+          { data: pemasukanUangData, error: pemasukanUangError },
+          { data: pemasukanBerasData, error: pemasukanBerasError },
+          { data: distribusiData, error: distribusiError },
+        ] = await Promise.all([
+          supabase
+            .from('pembayaran_zakat')
+            .select('jenis_zakat, jumlah_beras_kg, jumlah_uang_rp, muzakki_id')
+            .eq('tahun_zakat_id', tahunId),
+          supabase
+            .from('pemasukan_uang')
+            .select('jumlah_uang_rp, muzakki_id')
+            .eq('tahun_zakat_id', tahunId),
+          supabase
+            .from('pemasukan_beras')
+            .select('jumlah_beras_kg, muzakki_id')
+            .eq('tahun_zakat_id', tahunId),
+          supabase
+            .from('distribusi_zakat')
+            .select('jenis_distribusi, jumlah, status, mustahik_id')
+            .eq('tahun_zakat_id', tahunId)
+            .eq('status', 'selesai'),
+        ]);
+
+        if (pembayaranError) throw pembayaranError;
+        if (pemasukanUangError) throw pemasukanUangError;
+        if (pemasukanBerasError) throw pemasukanBerasError;
+        if (distribusiError) throw distribusiError;
+
+        const pembayaranBeras = (pembayaranData || [])
+          .filter((p: any) => p.jenis_zakat === 'beras')
+          .reduce((sum: number, p: any) => sum + Number(p.jumlah_beras_kg || 0), 0);
+        const pembayaranUang = (pembayaranData || [])
+          .filter((p: any) => p.jenis_zakat === 'uang')
+          .reduce((sum: number, p: any) => sum + Number(p.jumlah_uang_rp || 0), 0);
+
+        const pemasukanBerasTambahan = (pemasukanBerasData || [])
+          .reduce((sum: number, p: any) => sum + Number(p.jumlah_beras_kg || 0), 0);
+        const pemasukanUangTambahan = (pemasukanUangData || [])
+          .reduce((sum: number, p: any) => sum + Number(p.jumlah_uang_rp || 0), 0);
+
+        const distribusiBeras = (distribusiData || [])
+          .filter((d: any) => d.jenis_distribusi === 'beras')
+          .reduce((sum: number, d: any) => sum + Number(d.jumlah || 0), 0);
+
+        const distribusiUang = (distribusiData || [])
+          .filter((d: any) => d.jenis_distribusi === 'uang')
+          .reduce((sum: number, d: any) => sum + Number(d.jumlah || 0), 0);
+
+        const muzakkiSet = new Set<string>();
+        (pembayaranData || []).forEach((p: any) => p.muzakki_id && muzakkiSet.add(p.muzakki_id));
+        (pemasukanUangData || []).forEach((p: any) => p.muzakki_id && muzakkiSet.add(p.muzakki_id));
+        (pemasukanBerasData || []).forEach((p: any) => p.muzakki_id && muzakkiSet.add(p.muzakki_id));
+
+        const mustahikSet = new Set<string>();
+        (distribusiData || []).forEach((d: any) => d.mustahik_id && mustahikSet.add(d.mustahik_id));
+
+        const pemasukanBeras = pembayaranBeras + pemasukanBerasTambahan;
+        const pemasukanUang = pembayaranUang + pemasukanUangTambahan;
 
         return {
           tahun_hijriah: (tahun as any).tahun_hijriah,
@@ -95,13 +184,14 @@ export function PerbandinganTahun() {
           distribusi_uang: distribusiUang,
           sisa_beras: pemasukanBeras - distribusiBeras,
           sisa_uang: pemasukanUang - distribusiUang,
-          total_muzakki: muzakkiCount || 0,
-          total_mustahik: mustahikCount || 0,
+          total_muzakki: muzakkiSet.size,
+          total_mustahik: mustahikSet.size,
         } as YearData;
       });
 
       const results = await Promise.all(promises);
-      return results.filter((r) => r !== null) as YearData[];
+      return (results.filter((r) => r !== null) as YearData[])
+        .sort((a, b) => a.tahun_masehi - b.tahun_masehi);
     },
     enabled: selectedYears.length > 0,
   });

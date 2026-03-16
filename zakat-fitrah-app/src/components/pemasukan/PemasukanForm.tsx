@@ -38,6 +38,7 @@ import type { AkunUang, PemasukanUangKategori } from '@/hooks/usePemasukanUang';
 import { MuzakkiCreatableCombobox } from '@/components/pemasukan/MuzakkiCreatableCombobox';
 import { useState } from 'react';
 import { validatePaymentProofFile } from '@/lib/paymentProof';
+import { formatDateOnlyLocal, parseDateOnlyToLocal } from '@/lib/date';
 
 const formSchema = z.object({
   tahun_zakat_id: z.string().min(1, { message: 'Tahun zakat wajib dipilih' }),
@@ -116,7 +117,7 @@ export function PemasukanForm({
       kategori: defaultValues.kategori,
       account_id: defaultValues.account_id || accountOptions[0]?.id || '',
       jumlah_uang_rp: defaultValues.jumlah_uang_rp,
-      tanggal: new Date(defaultValues.tanggal),
+      tanggal: parseDateOnlyToLocal(defaultValues.tanggal),
       catatan: defaultValues.catatan || '',
       muzakki_id: defaultValues.muzakki_id,
     } : {
@@ -153,7 +154,7 @@ export function PemasukanForm({
         kategori: defaultValues.kategori,
         account_id: defaultValues.account_id || accountOptions[0]?.id || '',
         jumlah_uang_rp: defaultValues.jumlah_uang_rp,
-        tanggal: new Date(defaultValues.tanggal),
+        tanggal: parseDateOnlyToLocal(defaultValues.tanggal),
         catatan: defaultValues.catatan || '',
         muzakki_id: defaultValues.muzakki_id,
       });
@@ -181,7 +182,7 @@ export function PemasukanForm({
       catatan: values.catatan || undefined,
       bukti_bayar_url: defaultValues?.bukti_bayar_url,
       bukti_bayar_file: selectedProofFile,
-      tanggal: values.tanggal.toISOString().split('T')[0],
+      tanggal: formatDateOnlyLocal(values.tanggal),
     });
   };
 

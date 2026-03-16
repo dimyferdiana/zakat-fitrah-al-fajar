@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { offlineStore } from '@/lib/offlineStore';
 import { BULK_BERAS_KG_PER_LITER } from '@/types/bulk';
+import { formatDateOnlyLocal } from '@/lib/date';
 import type {
   HakAmilConfig,
   HakAmilKategori,
@@ -181,7 +182,7 @@ export function useHakAmilMonthlySummary(
       }
 
       const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
-      const endDate = new Date(year, month, 0).toISOString().split('T')[0];
+      const endDate = formatDateOnlyLocal(new Date(year, month, 0));
 
       if (OFFLINE_MODE) {
         return fetchOfflineHakAmilSummary(tahunZakatId, startDate, endDate);
@@ -228,7 +229,7 @@ export function getDateRangeForPeriod(period: HakAmilPeriod): HakAmilPeriodRange
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth();
-  const fmt = (d: Date) => d.toISOString().split('T')[0];
+  const fmt = (d: Date) => formatDateOnlyLocal(d);
 
   if (period === 'this_month') {
     const start = new Date(year, month, 1);

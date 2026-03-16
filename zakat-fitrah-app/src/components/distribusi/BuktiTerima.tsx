@@ -14,6 +14,7 @@ import { Printer, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { jsPDF } from 'jspdf';
+import { parseDateOnlyToLocal } from '@/lib/date';
 
 interface Distribusi {
   id: string;
@@ -137,7 +138,7 @@ export function BuktiTerima({ open, onOpenChange, distribusi }: BuktiTerimaProps
     pdf.setFont('helvetica', 'normal');
     pdf.text(`Tanggal Distribusi`, 25, y);
     pdf.text(
-      `: ${format(new Date(distribusi.tanggal_distribusi), 'dd MMMM yyyy', {
+      `: ${format(parseDateOnlyToLocal(distribusi.tanggal_distribusi), 'dd MMMM yyyy', {
         locale: localeId,
       })}`,
       70,
@@ -294,7 +295,7 @@ export function BuktiTerima({ open, onOpenChange, distribusi }: BuktiTerimaProps
                   <span className="text-muted-foreground">Tanggal Distribusi</span>
                   <span>
                     :{' '}
-                    {format(new Date(distribusi.tanggal_distribusi), 'dd MMMM yyyy', {
+                    {format(parseDateOnlyToLocal(distribusi.tanggal_distribusi), 'dd MMMM yyyy', {
                       locale: localeId,
                     })}
                   </span>
