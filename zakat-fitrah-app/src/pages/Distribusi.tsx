@@ -38,6 +38,7 @@ export default function Distribusi() {
   const [jenisFilter, setJenisFilter] = useState<'semua' | 'beras' | 'uang'>('semua');
   const [statusFilter, setStatusFilter] = useState<'semua' | 'pending' | 'selesai'>('semua');
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [formOpen, setFormOpen] = useState(false);
   const [printData, setPrintData] = useState<any>(null);
   const [selesaiId, setSelesaiId] = useState<string | null>(null);
@@ -59,7 +60,7 @@ export default function Distribusi() {
     jenis_distribusi: jenisFilter === 'semua' ? undefined : jenisFilter,
     status: statusFilter === 'semua' ? undefined : statusFilter,
     page: currentPage,
-    limit: 20,
+    limit: pageSize,
   });
 
   const { data: stokData, isLoading: loadingStok } = useStokCheck(selectedTahun);
@@ -255,6 +256,7 @@ export default function Distribusi() {
             totalCount={distribusiData?.totalCount || 0}
             isLoading={loadingDistribusi}
             currentPage={currentPage}
+            pageSize={pageSize}
             onPrint={handlePrint}
             onMarkSelesai={(id) => setSelesaiId(id)}
             onDelete={(id) => setDeleteId(id)}
@@ -267,6 +269,10 @@ export default function Distribusi() {
               setCurrentPage(1);
             }}
             onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
           />
         </CardContent>
       </Card>

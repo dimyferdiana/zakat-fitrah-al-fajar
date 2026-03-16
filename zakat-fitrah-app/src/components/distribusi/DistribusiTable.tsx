@@ -32,7 +32,9 @@ interface DistribusiTableProps {
   onFilterJenis: (jenis: string) => void;
   onFilterStatus: (status: string) => void;
   onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
   currentPage: number;
+  pageSize: number;
 }
 
 export function DistribusiTable({
@@ -45,7 +47,9 @@ export function DistribusiTable({
   onFilterJenis,
   onFilterStatus,
   onPageChange,
+  onPageSizeChange,
   currentPage,
+  pageSize,
 }: DistribusiTableProps) {
   const [jenisFilter, setJenisFilter] = useState('semua');
   const [statusFilter, setStatusFilter] = useState('semua');
@@ -62,13 +66,12 @@ export function DistribusiTable({
     return value.toFixed(2);
   };
 
-  const limit = 20;
-  const totalPages = Math.ceil(totalCount / limit);
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
         <Select
           value={jenisFilter}
           onValueChange={(value) => {
@@ -101,6 +104,29 @@ export function DistribusiTable({
             <SelectItem value="selesai">Selesai</SelectItem>
           </SelectContent>
         </Select>
+
+        {/* Page size selector */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground ml-auto">
+          <span>Tampilkan</span>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(v) => {
+              onPageSizeChange(Number(v));
+              onPageChange(1);
+            }}
+          >
+            <SelectTrigger className="w-[80px] h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
+            </SelectContent>
+          </Select>
+          <span>item</span>
+        </div>
       </div>
 
       {/* Table */}
@@ -210,9 +236,9 @@ export function DistribusiTable({
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
-            Halaman {currentPage} dari {totalPages} ({totalCount} total)
+            Menampilkan {totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, totalCount)} dari {totalCount} data
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -222,6 +248,9 @@ export function DistribusiTable({
               <ChevronLeft className="h-4 w-4" />
               Sebelumnya
             </Button>
+            <span className="text-sm text-muted-foreground">
+              {currentPage} / {totalPages}
+            </span>
             <Button
               variant="outline"
               size="sm"

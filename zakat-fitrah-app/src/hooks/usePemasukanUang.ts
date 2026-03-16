@@ -41,6 +41,7 @@ export interface PemasukanUangListParams {
   tahunZakatId?: string;
   kategori?: PemasukanUangKategori | 'semua';
   akun?: AkunUang | 'semua';
+  accountId?: string;
   page?: number;
   pageSize?: number;
 }
@@ -203,6 +204,10 @@ export function usePemasukanUangList(params: PemasukanUangListParams) {
 
       if (params.akun && params.akun !== 'semua') {
         query = query.eq('akun', params.akun);
+      }
+
+      if (params.accountId) {
+        query = query.eq('account_id', params.accountId);
       }
 
       const page = params.page || 1;

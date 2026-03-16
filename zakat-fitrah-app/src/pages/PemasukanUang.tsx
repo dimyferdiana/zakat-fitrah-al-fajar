@@ -63,7 +63,7 @@ export function PemasukanUang() {
   const activeTahun = useMemo(() => tahunList?.find((t) => t.is_active), [tahunList]);
   const [selectedTahun, setSelectedTahun] = useState<string | undefined>(() => activeTahun?.id);
   const [kategori, setKategori] = useState<'semua' | 'fidyah_uang' | 'maal_penghasilan_uang' | 'infak_sedekah_uang' | 'zakat_fitrah_uang'>('semua');
-  const [akun, setAkun] = useState<'semua' | 'kas' | 'bank'>('semua');
+  const [accountFilter, setAccountFilter] = useState<'semua' | 'channel:kas' | 'channel:bank' | `account:${string}`>('semua');
   const [formOpen, setFormOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [buktiOpen, setBuktiOpen] = useState(false);
@@ -74,6 +74,15 @@ export function PemasukanUang() {
   const [itemToDelete, setItemToDelete] = useState<PemasukanUang | null>(null);
   const [bulkMode, setBulkMode] = useState(false);
 
+  const selectedAccountId = accountFilter.startsWith('account:')
+    ? accountFilter.replace('account:', '')
+    : undefined;
+  const selectedAkun = accountFilter === 'channel:kas'
+    ? 'kas'
+    : accountFilter === 'channel:bank'
+      ? 'bank'
+      : 'semua';
+
   const {
     data: pemasukan,
     isLoading,
@@ -81,7 +90,8 @@ export function PemasukanUang() {
   } = usePemasukanUangList({
     tahunZakatId: selectedTahun || activeTahun?.id,
     kategori,
-    akun,
+    akun: selectedAkun,
+    accountId: selectedAccountId,
     page,
     pageSize,
   });
@@ -94,6 +104,18 @@ export function PemasukanUang() {
   const accountOptions = accountsQuery.data || [];
   const accountNameMap = useMemo(
     () => new Map(accountOptions.map((account) => [account.id, account.account_name])),
+    [accountOptions]
+  );
+  const cashAccounts = useMemo(
+    () => accountOptions.filter((account) => account.account_channel === 'kas'),
+    [accountOptions]
+  );
+  const bankAccounts = useMemo(
+    () => accountOptions.filter((account) => account.account_channel === 'bank'),
+    [accountOptions]
+  );
+  const otherAccounts = useMemo(
+    () => accountOptions.filter((account) => account.account_channel !== 'kas' && account.account_channel !== 'bank'),
     [accountOptions]
   );
 
@@ -203,16 +225,39 @@ export function PemasukanUang() {
               </SelectContent>
             </Select>
 
-            <Select value={akun} onValueChange={(val) => { setAkun(val as 'semua' | 'kas' | 'bank'); setPage(1); }}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Akun" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="semua">Semua Akun</SelectItem>
-                <SelectItem value="kas">Kas</SelectItem>
-                <SelectItem value="bank">Bank</SelectItem>
-              </SelectContent>
-            </Select>
+            {!bulkMode && (
+              <Select
+                value={accountFilter}
+                onValueChange={(val) => {
+                  setAccountFilter(val as 'semua' | 'channel:kas' | 'channel:bank' | `account:${string}`);
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger className="w-[280px]">
+                  <SelectValue placeholder="Akun" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="semua">Semua Akun</SelectItem>
+                  <SelectItem value="channel:kas">Semua Kas</SelectItem>
+                  <SelectItem value="channel:bank">Semua Bank</SelectItem>
+                  {cashAccounts.map((account) => (
+                    <SelectItem key={account.id} value={`account:${account.id}`}>
+                      Kas: {account.account_name}
+                    </SelectItem>
+                  ))}
+                  {bankAccounts.map((account) => (
+                    <SelectItem key={account.id} value={`account:${account.id}`}>
+                      Bank: {account.account_name}
+                    </SelectItem>
+                  ))}
+                  {otherAccounts.map((account) => (
+                    <SelectItem key={account.id} value={`account:${account.id}`}>
+                      {account.account_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="flex items-center gap-2">

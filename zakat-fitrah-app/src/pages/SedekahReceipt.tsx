@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { SedekahReceiptForm } from '@/components/sedekah/SedekahReceiptForm';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
@@ -26,12 +33,14 @@ import {
   type SedekahReceiptRow,
 } from '@/hooks/useSedekahReceipts';
 import { toast } from 'sonner';
-import { Pencil, Trash2, Download } from 'lucide-react';
+import { Pencil, Trash2, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export function SedekahReceiptPage() {
   const [activeTab, setActiveTab] = useState<'daftar' | 'buat'>('daftar');
   const [editTarget, setEditTarget] = useState<SedekahReceiptRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<SedekahReceiptRow | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const { data: receipts = [], isLoading, refetch } = useSedekahReceiptsList();
   const deleteReceipt = useDeleteSedekahReceipt();
@@ -54,6 +63,9 @@ export function SedekahReceiptPage() {
       setDeleteTarget(null);
     }
   };
+
+  const totalPages = Math.ceil(receipts.length / pageSize);
+  const paginatedReceipts = receipts.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const handleRedownload = async (receipt: SedekahReceiptRow) => {
     try {
@@ -101,7 +113,31 @@ export function SedekahReceiptPage() {
             ) : receipts.length === 0 ? (
               <p className="text-sm text-slate-600">Belum ada bukti sedekah yang dibuat.</p>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="space-y-4">
+                {/* Items per page selector */}
+                <div className="flex items-center gap-2 text-sm text-slate-600">
+                  <span>Tampilkan</span>
+                  <Select
+                    value={String(pageSize)}
+                    onValueChange={(v) => {
+                      setPageSize(Number(v));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-[80px] h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span>item per halaman</span>
+                </div>
+
+                <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-left text-slate-600 border-b">
@@ -115,7 +151,7 @@ export function SedekahReceiptPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {receipts.map((receipt) => (
+                    {paginatedReceipts.map((receipt) => (
                       <tr key={receipt.id} className="border-b last:border-b-0 hover:bg-slate-50">
                         <td className="py-2 pr-4 font-medium">{receipt.receipt_number}</td>
                         <td className="py-2 pr-4">{receipt.tanggal}</td>
@@ -158,6 +194,37 @@ export function SedekahReceiptPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
+
+                {/* Pagination controls */}
+                <div className="flex items-center justify-between pt-2">
+                  <p className="text-sm text-slate-600">
+                    Menampilkan {receipts.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, receipts.length)} dari {receipts.length} data
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((p) => p - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Sebelumnya
+                    </Button>
+                    <span className="text-sm text-slate-600">
+                      {currentPage} / {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((p) => p + 1)}
+                      disabled={currentPage >= totalPages}
+                    >
+                      Berikutnya
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
