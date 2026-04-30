@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
+import { BRANDING } from '@/lib/branding';
 
 // Formatting helpers
 const formatCurrency = (value: number) => {
@@ -39,10 +40,10 @@ const addPDFHeader = (pdf: jsPDF, title: string) => {
   
   pdf.setFontSize(12);
   pdf.setFont('helvetica', 'normal');
-  pdf.text('Masjid Al-Fajar', pageWidth / 2, 28, { align: 'center' });
+  pdf.text(BRANDING.MOSQUE_NAME, pageWidth / 2, 28, { align: 'center' });
   
   pdf.setFontSize(10);
-  pdf.text('Jl. Contoh No. 123, Jakarta', pageWidth / 2, 34, { align: 'center' });
+  pdf.text(BRANDING.ADDRESS, pageWidth / 2, 34, { align: 'center' });
   
   pdf.setLineWidth(0.5);
   pdf.line(20, 38, pageWidth - 20, 38);
@@ -75,7 +76,7 @@ const addPDFFooter = (pdf: jsPDF) => {
 export const exportPemasukanPDF = (data: any[], summary: any) => {
   const pdf = new jsPDF('p', 'mm', 'a4');
   
-  addPDFHeader(pdf, 'LAPORAN PEMASUKAN ZAKAT FITRAH');
+  addPDFHeader(pdf, BRANDING.REPORT_INCOME_HEADER);
   
   // Summary
   let y = 45;
@@ -104,14 +105,15 @@ export const exportPemasukanPDF = (data: any[], summary: any) => {
     item.muzakki?.nama_kk || '',
     item.jumlah_jiwa,
     item.jenis_zakat === 'beras' ? 'Beras' : 'Uang',
+    item.tag?.name || '-',
     item.jenis_zakat === 'beras'
       ? `${formatNumber(item.jumlah_beras_kg)} kg`
       : formatCurrency(item.jumlah_uang_rp),
   ]);
-  
+
   autoTable(pdf, {
     startY: y,
-    head: [['Tanggal', 'Nama KK', 'Jiwa', 'Jenis', 'Jumlah']],
+    head: [['Tanggal', 'Nama KK', 'Jiwa', 'Jenis', 'Tag', 'Jumlah']],
     body: tableData,
     styles: { fontSize: 9 },
     headStyles: { fillColor: [59, 130, 246] },
@@ -124,19 +126,20 @@ export const exportPemasukanPDF = (data: any[], summary: any) => {
 export const exportPemasukanExcel = (data: any[], summary: any) => {
   const ws = XLSX.utils.aoa_to_sheet([
     ['LAPORAN PEMASUKAN ZAKAT FITRAH'],
-    ['Masjid Al-Fajar'],
+    [BRANDING.MOSQUE_NAME],
     [],
     ['Total Beras', `${formatNumber(summary.totalBeras)} kg`],
     ['Total Uang', formatCurrency(summary.totalUang)],
     ['Total Muzakki', `${summary.totalMuzakki} KK`],
     [],
-    ['Tanggal', 'Nama KK', 'Alamat', 'Jiwa', 'Jenis', 'Jumlah'],
+    ['Tanggal', 'Nama KK', 'Alamat', 'Jiwa', 'Jenis', 'Tag', 'Jumlah'],
     ...data.map((item: any) => [
       formatDate(item.tanggal_bayar),
       item.muzakki?.nama_kk || '',
       item.muzakki?.alamat || '',
       item.jumlah_jiwa,
       item.jenis_zakat === 'beras' ? 'Beras' : 'Uang',
+      item.tag?.name || '-',
       item.jenis_zakat === 'beras'
         ? `${formatNumber(item.jumlah_beras_kg)} kg`
         : formatCurrency(item.jumlah_uang_rp),
@@ -155,7 +158,7 @@ export const exportPemasukanExcel = (data: any[], summary: any) => {
 export const exportDistribusiPDF = (data: any[], summary: any[]) => {
   const pdf = new jsPDF('p', 'mm', 'a4');
   
-  addPDFHeader(pdf, 'LAPORAN DISTRIBUSI ZAKAT FITRAH');
+  addPDFHeader(pdf, BRANDING.REPORT_DISTRIBUTION_HEADER);
   
   let y = 45;
   
@@ -196,14 +199,15 @@ export const exportDistribusiPDF = (data: any[], summary: any[]) => {
     item.mustahik?.nama || '',
     item.mustahik?.kategori_mustahik?.nama || '',
     item.jenis_distribusi === 'beras' ? 'Beras' : 'Uang',
+    item.tag?.name || '-',
     item.jenis_distribusi === 'beras'
       ? `${formatNumber(item.jumlah)} kg`
       : formatCurrency(item.jumlah),
   ]);
-  
+
   autoTable(pdf, {
     startY: y,
-    head: [['Tanggal', 'Mustahik', 'Kategori', 'Jenis', 'Jumlah']],
+    head: [['Tanggal', 'Mustahik', 'Kategori', 'Jenis', 'Tag', 'Jumlah']],
     body: detailTableData,
     styles: { fontSize: 8 },
     headStyles: { fillColor: [59, 130, 246] },
@@ -216,7 +220,7 @@ export const exportDistribusiPDF = (data: any[], summary: any[]) => {
 export const exportDistribusiExcel = (data: any[], summary: any[]) => {
   const ws = XLSX.utils.aoa_to_sheet([
     ['LAPORAN DISTRIBUSI ZAKAT FITRAH'],
-    ['Masjid Al-Fajar'],
+    [BRANDING.MOSQUE_NAME],
     [],
     ['Ringkasan Per Kategori'],
     ['Kategori', 'Penerima', 'Beras (kg)', 'Uang (Rp)'],
@@ -228,13 +232,14 @@ export const exportDistribusiExcel = (data: any[], summary: any[]) => {
     ]),
     [],
     ['Detail Distribusi'],
-    ['Tanggal', 'Mustahik', 'Alamat', 'Kategori', 'Jenis', 'Jumlah', 'Status'],
+    ['Tanggal', 'Mustahik', 'Alamat', 'Kategori', 'Jenis', 'Tag', 'Jumlah', 'Status'],
     ...data.map((item: any) => [
       formatDate(item.tanggal_distribusi),
       item.mustahik?.nama || '',
       item.mustahik?.alamat || '',
       item.mustahik?.kategori_mustahik?.nama || '',
       item.jenis_distribusi === 'beras' ? 'Beras' : 'Uang',
+      item.tag?.name || '-',
       item.jenis_distribusi === 'beras'
         ? `${formatNumber(item.jumlah)} kg`
         : formatCurrency(item.jumlah),
@@ -308,7 +313,7 @@ export const exportMustahikPDF = (groupedData: any[], summary: any) => {
 export const exportMustahikExcel = (groupedData: any[], summary: any) => {
   const rows: any[] = [
     ['LAPORAN DAFTAR MUSTAHIK'],
-    ['Masjid Al-Fajar'],
+    [BRANDING.MOSQUE_NAME],
     [],
     ['Total Mustahik', `${summary.totalMustahik} KK`],
     ['Aktif', `${summary.totalAktif} KK`],
@@ -471,7 +476,7 @@ export const exportHakAmilExcel = (
 ) => {
   const rows: any[] = [
     ['LAPORAN HAK AMIL'],
-    ['Masjid Al-Fajar'],
+    [BRANDING.MOSQUE_NAME],
     [],
     ['Periode', filters.periode],
     ['Tahun Zakat', filters.tahunZakatNama],

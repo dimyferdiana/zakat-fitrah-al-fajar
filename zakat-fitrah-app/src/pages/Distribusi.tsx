@@ -36,6 +36,7 @@ export default function Distribusi() {
   const [selectedTahun, setSelectedTahun] = useState<string>('');
   const [jenisFilter, setJenisFilter] = useState<'semua' | 'beras' | 'uang'>('semua');
   const [statusFilter, setStatusFilter] = useState<'semua' | 'pending' | 'selesai'>('semua');
+  const [selectedTagId, setSelectedTagId] = useState<string | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
   const [printData, setPrintData] = useState<any>(null);
@@ -56,6 +57,7 @@ export default function Distribusi() {
     tahun_zakat_id: selectedTahun,
     jenis_distribusi: jenisFilter === 'semua' ? undefined : jenisFilter,
     status: statusFilter === 'semua' ? undefined : statusFilter,
+    tagId: selectedTagId,
     page: currentPage,
     limit: 20,
   });
@@ -83,6 +85,7 @@ export default function Distribusi() {
       jenis_distribusi: data.jenis_distribusi,
       jumlah: data.jumlah,
       tanggal_distribusi: data.tanggal_distribusi.toISOString(),
+      tag_id: data.tag_id ?? null,
     });
     handleCloseForm();
   };
@@ -258,6 +261,7 @@ export default function Distribusi() {
             onDelete={(id) => setDeleteId(id)}
             onFilterJenis={(jenis: string) => setJenisFilter(jenis as 'semua' | 'beras' | 'uang')}
             onFilterStatus={(status: string) => setStatusFilter(status as 'semua' | 'pending' | 'selesai')}
+            onFilterTag={(tagId) => setSelectedTagId(tagId)}
             onPageChange={setCurrentPage}
           />
         </CardContent>

@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { NilaiZakatTable } from '@/components/settings/NilaiZakatTable';
 import { NilaiZakatForm } from '@/components/settings/NilaiZakatForm';
+import { TagForm } from '@/components/settings/TagForm';
+import { TagTable } from '@/components/settings/TagTable';
 import { UserTable } from '@/components/settings/UserTable';
 import { UserForm } from '@/components/settings/UserForm';
 import { InvitationForm } from '@/components/settings/InvitationForm';
@@ -30,6 +32,11 @@ import {
   useUpdateTahunZakat,
   useToggleTahunZakatActive,
 } from '@/hooks/useNilaiZakat';
+import {
+  useAllTransactionTags,
+  useAddTransactionTag,
+  useDeactivateTransactionTag,
+} from '@/hooks/useTransactionTags';
 import {
   useUsersList,
   useCreateUser,
@@ -103,6 +110,9 @@ export default function Settings() {
   // Hak Amil Config state
   const [editHakAmilConfig, setEditHakAmilConfig] = useState<any>(null);
 
+  // Transaction Tags state
+  const [tagFormOpen, setTagFormOpen] = useState(false);
+
   // Nilai Zakat hooks
   const { data: tahunZakatList = [], isLoading: loadingTahunZakat } = useTahunZakatList();
   const createTahunZakatMutation = useCreateTahunZakat();
@@ -114,6 +124,11 @@ export default function Settings() {
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
   const toggleUserActiveMutation = useToggleUserActive();
+
+  // Transaction Tags hooks
+  const { data: allTags = [], isLoading: loadingTags } = useAllTransactionTags();
+  const addTagMutation = useAddTransactionTag();
+  const deactivateTagMutation = useDeactivateTransactionTag();
 
   // Hak Amil Config queries
   const { data: hakAmilConfigs = [], isLoading: loadingHakAmilConfigs } = useQuery<HakAmilConfigTableRow[]>({
@@ -459,16 +474,18 @@ export default function Settings() {
               {isAdmin && <SelectItem value="invitations">Invitations</SelectItem>}
               {isAdmin && <SelectItem value="rekonsiliasi">Rekonsiliasi</SelectItem>}
               <SelectItem value="hak-amil">Hak Amil</SelectItem>
+              {isAdmin && <SelectItem value="tags">Tags Transaksi</SelectItem>}
             </SelectContent>
           </Select>
         ) : (
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-7">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="nilai-zakat">Nilai Zakat</TabsTrigger>
             {isAdmin && <TabsTrigger value="users">User Management</TabsTrigger>}
             {isAdmin && <TabsTrigger value="invitations">Invitations</TabsTrigger>}
             {isAdmin && <TabsTrigger value="rekonsiliasi">Rekonsiliasi</TabsTrigger>}
             <TabsTrigger value="hak-amil">Hak Amil</TabsTrigger>
+            {isAdmin && <TabsTrigger value="tags">Tags Transaksi</TabsTrigger>}
           </TabsList>
         )}
 
@@ -698,6 +715,35 @@ export default function Settings() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Tags Transaksi Tab (Admin Only) */}
+        {isAdmin && (
+          <TabsContent value="tags" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Tags Transaksi</CardTitle>
+                    <CardDescription>
+                      Kelola tag untuk mengkategorikan transaksi
+                    </CardDescription>
+                  </div>
+                  <Button onClick={() => setTagFormOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Tambah Tag
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <TagTable
+                  data={allTags}
+                  isLoading={loadingTags}
+                  onDeactivate={(id) => deactivateTagMutation.mutate(id)}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Forms */}
@@ -716,6 +762,18 @@ export default function Settings() {
           onSubmit={handleSubmitUser}
           editData={editUser}
           isSubmitting={createUserMutation.isPending || updateUserMutation.isPending}
+        />
+      )}
+
+      {isAdmin && (
+        <TagForm
+          open={tagFormOpen}
+          onOpenChange={setTagFormOpen}
+          isSubmitting={addTagMutation.isPending}
+          onSubmit={async (data) => {
+            await addTagMutation.mutateAsync(data);
+            setTagFormOpen(false);
+          }}
         />
       )}
     </div>

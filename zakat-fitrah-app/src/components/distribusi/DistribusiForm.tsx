@@ -47,6 +47,7 @@ import { useStokCheck, type StokSummary } from '@/hooks/useDistribusi';
 import { offlineStore } from '@/lib/offlineStore';
 import { supabase } from '@/lib/supabase';
 import { isUuid } from '@/lib/utils';
+import { useTransactionTags } from '@/hooks/useTransactionTags';
 
 const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
@@ -57,14 +58,23 @@ const formSchema = z.object({
   }),
   jumlah: z.number().min(0.01, { message: 'Jumlah minimal 0.01' }),
   tanggal_distribusi: z.date({ message: 'Pilih tanggal distribusi' }),
+  tag_id: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
+interface DistribusiSubmitData {
+  mustahik_id: string;
+  jenis_distribusi: 'beras' | 'uang';
+  jumlah: number;
+  tanggal_distribusi: Date;
+  tag_id?: string | null;
+}
+
 interface DistribusiFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: FormValues) => void;
+  onSubmit: (data: DistribusiSubmitData) => void;
   isSubmitting: boolean;
   tahunZakatId: string;
 }
@@ -78,6 +88,7 @@ export function DistribusiForm({
 }: DistribusiFormProps) {
   const [selectedMustahik, setSelectedMustahik] = useState<any>(null);
   const [eligibleMustahik, setEligibleMustahik] = useState<any[]>([]);
+  const { data: tags = [] } = useTransactionTags();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -86,6 +97,7 @@ export function DistribusiForm({
       jenis_distribusi: 'beras',
       jumlah: 0,
       tanggal_distribusi: new Date(),
+      tag_id: undefined,
     },
   });
 
@@ -182,6 +194,7 @@ export function DistribusiForm({
         jenis_distribusi: 'beras',
         jumlah: 0,
         tanggal_distribusi: new Date(),
+        tag_id: undefined,
       });
       setSelectedMustahik(null);
     }
@@ -207,7 +220,13 @@ export function DistribusiForm({
     if (stokTidakCukup) {
       return;
     }
-    onSubmit(values);
+    onSubmit({
+      mustahik_id: values.mustahik_id,
+      jenis_distribusi: values.jenis_distribusi,
+      jumlah: values.jumlah,
+      tanggal_distribusi: values.tanggal_distribusi,
+      tag_id: values.tag_id === 'none' ? null : values.tag_id ?? null,
+    });
   };
 
   return (
@@ -440,6 +459,32 @@ export function DistribusiForm({
                       />
                     </PopoverContent>
                   </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="tag_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tag</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || ''}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih tag (opsional)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Tanpa tag</SelectItem>
+                      {tags.map((tag) => (
+                        <SelectItem key={tag.id} value={tag.id}>
+                          {tag.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

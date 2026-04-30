@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
+import { ORG_SERVICE } from '@/lib/constants';
 import {
   Dialog,
   DialogContent,
@@ -72,7 +73,7 @@ export function BuktiPemasukanBeras({ open, onOpenChange, data }: BuktiPemasukan
     const ORGANIZATION_NAME = 'YAYASAN AL-FAJAR PERMATA PAMULANG';
     const ORGANIZATION_ADDRESS = 'Jl. Bukit Permata VII Blok E20/16 Bakti Jaya Setu Tangerang Selatan';
     const ORGANIZATION_EMAIL = 'permataalfajar@gmail.com';
-    const ORGANIZATION_SERVICE = 'Layanan Al Fajar 0877-1335-9800 (WA Only)';
+    const ORGANIZATION_SERVICE = ORG_SERVICE;
 
     const pageWidth = doc.internal.pageSize.getWidth(); // 148mm
     const pageHeight = doc.internal.pageSize.getHeight(); // 210mm
@@ -244,7 +245,7 @@ export function BuktiPemasukanBeras({ open, onOpenChange, data }: BuktiPemasukan
               <h2 className="text-lg font-bold">YAYASAN AL-FAJAR PERMATA PAMULANG</h2>
               <p className="text-xs">Jl. Bukit Permata VII Blok E20/16 Bakti Jaya Setu Tangerang Selatan</p>
               <p className="text-xs">Email: permataalfajar@gmail.com</p>
-              <p className="text-xs">Layanan Al Fajar 0877-1335-9800 (WA Only)</p>
+              <p className="text-xs">{ORG_SERVICE}</p>
             </div>
 
             <Separator />

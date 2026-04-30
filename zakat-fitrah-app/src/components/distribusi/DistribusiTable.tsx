@@ -18,6 +18,7 @@ import {
 import { useState } from 'react';
 import { Printer, CheckCircle2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Distribusi } from '@/hooks/useDistribusi';
+import { useTransactionTags } from '@/hooks/useTransactionTags';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 
@@ -30,6 +31,7 @@ interface DistribusiTableProps {
   onDelete: (id: string) => void;
   onFilterJenis: (jenis: string) => void;
   onFilterStatus: (status: string) => void;
+  onFilterTag: (tagId: string | undefined) => void;
   onPageChange: (page: number) => void;
   currentPage: number;
 }
@@ -43,11 +45,14 @@ export function DistribusiTable({
   onDelete,
   onFilterJenis,
   onFilterStatus,
+  onFilterTag,
   onPageChange,
   currentPage,
 }: DistribusiTableProps) {
   const [jenisFilter, setJenisFilter] = useState('semua');
   const [statusFilter, setStatusFilter] = useState('semua');
+  const [tagFilter, setTagFilter] = useState('semua');
+  const { data: tags } = useTransactionTags();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -100,6 +105,23 @@ export function DistribusiTable({
             <SelectItem value="selesai">Selesai</SelectItem>
           </SelectContent>
         </Select>
+        <Select
+          value={tagFilter}
+          onValueChange={(value) => {
+            setTagFilter(value);
+            onFilterTag(value === 'semua' ? undefined : value);
+          }}
+        >
+          <SelectTrigger className="w-full sm:w-[160px]">
+            <SelectValue placeholder="Tag" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="semua">Semua Tag</SelectItem>
+            {(tags ?? []).map((tag) => (
+              <SelectItem key={tag.id} value={tag.id}>{tag.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
@@ -112,6 +134,7 @@ export function DistribusiTable({
               <TableHead>Jenis</TableHead>
               <TableHead className="text-right">Jumlah</TableHead>
               <TableHead>Tanggal</TableHead>
+              <TableHead>Tag</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-center">Actions</TableHead>
             </TableRow>
@@ -119,13 +142,13 @@ export function DistribusiTable({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={8} className="h-24 text-center">
                   Memuat data...
                 </TableCell>
               </TableRow>
             ) : data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={8} className="h-24 text-center">
                   Belum ada data distribusi.
                 </TableCell>
               </TableRow>
@@ -154,6 +177,13 @@ export function DistribusiTable({
                     {format(new Date(distribusi.tanggal_distribusi), 'dd MMM yyyy', {
                       locale: localeId,
                     })}
+                  </TableCell>
+                  <TableCell>
+                    {distribusi.tag?.name ? (
+                      <Badge variant="outline" className="text-xs">{distribusi.tag.name}</Badge>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">-</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     {distribusi.status === 'selesai' ? (

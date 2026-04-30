@@ -6,6 +6,7 @@ import * as z from 'zod';
 import { Loader2, WifiOff } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { MOCK_CREDENTIALS } from '@/lib/mockAuth';
+import { BRANDING } from '@/lib/branding';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -86,7 +87,7 @@ export function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            Aplikasi Zakat Fitrah
+            {BRANDING.APP_TITLE}
           </CardTitle>
           <CardDescription className="text-center">
             Masukkan email dan password Anda untuk login

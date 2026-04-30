@@ -15,6 +15,8 @@ import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import jsPDF from 'jspdf';
 import { supabase } from '@/lib/supabase';
+import { BRANDING } from '@/lib/branding';
+import { ORG_SERVICE } from '@/lib/constants';
 
 interface Muzakki {
   id: string;
@@ -116,10 +118,6 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
     const SECTION_GAP = 5; // 5mm gap between sections
     const HEADER_GAP = 4; // 4mm header gap
     const DIVIDER_HEIGHT = 0.5; // 0.5mm divider
-    const ORGANIZATION_NAME = 'YAYASAN AL-FAJAR PERMATA PAMULANG';
-    const ORGANIZATION_ADDRESS = 'Jl. Bukit Permata VII Blok E20/16 Bakti Jaya Setu Tangerang Selatan';
-    const ORGANIZATION_EMAIL = 'permataalfajar@gmail.com';
-    const ORGANIZATION_SERVICE = 'Layanan Al Fajar 0877-1335-9800 (WA Only)';
 
     const pageWidth = doc.internal.pageSize.getWidth(); // 148mm
     const pageHeight = doc.internal.pageSize.getHeight(); // 210mm
@@ -135,7 +133,7 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
     // Logo centered
     const logoX = (pageWidth - LOGO_SIZE) / 2;
     try {
-      doc.addImage('/logo-al-fajar.png', 'PNG', logoX, yPosition, LOGO_SIZE, LOGO_SIZE);
+      doc.addImage(BRANDING.LOGO_PATH, 'PNG', logoX, yPosition, LOGO_SIZE, LOGO_SIZE);
     } catch (error) {
       console.warn('Could not embed logo image:', error);
     }
@@ -145,18 +143,18 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
     // Organization details - centered
     doc.setFontSize(12);
     doc.setFont('Helvetica', 'bold');
-    doc.text(ORGANIZATION_NAME, pageWidth / 2, yPosition, { align: 'center' });
+    doc.text(BRANDING.ORGANIZATION_FULL, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 5;
 
     doc.setFontSize(8);
     doc.setFont('Helvetica', 'normal');
-    const addressLines = doc.splitTextToSize(ORGANIZATION_ADDRESS, pageWidth - (MARGIN * 2));
+    const addressLines = doc.splitTextToSize(BRANDING.ADDRESS, pageWidth - (MARGIN * 2));
     doc.text(addressLines, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 4 * addressLines.length;
     
-    doc.text(`Email: ${ORGANIZATION_EMAIL}`, pageWidth / 2, yPosition, { align: 'center' });
+    doc.text(`Email: permataalfajar@gmail.com`, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 4;
-    doc.text(ORGANIZATION_SERVICE, pageWidth / 2, yPosition, { align: 'center' });
+    doc.text(ORG_SERVICE, pageWidth / 2, yPosition, { align: 'center' });
 
     yPosition += SECTION_GAP;
 
@@ -168,7 +166,7 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
     // ============ TITLE SECTION ============
     doc.setFontSize(12);
     doc.setFont('Helvetica', 'bold');
-    doc.text('BUKTI PEMBAYARAN ZAKAT FITRAH', pageWidth / 2, yPosition, { align: 'center' });
+    doc.text(BRANDING.RECEIPT_PAYMENT_TITLE, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += SECTION_GAP;
 
     // Receipt number and date

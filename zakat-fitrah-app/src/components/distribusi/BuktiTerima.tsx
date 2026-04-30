@@ -14,6 +14,7 @@ import { Printer, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { jsPDF } from 'jspdf';
+import { BRANDING } from '@/lib/branding';
 
 interface Distribusi {
   id: string;
@@ -62,16 +63,16 @@ export function BuktiTerima({ open, onOpenChange, distribusi }: BuktiTerimaProps
     // Header
     pdf.setFontSize(16);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('BUKTI PENERIMAAN ZAKAT FITRAH', pageWidth / 2, y, { align: 'center' });
+    pdf.text(BRANDING.RECEIPT_DISTRIBUTION_TITLE, pageWidth / 2, y, { align: 'center' });
     y += 8;
 
     pdf.setFontSize(12);
     pdf.setFont('helvetica', 'normal');
-    pdf.text('Masjid Al-Fajar', pageWidth / 2, y, { align: 'center' });
+    pdf.text(BRANDING.MOSQUE_NAME, pageWidth / 2, y, { align: 'center' });
     y += 6;
 
     pdf.setFontSize(10);
-    pdf.text('Jl. Contoh No. 123, Jakarta', pageWidth / 2, y, { align: 'center' });
+    pdf.text(BRANDING.ADDRESS, pageWidth / 2, y, { align: 'center' });
     y += 10;
 
     // Line separator
@@ -161,7 +162,7 @@ export function BuktiTerima({ open, onOpenChange, distribusi }: BuktiTerimaProps
 
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(7);
-    pdf.text('YAYASAN AL-FAJAR PERMATA PAMULANG', signX, y, { align: 'center' });
+    pdf.text(BRANDING.ORGANIZATION_FULL, signX, y, { align: 'center' });
     y += 3;
 
     try {
@@ -221,7 +222,7 @@ export function BuktiTerima({ open, onOpenChange, distribusi }: BuktiTerimaProps
             {/* Header */}
             <div className="text-center mb-8">
               <h1 className="text-2xl font-bold mb-2">BUKTI PENERIMAAN ZAKAT FITRAH</h1>
-              <p className="text-lg font-semibold">Masjid Al-Fajar</p>
+              <p className="text-lg font-semibold">{BRANDING.MOSQUE_NAME}</p>
               <p className="text-sm text-muted-foreground">
                 Jl. Contoh No. 123, Jakarta
               </p>

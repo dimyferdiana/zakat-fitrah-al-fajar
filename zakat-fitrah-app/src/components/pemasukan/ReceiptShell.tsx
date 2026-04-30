@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import { Separator } from '@/components/ui/separator';
+import { ORG_NAME, ORG_SERVICE } from '@/lib/constants';
 
 /**
  * ReceiptShell — shared printable wrapper for all receipt types.
@@ -32,14 +33,14 @@ export const ReceiptShell = forwardRef<HTMLDivElement, ReceiptShellProps>(
         {/* ── Organization Header ── */}
         <div className="text-center space-y-2">
           <div className="flex justify-center mb-3">
-            <img src="/logo-al-fajar.png" alt="Logo Al-Fajar" className="h-16 w-16" />
+            <img src="/logo-al-fajar.png" alt={`Logo ${ORG_NAME}`} className="h-16 w-16" />
           </div>
           <h2 className="text-lg font-bold">YAYASAN AL-FAJAR PERMATA PAMULANG</h2>
           <p className="text-xs">
             Jl. Bukit Permata VII Blok E20/16 Bakti Jaya Setu Tangerang Selatan
           </p>
           <p className="text-xs">Email: permataalfajar@gmail.com</p>
-          <p className="text-xs">Layanan Al Fajar 0877-1335-9800 (WA Only)</p>
+          <p className="text-xs">{ORG_SERVICE}</p>
         </div>
 
         <Separator />

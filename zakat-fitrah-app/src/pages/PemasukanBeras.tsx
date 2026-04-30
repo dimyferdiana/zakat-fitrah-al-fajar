@@ -38,7 +38,9 @@ import {
 } from '@/hooks/usePemasukanBeras';
 import type { PemasukanBeras } from '@/hooks/usePemasukanBeras';
 import { useTahunZakatList } from '@/hooks/useDashboard';
+import { useTransactionTags } from '@/hooks/useTransactionTags';
 import { Plus, Receipt, Edit, Trash2, MoreVertical, Layers } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const kategoriLabels: Record<string, string> = {
   fidyah_beras: 'Fidyah Beras',
@@ -61,6 +63,9 @@ export function PemasukanBeras() {
   const activeTahun = useMemo(() => tahunList?.find((t) => t.is_active), [tahunList]);
   const [selectedTahun, setSelectedTahun] = useState<string | undefined>(() => activeTahun?.id);
   const [bulkMode, setBulkMode] = useState(false);
+  const [selectedTagId, setSelectedTagId] = useState<string | undefined>(undefined);
+
+  const { data: tags } = useTransactionTags();
 
   const {
     data: pemasukan,
@@ -69,6 +74,7 @@ export function PemasukanBeras() {
   } = usePemasukanBerasList({
     tahunZakatId: selectedTahun || activeTahun?.id,
     kategori,
+    tagId: selectedTagId,
     page,
     pageSize: 20,
   });
@@ -168,6 +174,21 @@ export function PemasukanBeras() {
                 <SelectItem value="zakat_fitrah_beras">Zakat Fitrah (Beras)</SelectItem>
               </SelectContent>
             </Select>
+
+            <Select
+              value={selectedTagId ?? 'semua'}
+              onValueChange={(val) => { setSelectedTagId(val === 'semua' ? undefined : val); setPage(1); }}
+            >
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Tag" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="semua">Semua Tag</SelectItem>
+                {(tags ?? []).map((tag) => (
+                  <SelectItem key={tag.id} value={tag.id}>{tag.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center gap-2">
@@ -212,6 +233,7 @@ export function PemasukanBeras() {
                     <th className="py-2 pr-4">Kategori</th>
                     <th className="py-2 pr-4">Jumlah (Kg)</th>
                     <th className="py-2 pr-4">Muzakki</th>
+                    <th className="py-2 pr-4">Tag</th>
                     <th className="py-2 pr-4">Catatan</th>
                     <th className="py-2">Aksi</th>
                   </tr>
@@ -225,6 +247,13 @@ export function PemasukanBeras() {
                       <td className="py-2 pr-4">{kategoriLabels[item.kategori] || item.kategori}</td>
                       <td className="py-2 pr-4 font-medium">{Number(item.jumlah_beras_kg).toFixed(2)} Kg</td>
                       <td className="py-2 pr-4">{item.muzakki?.nama_kk || '-'}</td>
+                      <td className="py-2 pr-4">
+                        {item.tag?.name ? (
+                          <Badge variant="outline" className="text-xs">{item.tag.name}</Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">-</span>
+                        )}
+                      </td>
                       <td className="py-2 pr-4 text-muted-foreground">{item.catatan || '-'}</td>
                       <td className="py-2">
                         <div className="flex items-center gap-1">

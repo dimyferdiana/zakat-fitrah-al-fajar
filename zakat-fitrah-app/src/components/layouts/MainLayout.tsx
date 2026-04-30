@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import type { UserRole } from '@/types/database.types';
 import { Button } from '@/components/ui/button';
+import { BRANDING } from '@/lib/branding';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -203,7 +204,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         <div className="flex h-full flex-col">
           {/* Logo/Brand */}
           <div className="flex h-16 items-center border-b px-6">
-            <h2 className="text-lg font-semibold">Zakat Fitrah</h2>
+            <h2 className="text-lg font-semibold">{BRANDING.SIDEBAR_APP_NAME}</h2>
           </div>
 
           {/* Navigation */}
@@ -236,12 +237,12 @@ export function MainLayout({ children }: MainLayoutProps) {
             <SheetContent side="left" className="w-64 p-0">
               <SheetTitle className="sr-only">Menu Navigasi</SheetTitle>
               <SheetDescription className="sr-only">
-                Menu navigasi aplikasi Zakat Fitrah
+                {BRANDING.SIDEBAR_MENU_DESCRIPTION}
               </SheetDescription>
               <div className="flex h-full flex-col">
                 {/* Mobile Logo */}
                 <div className="flex h-16 items-center border-b px-6">
-                  <h2 className="text-lg font-semibold">Zakat Fitrah</h2>
+                  <h2 className="text-lg font-semibold">{BRANDING.SIDEBAR_APP_NAME}</h2>
                 </div>
 
                 {/* Mobile Navigation */}

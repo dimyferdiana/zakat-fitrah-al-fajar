@@ -15,6 +15,8 @@ export interface Distribusi {
   tanggal_distribusi: string;
   status: 'pending' | 'selesai';
   catatan: string | null;
+  tag_id?: string | null;
+  tag?: { id: string; name: string; color?: string } | null;
   created_at: string;
   updated_at: string;
   mustahik?: {
@@ -35,6 +37,7 @@ export interface DistribusiListParams {
   tahun_zakat_id?: string;
   jenis_distribusi?: string;
   status?: string;
+  tagId?: string;
   page?: number;
   limit?: number;
 }
@@ -46,6 +49,7 @@ export interface CreateDistribusiInput {
   jumlah: number;
   tanggal_distribusi: string;
   catatan?: string;
+  tag_id?: string | null;
 }
 
 export interface StokSummary {
@@ -75,7 +79,7 @@ export function useDistribusiList(params: DistribusiListParams) {
       let query = supabase
         .from('distribusi_zakat')
         .select(
-          '*, mustahik(id, nama, alamat, kategori_mustahik(nama)), tahun_zakat(tahun_hijriah, tahun_masehi)',
+          '*, mustahik(id, nama, alamat, kategori_mustahik(nama)), tahun_zakat(tahun_hijriah, tahun_masehi), transaction_tags(id, name, color)',
           { count: 'exact' }
         )
         .order('tanggal_distribusi', { ascending: false });
@@ -93,6 +97,11 @@ export function useDistribusiList(params: DistribusiListParams) {
       // Status filter
       if (params.status && params.status !== 'semua') {
         query = query.eq('status', params.status);
+      }
+
+      // Tag filter
+      if (params.tagId) {
+        query = query.eq('tag_id', params.tagId);
       }
 
       // Pagination

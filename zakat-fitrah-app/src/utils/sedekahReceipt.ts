@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import { format } from 'date-fns';
 import { getTerbilangText, formatRupiah } from '@/lib/terbilang';
+import { ORG_SERVICE } from '@/lib/constants';
 
 export interface SedekahReceiptData {
   receiptNumber: string;
@@ -19,7 +20,7 @@ export interface SedekahReceiptData {
 const ORGANIZATION_NAME = 'YAYASAN AL-FAJAR PERMATA PAMULANG';
 const ORGANIZATION_ADDRESS = 'Jl. Bukit Permata VII Blok E20/16 Bakti Jaya Setu Tangerang Selatan';
 const ORGANIZATION_EMAIL = 'permataalfajar@gmail.com';
-const ORGANIZATION_SERVICE = 'Layanan Al Fajar 0877-1335-9800 (WA Only)';
+const ORGANIZATION_SERVICE = ORG_SERVICE;
 const KETUA_NAME = 'H. Eldin Rizal Nasution';
 const DOA_TEXT =
   'Semoga Allah SWT memberikan pahala kepada Bpk./Ibu/Sdr. atas harta yang telah dikeluarkan dan menjadi berkah dan suci atas harta yang lainnya. Aamiin';

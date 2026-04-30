@@ -30,6 +30,8 @@ export interface PemasukanUang {
   jumlah_uang_rp: number;
   tanggal: string;
   catatan: string | null;
+  tag_id?: string | null;
+  tag?: { id: string; name: string; color?: string } | null;
   created_by: string;
   created_at: string;
   updated_at?: string;
@@ -39,6 +41,7 @@ export interface PemasukanUangListParams {
   tahunZakatId?: string;
   kategori?: PemasukanUangKategori | 'semua';
   akun?: AkunUang | 'semua';
+  tagId?: string;
   page?: number;
   pageSize?: number;
 }
@@ -52,6 +55,7 @@ interface CreatePemasukanInput {
   jumlah_uang_rp: number;
   tanggal: string;
   catatan?: string;
+  tag_id?: string | null;
 }
 
 const DEFAULT_KAS_ACCOUNT_NAME = 'KAS';
@@ -170,7 +174,7 @@ export function usePemasukanUangList(params: PemasukanUangListParams) {
       let query = supabase
         .from('pemasukan_uang')
         .select(
-          `*, muzakki:muzakki_id(id, nama_kk)`,
+          `*, muzakki:muzakki_id(id, nama_kk), transaction_tags(id, name, color)`,
           { count: 'exact' }
         )
         .eq('tahun_zakat_id', params.tahunZakatId)
@@ -183,6 +187,10 @@ export function usePemasukanUangList(params: PemasukanUangListParams) {
 
       if (params.akun && params.akun !== 'semua') {
         query = query.eq('akun', params.akun);
+      }
+
+      if (params.tagId) {
+        query = query.eq('tag_id', params.tagId);
       }
 
       const page = params.page || 1;

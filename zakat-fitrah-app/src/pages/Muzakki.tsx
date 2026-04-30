@@ -39,6 +39,7 @@ import {
   useMuzakkiTransactionHistory,
 } from '@/hooks/useMuzakki';
 import { useTahunZakatList } from '@/hooks/useDashboard';
+import { useTransactionTags } from '@/hooks/useTransactionTags';
 
 interface Muzakki {
   id: string;
@@ -83,6 +84,7 @@ export function Muzakki() {
   const [editData, setEditData] = useState<Muzakki | null>(null);
   const [historyMuzakki, setHistoryMuzakki] = useState<Muzakki | null>(null);
   const [printData, setPrintData] = useState<PembayaranZakat | null>(null);
+  const [historyTagFilter, setHistoryTagFilter] = useState<string | undefined>(undefined);
 
   const pageSize = 20;
 
@@ -122,6 +124,12 @@ export function Muzakki() {
     muzakkiId: historyMuzakki?.id || null,
     tahunZakatId: selectedTahun || activeTahun?.id,
   });
+
+  const { data: tags } = useTransactionTags();
+
+  const filteredHistory = historyTagFilter
+    ? (transactionHistory ?? []).filter((t) => (t as any).tag_id === historyTagFilter)
+    : (transactionHistory ?? []);
 
   const createMutation = useCreateMuzakki();
   const updateMutation = useUpdateMuzakki();
@@ -265,9 +273,26 @@ export function Muzakki() {
             </DialogDescription>
           </DialogHeader>
 
+          <div className="flex items-center gap-3 mb-2">
+            <Select
+              value={historyTagFilter ?? 'semua'}
+              onValueChange={(val) => setHistoryTagFilter(val === 'semua' ? undefined : val)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter Tag" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="semua">Semua Tag</SelectItem>
+                {(tags ?? []).map((tag) => (
+                  <SelectItem key={tag.id} value={tag.id}>{tag.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {isHistoryLoading ? (
             <div className="py-8 text-center text-sm text-muted-foreground">Memuat riwayat transaksi...</div>
-          ) : transactionHistory && transactionHistory.length > 0 ? (
+          ) : filteredHistory.length > 0 ? (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
@@ -280,7 +305,7 @@ export function Muzakki() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactionHistory.map((item) => (
+                  {filteredHistory.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>
                         {format(new Date(item.tanggal_bayar), 'dd MMM yyyy', { locale: idLocale })}

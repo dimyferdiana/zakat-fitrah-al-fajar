@@ -39,7 +39,9 @@ import {
 import { useAccountsList } from '@/hooks/useAccountsLedger';
 import type { PemasukanUang } from '@/hooks/usePemasukanUang';
 import { useTahunZakatList } from '@/hooks/useDashboard';
+import { useTransactionTags } from '@/hooks/useTransactionTags';
 import { Plus, Receipt, Edit, Trash2, MoreVertical, Layers } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('id-ID', {
@@ -70,6 +72,9 @@ export function PemasukanUang() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<PemasukanUang | null>(null);
   const [bulkMode, setBulkMode] = useState(false);
+  const [selectedTagId, setSelectedTagId] = useState<string | undefined>(undefined);
+
+  const { data: tags } = useTransactionTags();
 
   const {
     data: pemasukan,
@@ -79,6 +84,7 @@ export function PemasukanUang() {
     tahunZakatId: selectedTahun || activeTahun?.id,
     kategori,
     akun,
+    tagId: selectedTagId,
     page,
     pageSize: 20,
   });
@@ -199,6 +205,21 @@ export function PemasukanUang() {
                 <SelectItem value="bank">Bank</SelectItem>
               </SelectContent>
             </Select>
+
+            <Select
+              value={selectedTagId ?? 'semua'}
+              onValueChange={(val) => { setSelectedTagId(val === 'semua' ? undefined : val); setPage(1); }}
+            >
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Tag" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="semua">Semua Tag</SelectItem>
+                {(tags ?? []).map((tag) => (
+                  <SelectItem key={tag.id} value={tag.id}>{tag.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center gap-2">
@@ -244,6 +265,7 @@ export function PemasukanUang() {
                     <th className="py-2 pr-4">Akun</th>
                     <th className="py-2 pr-4">Nominal</th>
                     <th className="py-2 pr-4">Muzakki</th>
+                    <th className="py-2 pr-4">Tag</th>
                     <th className="py-2 pr-4">Catatan</th>
                     <th className="py-2">Aksi</th>
                   </tr>
@@ -260,6 +282,13 @@ export function PemasukanUang() {
                       </td>
                       <td className="py-2 pr-4 font-medium">{formatCurrency(Number(item.jumlah_uang_rp))}</td>
                       <td className="py-2 pr-4">{item.muzakki?.nama_kk || '-'}</td>
+                      <td className="py-2 pr-4">
+                        {item.tag?.name ? (
+                          <Badge variant="outline" className="text-xs">{item.tag.name}</Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">-</span>
+                        )}
+                      </td>
                       <td className="py-2 pr-4 text-muted-foreground">{item.catatan || '-'}</td>
                       <td className="py-2">
                         <div className="flex items-center gap-1">

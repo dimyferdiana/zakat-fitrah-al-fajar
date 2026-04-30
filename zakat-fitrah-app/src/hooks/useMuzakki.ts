@@ -47,6 +47,7 @@ interface PembayaranListParams {
   search?: string;
   jenisZakat?: string;
   tahunZakatId?: string;
+  tagId?: string;
   page?: number;
   pageSize?: number;
   sortBy?: string;
@@ -115,6 +116,7 @@ interface CreatePembayaranInput {
   has_overpayment?: boolean;
   zakat_amount?: number;
   sedekah_amount?: number;
+  tag_id?: string | null;
 }
 
 interface UpdatePembayaranInput extends CreatePembayaranInput {
@@ -404,7 +406,8 @@ export function usePembayaranList(params: PembayaranListParams) {
             nama_kk,
             alamat,
             no_telp
-          )
+          ),
+          transaction_tags(id, name, color)
         `,
           { count: 'exact' }
         );
@@ -417,6 +420,11 @@ export function usePembayaranList(params: PembayaranListParams) {
       // Filter by jenis_zakat
       if (params.jenisZakat && params.jenisZakat !== 'semua') {
         query = query.eq('jenis_zakat', params.jenisZakat);
+      }
+
+      // Filter by tag
+      if (params.tagId) {
+        query = query.eq('tag_id', params.tagId);
       }
 
       // Search by nama or alamat
@@ -529,6 +537,7 @@ export function useCreatePembayaran() {
           jumlah_uang_dibayar_rp: input.jenis_zakat === 'uang' ? (input.jumlah_uang_dibayar_rp ?? null) : null,
           sedekah_uang: null,
           sedekah_beras: null,
+          tag_id: input.tag_id ?? null,
         });
       }
       // First, check if muzakki exists by nama_kk

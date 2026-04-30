@@ -55,11 +55,45 @@ export interface PembayaranZakat {
   jumlah_uang_rp: number | null;
   akun_uang: 'kas' | 'bank' | null;
   jumlah_uang_dibayar_rp: number | null;
+  tag_id: string | null;
   created_at: string;
   updated_at: string;
   sedekah_uang: number | null;
   sedekah_beras: number | null;
 }
+
+export interface TransactionTag {
+  id: string;
+  name: string;
+  description: string | null;
+  color: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------- Seed: Transaction Tags ----------
+
+const TRANSACTION_TAGS_SEED: TransactionTag[] = [
+  {
+    id: 'tag-umum',
+    name: 'Umum',
+    description: 'Transaksi umum tanpa event khusus',
+    color: '#808080',
+    is_active: true,
+    created_at: '2025-12-01T00:00:00Z',
+    updated_at: '2025-12-01T00:00:00Z',
+  },
+  {
+    id: 'tag-idul-fitri',
+    name: 'Idul Fitri',
+    description: 'Transaksi terkait Idul Fitri',
+    color: '#4CAF50',
+    is_active: true,
+    created_at: '2025-12-01T00:00:00Z',
+    updated_at: '2025-12-01T00:00:00Z',
+  },
+];
 
 // ---------- Seed: Tahun Zakat ----------
 
@@ -181,7 +215,7 @@ const PEMBAYARAN_BERAS: PembayaranZakat[] = [
   { id: 'pbr-25', muzakki_id: 'mzk-25', jumlah_jiwa: 4, jumlah_beras_kg: 10.0, tanggal_bayar: '2026-03-27', jenis_zakat: 'beras', jumlah_uang_rp: null, akun_uang: null, jumlah_uang_dibayar_rp: null, sedekah_uang: null, sedekah_beras: null },
 ].map((p) => {
   const mzk = MUZAKKI_SEED.find((m) => m.id === p.muzakki_id)!;
-  return { ...p, jenis_zakat: p.jenis_zakat as 'beras' | 'uang', muzakki: mzk, tahun_zakat_id: 'tz-2026', created_at: `${p.tanggal_bayar}T08:00:00Z`, updated_at: `${p.tanggal_bayar}T08:00:00Z` };
+  return { ...p, jenis_zakat: p.jenis_zakat as 'beras' | 'uang', muzakki: mzk, tahun_zakat_id: 'tz-2026', tag_id: null, created_at: `${p.tanggal_bayar}T08:00:00Z`, updated_at: `${p.tanggal_bayar}T08:00:00Z` };
 });
 
 // Total beras from pembayaran: 12.5+10+7.5+10+15+7.5+12.5+10+17.5+10+7.5+12.5+10+5+15+10+12.5+7.5+10+12.5+10+7.5+10+15+10 = 265 kg
@@ -204,7 +238,7 @@ const PEMBAYARAN_UANG: PembayaranZakat[] = [
   { id: 'pbu-15', muzakki_id: 'mzk-40', jumlah_jiwa: 4, jumlah_uang_rp: 180000, tanggal_bayar: '2026-03-28', jenis_zakat: 'uang', jumlah_beras_kg: null, akun_uang: 'kas',  jumlah_uang_dibayar_rp: 180000, sedekah_uang: null, sedekah_beras: null },
 ].map((p) => {
   const mzk = MUZAKKI_SEED.find((m) => m.id === p.muzakki_id)!;
-  return { ...p, jenis_zakat: p.jenis_zakat as 'beras' | 'uang', akun_uang: p.akun_uang as 'kas' | 'bank' | null, muzakki: mzk, tahun_zakat_id: 'tz-2026', created_at: `${p.tanggal_bayar}T09:00:00Z`, updated_at: `${p.tanggal_bayar}T09:00:00Z` };
+  return { ...p, jenis_zakat: p.jenis_zakat as 'beras' | 'uang', akun_uang: p.akun_uang as 'kas' | 'bank' | null, muzakki: mzk, tahun_zakat_id: 'tz-2026', tag_id: null, created_at: `${p.tanggal_bayar}T09:00:00Z`, updated_at: `${p.tanggal_bayar}T09:00:00Z` };
 });
 
 // Total uang from pembayaran: 180+225+135+180+270+180+90+225+135+180+225+180+135+270+180 = 2,790,000 Rp
@@ -226,7 +260,7 @@ const PEMASUKAN_UANG_SEED: PemasukanUang[] = [
   { id: 'pu-06', tahun_zakat_id: 'tz-2026', muzakki_id: 'mzk-12', muzakki: { id: 'mzk-12', nama_kk: 'Abdul Hamid' }, kategori: 'maal_penghasilan_uang', akun: 'bank', jumlah_uang_rp: 800000,  tanggal: '2026-03-05', catatan: 'Zakat penghasilan bulan Maret', created_by: 'mock-admin-001', created_at: '2026-03-05T09:00:00Z' },
   { id: 'pu-07', tahun_zakat_id: 'tz-2026', muzakki_id: 'mzk-17', muzakki: { id: 'mzk-17', nama_kk: 'Yusuf Effendi' }, kategori: 'maal_penghasilan_uang', akun: 'bank', jumlah_uang_rp: 1200000, tanggal: '2026-03-10', catatan: 'Zakat tijarah/perdagangan', created_by: 'mock-admin-001', created_at: '2026-03-10T08:00:00Z' },
   { id: 'pu-08', tahun_zakat_id: 'tz-2026', muzakki_id: 'mzk-23', muzakki: { id: 'mzk-23', nama_kk: 'Muhamad Soleh' }, kategori: 'maal_penghasilan_uang', akun: 'kas',  jumlah_uang_rp: 500000,  tanggal: '2026-03-14', catatan: 'Zakat penghasilan freelance', created_by: 'mock-admin-001', created_at: '2026-03-14T10:00:00Z' },
-];
+].map((item) => ({ ...item, tag_id: 'tag-umum' as string | null })) as PemasukanUang[];
 // Feb: fidyahUang 90000 | infakUang 150000+250000=400000 | maalUang 600000
 // Mar: fidyahUang 50000+175000=225000 | infakUang 200000+500000+150000=850000 | maalUang 800000+1200000+500000=2500000
 // Total: fidyahUang 315000 | infakSedekahUang 1250000 | maalUang 3100000 | totalPemasukanUangRp 7455000
@@ -239,7 +273,7 @@ const PEMASUKAN_BERAS_SEED: PemasukanBeras[] = [
   { id: 'pmbr-03', tahun_zakat_id: 'tz-2026', muzakki_id: 'mzk-09', muzakki: { id: 'mzk-09', nama_kk: 'Agus Salim' }, kategori: 'infak_sedekah_beras', jumlah_beras_kg: 5.0,  tanggal: '2026-03-24', catatan: 'Infak beras dari anggota', created_by: 'mock-admin-001', created_at: '2026-03-24T09:00:00Z' },
   { id: 'pmbr-04', tahun_zakat_id: 'tz-2026', muzakki_id: null, muzakki: null, kategori: 'fidyah_beras', jumlah_beras_kg: 2.5, tanggal: '2026-03-16', catatan: 'Fidyah beras 1 jiwa', created_by: 'mock-admin-001', created_at: '2026-03-16T08:00:00Z' },
   { id: 'pmbr-05', tahun_zakat_id: 'tz-2026', muzakki_id: 'mzk-06', muzakki: { id: 'mzk-06', nama_kk: 'Hendra Wijaya' }, kategori: 'infak_sedekah_beras', jumlah_beras_kg: 5.0, tanggal: '2026-02-25', catatan: 'Infak beras Jumat', created_by: 'mock-admin-001', created_at: '2026-02-25T10:00:00Z' },
-];
+].map((item) => ({ ...item, tag_id: 'tag-umum' as string | null })) as PemasukanBeras[];
 // Feb infakSedekahBeras: 5.0 kg
 // Mar infakSedekahBeras: 10+7.5+5 = 22.5 kg | fidyahBeras: 2.5 kg
 // Total infakSedekahBeras: 27.5 kg | fidyahBeras: 2.5 kg
@@ -330,7 +364,7 @@ const DISTRIBUSI_SEED: Distribusi[] = [
   { id: 'dst-19', mustahik_id: 'mth-22', tahun_zakat_id: 'tz-2026', jenis_distribusi: 'uang', jumlah: 100000, tanggal_distribusi: '2026-03-15', status: 'selesai', catatan: 'Bekal perjalanan ibnu sabil', created_at: '2026-03-15T14:00:00Z', updated_at: '2026-03-15T15:00:00Z', mustahik: { id: 'mth-22', nama: 'Pak Suryo (musafir)', alamat: '-', kategori_mustahik: { nama: 'Ibnu Sabil' } }, tahun_zakat: { tahun_hijriah: '1447 H', tahun_masehi: 2026 } },
   // Distribusi uang pending
   { id: 'dst-20', mustahik_id: 'mth-01', tahun_zakat_id: 'tz-2026', jenis_distribusi: 'uang', jumlah: 300000, tanggal_distribusi: '2026-03-30', status: 'pending', catatan: 'Bantuan fakir tambahan', created_at: '2026-03-30T08:00:00Z', updated_at: '2026-03-30T08:00:00Z', mustahik: { id: 'mth-01', nama: 'Pak Sarno', alamat: 'Jl. Kemuning No. 2', kategori_mustahik: { nama: 'Fakir' } }, tahun_zakat: { tahun_hijriah: '1447 H', tahun_masehi: 2026 } },
-];
+].map((item) => ({ ...item, tag_id: 'tag-umum' as string | null })) as Distribusi[];
 
 // ---------- Computed Stats ----------
 // totalBerasKg from pembayaran: 265 kg (25 families)
@@ -415,6 +449,7 @@ class OfflineStore {
   distribusi: Distribusi[] = [...DISTRIBUSI_SEED];
   mustahik: Mustahik[] = [...MUSTAHIK_SEED];
   kategoriMustahik: KategoriMustahik[] = [...KATEGORI_MUSTAHIK_SEED];
+  transactionTags: TransactionTag[] = [...TRANSACTION_TAGS_SEED];
 
   // ---- Hak Amil Config ----
   getHakAmilConfigs(): HakAmilConfig[] {
@@ -519,7 +554,14 @@ class OfflineStore {
     if (!mzk) {
       mzk = { id: input.muzakki_id, nama_kk: 'Unknown', alamat: '', no_telp: null };
     }
-    const item: PembayaranZakat = { ...input, id: makeId('pbr'), muzakki: mzk, created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    const item: PembayaranZakat = {
+      ...input,
+      id: makeId('pbr'),
+      muzakki: mzk,
+      tag_id: input.tag_id ?? 'tag-umum',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
     this.pembayaran = [...this.pembayaran, item];
     return item;
   }
@@ -549,9 +591,9 @@ class OfflineStore {
     const pageSize = params.pageSize ?? 20;
     return { data: items.slice((page - 1) * pageSize, page * pageSize), count };
   }
-  addPemasukanUang(input: { tahun_zakat_id: string; muzakki_id?: string; kategori: PemasukanUangKategori; akun: AkunUang; jumlah_uang_rp: number; tanggal: string; catatan?: string }): PemasukanUang {
+  addPemasukanUang(input: { tahun_zakat_id: string; muzakki_id?: string; kategori: PemasukanUangKategori; akun: AkunUang; jumlah_uang_rp: number; tanggal: string; catatan?: string; tag_id?: string | null }): PemasukanUang {
     const mzk = input.muzakki_id ? this.muzakki.find((m) => m.id === input.muzakki_id) : null;
-    const item: PemasukanUang = { id: makeId('pu'), tahun_zakat_id: input.tahun_zakat_id, muzakki_id: input.muzakki_id ?? null, muzakki: mzk ? { id: mzk.id, nama_kk: mzk.nama_kk } : null, kategori: input.kategori, akun: input.akun, jumlah_uang_rp: input.jumlah_uang_rp, tanggal: input.tanggal, catatan: input.catatan ?? null, created_by: 'mock-admin-001', created_at: new Date().toISOString() };
+    const item: PemasukanUang = { id: makeId('pu'), tahun_zakat_id: input.tahun_zakat_id, muzakki_id: input.muzakki_id ?? null, muzakki: mzk ? { id: mzk.id, nama_kk: mzk.nama_kk } : null, kategori: input.kategori, akun: input.akun, jumlah_uang_rp: input.jumlah_uang_rp, tanggal: input.tanggal, catatan: input.catatan ?? null, tag_id: input.tag_id ?? 'tag-umum', created_by: 'mock-admin-001', created_at: new Date().toISOString() };
     this.pemasukanUang = [...this.pemasukanUang, item];
     return item;
   }
@@ -579,9 +621,9 @@ class OfflineStore {
     const pageSize = params.pageSize ?? 20;
     return { data: items.slice((page - 1) * pageSize, page * pageSize), count };
   }
-  addPemasukanBeras(input: { tahun_zakat_id: string; muzakki_id?: string; kategori: PemasukanBerasKategori; jumlah_beras_kg: number; tanggal: string; catatan?: string }): PemasukanBeras {
+  addPemasukanBeras(input: { tahun_zakat_id: string; muzakki_id?: string; kategori: PemasukanBerasKategori; jumlah_beras_kg: number; tanggal: string; catatan?: string; tag_id?: string | null }): PemasukanBeras {
     const mzk = input.muzakki_id ? this.muzakki.find((m) => m.id === input.muzakki_id) : null;
-    const item: PemasukanBeras = { id: makeId('pmbr'), tahun_zakat_id: input.tahun_zakat_id, muzakki_id: input.muzakki_id ?? null, muzakki: mzk ? { id: mzk.id, nama_kk: mzk.nama_kk } : null, kategori: input.kategori, jumlah_beras_kg: input.jumlah_beras_kg, tanggal: input.tanggal, catatan: input.catatan ?? null, created_by: 'mock-admin-001', created_at: new Date().toISOString() };
+    const item: PemasukanBeras = { id: makeId('pmbr'), tahun_zakat_id: input.tahun_zakat_id, muzakki_id: input.muzakki_id ?? null, muzakki: mzk ? { id: mzk.id, nama_kk: mzk.nama_kk } : null, kategori: input.kategori, jumlah_beras_kg: input.jumlah_beras_kg, tanggal: input.tanggal, catatan: input.catatan ?? null, tag_id: input.tag_id ?? 'tag-umum', created_by: 'mock-admin-001', created_at: new Date().toISOString() };
     this.pemasukanBeras = [...this.pemasukanBeras, item];
     return item;
   }
@@ -635,6 +677,26 @@ class OfflineStore {
     return [...this.kategoriMustahik];
   }
 
+  // ---- Transaction Tags ----
+  getTransactionTags(): TransactionTag[] {
+    return [...this.transactionTags].sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  getTransactionTagById(id: string): TransactionTag | undefined {
+    return this.transactionTags.find((tag) => tag.id === id);
+  }
+
+  addTransactionTag(input: Omit<TransactionTag, 'id' | 'created_at' | 'updated_at'>): TransactionTag {
+    const item: TransactionTag = {
+      ...input,
+      id: makeId('tag'),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    this.transactionTags = [...this.transactionTags, item];
+    return item;
+  }
+
   // ---- Distribusi ----
   getDistribusiList(params: {
     tahun_zakat_id?: string;
@@ -667,10 +729,10 @@ class OfflineStore {
     const totalUang = pembayaranUang + pemasukanUang;
     return { total_pemasukan_beras: totalBeras, total_pemasukan_uang: totalUang, total_distribusi_beras: distBeras, total_distribusi_uang: distUang, sisa_beras: totalBeras - distBeras, sisa_uang: totalUang - distUang };
   }
-  addDistribusi(input: Omit<Distribusi, 'id' | 'created_at' | 'updated_at' | 'mustahik' | 'tahun_zakat'>): Distribusi {
+  addDistribusi(input: Omit<Distribusi, 'id' | 'created_at' | 'updated_at' | 'mustahik' | 'tahun_zakat'> & { tag_id?: string | null }): Distribusi {
     const mth = this.mustahik.find((m) => m.id === input.mustahik_id);
     const tz = this.tahunZakat.find((t) => t.id === input.tahun_zakat_id);
-    const item: Distribusi = { ...input, id: makeId('dst'), created_at: new Date().toISOString(), updated_at: new Date().toISOString(), mustahik: mth ? { id: mth.id, nama: mth.nama, alamat: mth.alamat, kategori_mustahik: mth.kategori_mustahik ? { nama: mth.kategori_mustahik.nama } : undefined } : undefined, tahun_zakat: tz ? { tahun_hijriah: tz.tahun_hijriah, tahun_masehi: tz.tahun_masehi } : undefined };
+    const item: Distribusi = { ...input, id: makeId('dst'), tag_id: input.tag_id ?? 'tag-umum', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), mustahik: mth ? { id: mth.id, nama: mth.nama, alamat: mth.alamat, kategori_mustahik: mth.kategori_mustahik ? { nama: mth.kategori_mustahik.nama } : undefined } : undefined, tahun_zakat: tz ? { tahun_hijriah: tz.tahun_hijriah, tahun_masehi: tz.tahun_masehi } : undefined };
     this.distribusi = [...this.distribusi, item];
     return item;
   }

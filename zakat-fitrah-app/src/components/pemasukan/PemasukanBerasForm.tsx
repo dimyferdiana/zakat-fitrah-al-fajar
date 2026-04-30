@@ -36,6 +36,7 @@ import { id as idLocale } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import type { PemasukanBerasKategori } from '@/hooks/usePemasukanBeras';
 import { MuzakkiCreatableCombobox } from '@/components/pemasukan/MuzakkiCreatableCombobox';
+import { useTransactionTags } from '@/hooks/useTransactionTags';
 
 const formSchema = z.object({
   tahun_zakat_id: z.string().min(1, { message: 'Tahun zakat wajib dipilih' }),
@@ -46,6 +47,7 @@ const formSchema = z.object({
   tanggal: z.date({ message: 'Tanggal wajib diisi' }),
   catatan: z.string().max(255, { message: 'Maksimal 255 karakter' }).optional().or(z.literal('')),
   muzakki_id: z.string().optional(),
+  tag_id: z.string().optional(),
 });
 
 export type PemasukanBerasFormValues = z.infer<typeof formSchema>;
@@ -67,6 +69,7 @@ interface PemasukanBerasFormProps {
     tanggal: string;
     catatan?: string;
     muzakki_id?: string;
+    tag_id?: string | null;
   }) => void;
   tahunOptions: TahunOption[];
   defaultTahunId?: string;
@@ -77,6 +80,7 @@ interface PemasukanBerasFormProps {
     tanggal: string;
     catatan?: string;
     muzakki_id?: string;
+    tag_id?: string | null;
   };
   isSubmitting: boolean;
 }
@@ -90,6 +94,8 @@ export function PemasukanBerasForm({
   defaultValues,
   isSubmitting,
 }: PemasukanBerasFormProps) {
+  const { data: tags = [] } = useTransactionTags();
+
   const form = useForm<PemasukanBerasFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues ? {
@@ -99,6 +105,7 @@ export function PemasukanBerasForm({
       tanggal: new Date(defaultValues.tanggal),
       catatan: defaultValues.catatan || '',
       muzakki_id: defaultValues.muzakki_id,
+      tag_id: defaultValues.tag_id ?? undefined,
     } : {
       tahun_zakat_id: defaultTahunId || '',
       kategori: 'fidyah_beras',
@@ -106,6 +113,7 @@ export function PemasukanBerasForm({
       tanggal: new Date(),
       catatan: '',
       muzakki_id: undefined,
+      tag_id: undefined,
     },
   });
 
@@ -120,6 +128,7 @@ export function PemasukanBerasForm({
       ...values,
       catatan: values.catatan || undefined,
       tanggal: values.tanggal.toISOString().split('T')[0],
+      tag_id: values.tag_id === 'none' ? null : values.tag_id ?? null,
     });
   };
 
@@ -259,6 +268,32 @@ export function PemasukanBerasForm({
                       disabled={isSubmitting}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="tag_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tag</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || ''}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih tag (opsional)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Tanpa tag</SelectItem>
+                      {tags.map((tag) => (
+                        <SelectItem key={tag.id} value={tag.id}>
+                          {tag.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
