@@ -25,10 +25,12 @@ export default function Laporan() {
   const tahunZakatList = tahunZakatData || [];
   const activeTahun = tahunZakatList.find((t: any) => t.is_active);
 
-  // Set default selected tahun to active year
-  if (selectedTahun === '' && activeTahun) {
-    setSelectedTahun(activeTahun.id);
-  }
+  // Set default selected tahun to active year when data loads
+  useEffect(() => {
+    if (selectedTahun === '' && activeTahun?.id) {
+      setSelectedTahun(activeTahun.id);
+    }
+  }, [activeTahun?.id]);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 640px)');
