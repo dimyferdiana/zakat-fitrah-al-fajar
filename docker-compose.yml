@@ -1,0 +1,27 @@
+services:
+  # Development — hot reload via volume mount
+  app-dev:
+    build:
+      context: ./zakat-fitrah-app
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./zakat-fitrah-app:/app
+      - /app/node_modules        # keep container's node_modules isolated
+    env_file:
+      - ./zakat-fitrah-app/.env
+    profiles: [dev]
+
+  # Production — multi-stage build, served by Nginx
+  app-prod:
+    build:
+      context: ./zakat-fitrah-app
+      dockerfile: Dockerfile
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+        VITE_OFFLINE_MODE: ${VITE_OFFLINE_MODE:-false}
+    ports:
+      - "80:80"
+    profiles: [prod]

@@ -49,6 +49,7 @@ Read these for detailed workflows:
 - `ops/STANDARD_OPERATIONS.md` — Main operations overview
 - `ops/AGENT_ROLES.md` — Team roles and agent playbooks
 - `ops/DEVELOPMENT_WORKFLOW.md` — Detailed dev workflow
+- `ops/DOCKER_LOCAL_TESTING_WORKFLOW.md` — **Required:** Local Docker testing before release
 - `ops/PARALLEL_EXECUTION.md` — Running multiple agents
 - `ops/PROJECT_HYGIENE.md` — File organization rules
 
