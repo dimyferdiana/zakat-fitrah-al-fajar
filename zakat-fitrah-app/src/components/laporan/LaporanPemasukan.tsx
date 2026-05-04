@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,16 +23,38 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
-import { Download, FileText, Calendar as CalendarIcon, Package, DollarSign } from 'lucide-react';
+import {
+  Download,
+  FileText,
+  Calendar as CalendarIcon,
+  Package,
+  DollarSign,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { usePembayaranList } from '@/hooks/useMuzakki';
+import { usePemasukanUangList } from '@/hooks/usePemasukanUang';
+import { usePemasukanBerasList } from '@/hooks/usePemasukanBeras';
 import { exportPemasukanPDF, exportPemasukanExcel } from '@/utils/export';
+
+const PAGE_SIZE = 20;
 
 interface LaporanPemasukanProps {
   tahunZakatId: string;
 }
+
+const kategoriLabels: Record<string, string> = {
+  fidyah_uang: 'Fidyah Uang',
+  maal_penghasilan_uang: 'Maal/Penghasilan',
+  infak_sedekah_uang: 'Infak/Sedekah',
+  zakat_fitrah_uang: 'Zakat Fitrah (Uang)',
+  fidyah_beras: 'Fidyah Beras',
+  infak_sedekah_beras: 'Infak/Sedekah Beras',
+  zakat_fitrah_beras: 'Zakat Fitrah (Beras)',
+  maal_beras: 'Zakat Maal (Beras)',
+};
 
 export function LaporanPemasukan({ tahunZakatId }: LaporanPemasukanProps) {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
@@ -40,65 +62,98 @@ export function LaporanPemasukan({ tahunZakatId }: LaporanPemasukanProps) {
   const [jenisFilter, setJenisFilter] = useState<'semua' | 'beras' | 'uang'>('semua');
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: muzakkiData, isLoading } = usePembayaranList({
-    tahunZakatId: tahunZakatId,
-    jenisZakat: jenisFilter === 'semua' ? undefined : jenisFilter,
-    dateFrom: dateFrom,
-    dateTo: dateTo,
-    page: currentPage,
-    pageSize: 20,
+  const showUang = jenisFilter === 'semua' || jenisFilter === 'uang';
+  const showBeras = jenisFilter === 'semua' || jenisFilter === 'beras';
+
+  // Fetch all filtered data (large page size, client-side pagination)
+  const { data: uangData, isLoading: isLoadingUang } = usePemasukanUangList({
+    tahunZakatId: tahunZakatId || undefined,
+    dateFrom,
+    dateTo,
+    pageSize: 5000,
   });
 
-  const pembayaranList = muzakkiData?.data || [];
-  const totalCount = muzakkiData?.count || 0;
+  const { data: berasData, isLoading: isLoadingBeras } = usePemasukanBerasList({
+    tahunZakatId: tahunZakatId || undefined,
+    dateFrom,
+    dateTo,
+    pageSize: 5000,
+  });
 
-  // Calculate summary
-  const totalBeras = pembayaranList
-    .filter((p: any) => p.jenis_zakat === 'beras')
-    .reduce((sum: number, p: any) => sum + (p.jumlah_beras_kg || 0), 0);
+  const isLoading = isLoadingUang || isLoadingBeras;
 
-  const totalUang = pembayaranList
-    .filter((p: any) => p.jenis_zakat === 'uang')
-    .reduce((sum: number, p: any) => sum + (p.jumlah_uang_rp || 0), 0);
+  // Summary totals from fetched data
+  const totalBerasKg = useMemo(
+    () => (berasData?.data || []).reduce((sum, item) => sum + Number(item.jumlah_beras_kg), 0),
+    [berasData]
+  );
+  const totalUangRp = useMemo(
+    () => (uangData?.data || []).reduce((sum, item) => sum + Number(item.jumlah_uang_rp), 0),
+    [uangData]
+  );
 
-  const totalMuzakki = new Set(pembayaranList.map((p: any) => p.muzakki_id)).size;
+  // Combine and sort all rows
+  const allRows = useMemo(() => {
+    const uangRows = showUang
+      ? (uangData?.data || []).map((item) => ({
+          id: item.id,
+          tanggal: item.tanggal,
+          muzakki: item.muzakki?.nama_kk || '-',
+          kategori: kategoriLabels[item.kategori] || item.kategori,
+          jenis: 'Uang' as const,
+          nominalDisplay: new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+          }).format(Number(item.jumlah_uang_rp)),
+          tag: item.tag,
+          catatan: item.catatan,
+        }))
+      : [];
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(value);
-  };
+    const berasRows = showBeras
+      ? (berasData?.data || []).map((item) => ({
+          id: item.id,
+          tanggal: item.tanggal,
+          muzakki: item.muzakki?.nama_kk || '-',
+          kategori: kategoriLabels[item.kategori] || item.kategori,
+          jenis: 'Beras' as const,
+          nominalDisplay: `${Number(item.jumlah_beras_kg).toFixed(2)} kg`,
+          tag: item.tag,
+          catatan: item.catatan,
+        }))
+      : [];
 
-  const formatNumber = (value: number | null | undefined) => {
-    if (value == null || isNaN(value)) return '0.00';
-    return value.toFixed(2);
-  };
+    return [...uangRows, ...berasRows].sort(
+      (a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime()
+    );
+  }, [uangData, berasData, showUang, showBeras]);
+
+  const totalCount = allRows.length;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const paginatedRows = allRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const handleExportPDF = () => {
-    exportPemasukanPDF(pembayaranList, {
+    exportPemasukanPDF(allRows as any, {
       dateFrom,
       dateTo,
       jenisFilter,
-      totalBeras,
-      totalUang,
-      totalMuzakki,
+      totalBeras: totalBerasKg,
+      totalUang: totalUangRp,
+      totalMuzakki: new Set(allRows.map((r) => r.muzakki).filter((m) => m !== '-')).size,
     });
   };
 
   const handleExportExcel = () => {
-    exportPemasukanExcel(pembayaranList, {
+    exportPemasukanExcel(allRows as any, {
       dateFrom,
       dateTo,
       jenisFilter,
-      totalBeras,
-      totalUang,
-      totalMuzakki,
+      totalBeras: totalBerasKg,
+      totalUang: totalUangRp,
+      totalMuzakki: new Set(allRows.map((r) => r.muzakki).filter((m) => m !== '-')).size,
     });
   };
-
-  const totalPages = Math.ceil(totalCount / 20);
 
   return (
     <div className="space-y-6">
@@ -110,7 +165,9 @@ export function LaporanPemasukan({ tahunZakatId }: LaporanPemasukanProps) {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatNumber(totalBeras)} kg</div>
+            <div className="text-2xl font-bold">
+              {isLoadingBeras ? '...' : `${totalBerasKg.toFixed(2)} kg`}
+            </div>
             <p className="text-xs text-muted-foreground">Zakat beras terkumpul</p>
           </CardContent>
         </Card>
@@ -121,19 +178,27 @@ export function LaporanPemasukan({ tahunZakatId }: LaporanPemasukanProps) {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalUang)}</div>
+            <div className="text-2xl font-bold">
+              {isLoadingUang
+                ? '...'
+                : new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                  }).format(totalUangRp)}
+            </div>
             <p className="text-xs text-muted-foreground">Zakat uang terkumpul</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Muzakki</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Transaksi</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalMuzakki}</div>
-            <p className="text-xs text-muted-foreground">Kepala keluarga</p>
+            <div className="text-2xl font-bold">{isLoading ? '...' : totalCount}</div>
+            <p className="text-xs text-muted-foreground">Jumlah penerimaan</p>
           </CardContent>
         </Card>
       </div>
@@ -158,17 +223,24 @@ export function LaporanPemasukan({ tahunZakatId }: LaporanPemasukanProps) {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateFrom ? format(dateFrom, 'PPP', { locale: localeId }) : 'Pilih tanggal'}
+                    {dateFrom ? format(dateFrom, 'PPP', { locale: localeId }) : 'Semua tanggal'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
                     selected={dateFrom}
-                    onSelect={setDateFrom}
+                    onSelect={(d) => { setDateFrom(d); setCurrentPage(1); }}
                     locale={localeId}
                     initialFocus
                   />
+                  {dateFrom && (
+                    <div className="p-2 border-t">
+                      <Button variant="ghost" size="sm" className="w-full" onClick={() => { setDateFrom(undefined); setCurrentPage(1); }}>
+                        Hapus filter tanggal
+                      </Button>
+                    </div>
+                  )}
                 </PopoverContent>
               </Popover>
             </div>
@@ -186,32 +258,45 @@ export function LaporanPemasukan({ tahunZakatId }: LaporanPemasukanProps) {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateTo ? format(dateTo, 'PPP', { locale: localeId }) : 'Pilih tanggal'}
+                    {dateTo ? format(dateTo, 'PPP', { locale: localeId }) : 'Semua tanggal'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
                     selected={dateTo}
-                    onSelect={setDateTo}
+                    onSelect={(d) => { setDateTo(d); setCurrentPage(1); }}
                     locale={localeId}
                     initialFocus
                   />
+                  {dateTo && (
+                    <div className="p-2 border-t">
+                      <Button variant="ghost" size="sm" className="w-full" onClick={() => { setDateTo(undefined); setCurrentPage(1); }}>
+                        Hapus filter tanggal
+                      </Button>
+                    </div>
+                  )}
                 </PopoverContent>
               </Popover>
             </div>
 
             {/* Jenis Filter */}
             <div className="flex-1">
-              <label className="text-sm font-medium mb-2 block">Jenis Zakat</label>
-              <Select value={jenisFilter} onValueChange={(value: any) => setJenisFilter(value)}>
+              <label className="text-sm font-medium mb-2 block">Jenis Penerimaan</label>
+              <Select
+                value={jenisFilter}
+                onValueChange={(value: 'semua' | 'beras' | 'uang') => {
+                  setJenisFilter(value);
+                  setCurrentPage(1);
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="semua">Semua</SelectItem>
-                  <SelectItem value="beras">Beras</SelectItem>
                   <SelectItem value="uang">Uang</SelectItem>
+                  <SelectItem value="beras">Beras</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -233,54 +318,65 @@ export function LaporanPemasukan({ tahunZakatId }: LaporanPemasukanProps) {
       {/* Data Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Detail Pembayaran</CardTitle>
+          <CardTitle>
+            Detail Penerimaan
+            {!isLoading && (
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                ({totalCount} transaksi)
+              </span>
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Tanggal</TableHead>
-                <TableHead>Nama KK</TableHead>
-                <TableHead>Alamat</TableHead>
-                <TableHead className="text-center">Jiwa</TableHead>
+                <TableHead>Kategori</TableHead>
+                <TableHead>Muzakki</TableHead>
+                <TableHead>Tag</TableHead>
                 <TableHead>Jenis</TableHead>
-                <TableHead className="text-right">Jumlah</TableHead>
+                <TableHead className="text-right">Nominal</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
-                    Loading...
+                    Memuat data...
                   </TableCell>
                 </TableRow>
-              ) : pembayaranList.length === 0 ? (
+              ) : paginatedRows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    Tidak ada data pembayaran
+                    {!tahunZakatId
+                      ? 'Pilih tahun zakat untuk melihat data'
+                      : 'Tidak ada data penerimaan'}
                   </TableCell>
                 </TableRow>
               ) : (
-                pembayaranList.map((pembayaran: any) => (
-                  <TableRow key={pembayaran.id}>
+                paginatedRows.map((row) => (
+                  <TableRow key={row.id}>
                     <TableCell>
-                      {format(new Date(pembayaran.tanggal_bayar), 'dd MMM yyyy', {
-                        locale: localeId,
-                      })}
+                      {format(new Date(row.tanggal), 'dd MMM yyyy', { locale: localeId })}
                     </TableCell>
-                    <TableCell className="font-medium">{pembayaran.muzakki?.nama_kk}</TableCell>
-                    <TableCell>{pembayaran.muzakki?.alamat}</TableCell>
-                    <TableCell className="text-center">{pembayaran.jumlah_jiwa}</TableCell>
+                    <TableCell>{row.kategori}</TableCell>
+                    <TableCell>{row.muzakki}</TableCell>
                     <TableCell>
-                      <Badge variant={pembayaran.jenis_zakat === 'beras' ? 'default' : 'secondary'}>
-                        {pembayaran.jenis_zakat === 'beras' ? 'Beras' : 'Uang'}
+                      {row.tag?.name ? (
+                        <Badge variant="outline" className="text-xs">
+                          {row.tag.name}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={row.jenis === 'Beras' ? 'default' : 'secondary'}>
+                        {row.jenis}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      {pembayaran.jenis_zakat === 'beras'
-                        ? `${formatNumber(pembayaran.jumlah_beras_kg)} kg`
-                        : formatCurrency(pembayaran.jumlah_uang_rp)}
-                    </TableCell>
+                    <TableCell className="text-right font-medium">{row.nominalDisplay}</TableCell>
                   </TableRow>
                 ))
               )}
@@ -300,7 +396,8 @@ export function LaporanPemasukan({ tahunZakatId }: LaporanPemasukanProps) {
                   onClick={() => setCurrentPage(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
-                  Previous
+                  <ChevronLeft className="h-4 w-4" />
+                  Sebelumnya
                 </Button>
                 <Button
                   variant="outline"
@@ -308,7 +405,8 @@ export function LaporanPemasukan({ tahunZakatId }: LaporanPemasukanProps) {
                   onClick={() => setCurrentPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
-                  Next
+                  Selanjutnya
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>

@@ -42,6 +42,8 @@ export interface PemasukanUangListParams {
   kategori?: PemasukanUangKategori | 'semua';
   akun?: AkunUang | 'semua';
   tagId?: string;
+  dateFrom?: Date;
+  dateTo?: Date;
   page?: number;
   pageSize?: number;
 }
@@ -191,6 +193,14 @@ export function usePemasukanUangList(params: PemasukanUangListParams) {
 
       if (params.tagId) {
         query = query.eq('tag_id', params.tagId);
+      }
+
+      if (params.dateFrom) {
+        query = query.gte('tanggal', params.dateFrom.toISOString().split('T')[0]);
+      }
+
+      if (params.dateTo) {
+        query = query.lte('tanggal', params.dateTo.toISOString().split('T')[0]);
       }
 
       const page = params.page || 1;

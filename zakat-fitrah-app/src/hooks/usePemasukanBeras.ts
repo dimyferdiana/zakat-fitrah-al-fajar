@@ -37,6 +37,8 @@ export interface PemasukanBerasListParams {
   tahunZakatId?: string;
   kategori?: PemasukanBerasKategori | 'semua';
   tagId?: string;
+  dateFrom?: Date;
+  dateTo?: Date;
   page?: number;
   pageSize?: number;
 }
@@ -188,6 +190,14 @@ export function usePemasukanBerasList(params: PemasukanBerasListParams) {
 
       if (params.tagId) {
         query = query.eq('tag_id', params.tagId);
+      }
+
+      if (params.dateFrom) {
+        query = query.gte('tanggal', params.dateFrom.toISOString().split('T')[0]);
+      }
+
+      if (params.dateTo) {
+        query = query.lte('tanggal', params.dateTo.toISOString().split('T')[0]);
       }
 
       const page = params.page || 1;
