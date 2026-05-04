@@ -39,7 +39,7 @@ import {
 import type { PemasukanBeras } from '@/hooks/usePemasukanBeras';
 import { useTahunZakatList } from '@/hooks/useDashboard';
 import { useTransactionTags } from '@/hooks/useTransactionTags';
-import { Plus, Receipt, Edit, Trash2, MoreVertical, Layers } from 'lucide-react';
+import { Plus, Receipt, Edit, Trash2, MoreVertical, Layers, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const kategoriLabels: Record<string, string> = {
@@ -225,73 +225,105 @@ export function PemasukanBeras() {
           )}
 
           {!isLoading && pemasukan && pemasukan.data.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left">
-                    <th className="py-2 pr-4">Tanggal</th>
-                    <th className="py-2 pr-4">Kategori</th>
-                    <th className="py-2 pr-4">Jumlah (Kg)</th>
-                    <th className="py-2 pr-4">Muzakki</th>
-                    <th className="py-2 pr-4">Tag</th>
-                    <th className="py-2 pr-4">Catatan</th>
-                    <th className="py-2">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pemasukan.data.map((item) => (
-                    <tr key={item.id} className="border-b last:border-0">
-                      <td className="py-2 pr-4 whitespace-nowrap">
-                        {new Date(item.tanggal).toLocaleDateString('id-ID')}
-                      </td>
-                      <td className="py-2 pr-4">{kategoriLabels[item.kategori] || item.kategori}</td>
-                      <td className="py-2 pr-4 font-medium">{Number(item.jumlah_beras_kg).toFixed(2)} Kg</td>
-                      <td className="py-2 pr-4">{item.muzakki?.nama_kk || '-'}</td>
-                      <td className="py-2 pr-4">
-                        {item.tag?.name ? (
-                          <Badge variant="outline" className="text-xs">{item.tag.name}</Badge>
-                        ) : (
-                          <span className="text-muted-foreground text-xs">-</span>
-                        )}
-                      </td>
-                      <td className="py-2 pr-4 text-muted-foreground">{item.catatan || '-'}</td>
-                      <td className="py-2">
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleShowBukti(item)}
-                          >
-                            <Receipt className="mr-1 h-4 w-4" />
-                            Bukti
-                          </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleEdit(item)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleDeleteClick(item)}
-                                className="text-red-600"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Hapus
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left">
+                      <th className="py-2 pr-4">Tanggal</th>
+                      <th className="py-2 pr-4">Kategori</th>
+                      <th className="py-2 pr-4">Jumlah (Kg)</th>
+                      <th className="py-2 pr-4">Muzakki</th>
+                      <th className="py-2 pr-4">Tag</th>
+                      <th className="py-2 pr-4">Catatan</th>
+                      <th className="py-2">Aksi</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {pemasukan.data.map((item) => (
+                      <tr key={item.id} className="border-b last:border-0">
+                        <td className="py-2 pr-4 whitespace-nowrap">
+                          {new Date(item.tanggal).toLocaleDateString('id-ID')}
+                        </td>
+                        <td className="py-2 pr-4">{kategoriLabels[item.kategori] || item.kategori}</td>
+                        <td className="py-2 pr-4 font-medium">{Number(item.jumlah_beras_kg).toFixed(2)} Kg</td>
+                        <td className="py-2 pr-4">{item.muzakki?.nama_kk || '-'}</td>
+                        <td className="py-2 pr-4">
+                          {item.tag?.name ? (
+                            <Badge variant="outline" className="text-xs">{item.tag.name}</Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">-</span>
+                          )}
+                        </td>
+                        <td className="py-2 pr-4 text-muted-foreground">{item.catatan || '-'}</td>
+                        <td className="py-2">
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleShowBukti(item)}
+                            >
+                              <Receipt className="mr-1 h-4 w-4" />
+                              Bukti
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleEdit(item)}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteClick(item)}
+                                  className="text-red-600"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Hapus
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination and Total Count */}
+              <div className="mt-6 flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Total: <span className="font-semibold">{pemasukan.count}</span> penerimaan
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(Math.max(1, page - 1))}
+                    disabled={page === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Sebelumnya
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Halaman {page}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(page + 1)}
+                    disabled={pemasukan.data.length < 20}
+                  >
+                    Selanjutnya
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </>
           )}
             </>
           )}
