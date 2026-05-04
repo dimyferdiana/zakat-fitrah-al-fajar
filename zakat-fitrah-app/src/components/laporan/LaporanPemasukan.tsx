@@ -43,6 +43,8 @@ export function LaporanPemasukan({ tahunZakatId }: LaporanPemasukanProps) {
   const { data: muzakkiData, isLoading } = usePembayaranList({
     tahunZakatId: tahunZakatId,
     jenisZakat: jenisFilter === 'semua' ? undefined : jenisFilter,
+    dateFrom: dateFrom,
+    dateTo: dateTo,
     page: currentPage,
     pageSize: 20,
   });

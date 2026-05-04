@@ -48,6 +48,8 @@ interface PembayaranListParams {
   jenisZakat?: string;
   tahunZakatId?: string;
   tagId?: string;
+  dateFrom?: Date;
+  dateTo?: Date;
   page?: number;
   pageSize?: number;
   sortBy?: string;
@@ -425,6 +427,16 @@ export function usePembayaranList(params: PembayaranListParams) {
       // Filter by tag
       if (params.tagId) {
         query = query.eq('tag_id', params.tagId);
+      }
+
+      // Filter by date range
+      if (params.dateFrom) {
+        const dateFromString = params.dateFrom.toISOString().split('T')[0];
+        query = query.gte('tanggal_bayar', dateFromString);
+      }
+      if (params.dateTo) {
+        const dateToString = params.dateTo.toISOString().split('T')[0];
+        query = query.lte('tanggal_bayar', dateToString);
       }
 
       // Search by nama or alamat
