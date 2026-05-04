@@ -119,7 +119,7 @@ export function InvitationTable() {
                     {format(new Date(invitation.expires_at), 'MMM dd, yyyy HH:mm')}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {format(new Date(invitation.created_at), 'MMM dd, yyyy')}
+                    {invitation.created_at ? format(new Date(invitation.created_at), 'MMM dd, yyyy') : '-'}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">

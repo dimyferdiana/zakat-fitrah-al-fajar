@@ -9,7 +9,7 @@ const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 export interface KategoriMustahik {
   id: string;
   nama: string;
-  deskripsi: string;
+  deskripsi: string | null;
   created_at: string;
 }
 
@@ -146,7 +146,7 @@ export function useKategoriMustahik() {
         .order('nama', { ascending: true });
 
       if (error) throw error;
-      return data;
+      return data as KategoriMustahik[];
     },
   });
 }

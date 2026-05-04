@@ -55,11 +55,11 @@ export function LaporanHakAmil({ tahunZakatId }: LaporanHakAmilProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('tahun_zakat')
-        .select('nama')
+        .select('tahun_hijriah, tahun_masehi')
         .eq('id', tahunZakatId)
         .single();
       if (error) throw error;
-      return data as { nama: string };
+      return data as { tahun_hijriah: string; tahun_masehi: number };
     },
   });
 
@@ -146,7 +146,7 @@ export function LaporanHakAmil({ tahunZakatId }: LaporanHakAmilProps) {
 
       await exportHakAmilPDF(summary, {
         periode,
-        tahunZakatNama: tahunZakat.nama,
+        tahunZakatNama: `${tahunZakat.tahun_hijriah}H / ${tahunZakat.tahun_masehi}M`,
         basisMode: basisModeLabel,
       });
 
@@ -186,7 +186,7 @@ export function LaporanHakAmil({ tahunZakatId }: LaporanHakAmilProps) {
 
       await exportHakAmilExcel(summary, {
         periode,
-        tahunZakatNama: tahunZakat.nama,
+        tahunZakatNama: `${tahunZakat.tahun_hijriah}H / ${tahunZakat.tahun_masehi}M`,
         basisMode: basisModeLabel,
       });
 

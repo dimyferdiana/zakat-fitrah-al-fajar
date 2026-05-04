@@ -232,9 +232,7 @@ export default function Settings() {
         // Update existing config
         const { data, error } = await supabase
           .from('hak_amil_configs')
-          // @ts-expect-error - hak_amil_configs table exists but types not yet regenerated
           .update(payload)
-          // @ts-expect-error - hak_amil_configs table exists but types not yet regenerated
           .eq('id', existingConfig.id)
           .select()
           .single();
@@ -245,7 +243,6 @@ export default function Settings() {
         // Insert new config
         const { data, error } = await supabase
           .from('hak_amil_configs')
-          // @ts-expect-error - hak_amil_configs table exists but types not yet regenerated
           .insert({ ...payload, created_by: authUser.id })
           .select()
           .single();

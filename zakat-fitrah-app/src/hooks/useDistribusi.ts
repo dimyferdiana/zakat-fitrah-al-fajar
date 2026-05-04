@@ -116,7 +116,7 @@ export function useDistribusiList(params: DistribusiListParams) {
       if (error) throw error;
 
       return {
-        data: data || [],
+        data: (data || []) as Distribusi[],
         totalCount: count || 0,
       };
     },

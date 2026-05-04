@@ -56,7 +56,7 @@ interface TahunOption {
   id: string;
   tahun_hijriah: string;
   tahun_masehi: number;
-  is_active: boolean;
+  is_active: boolean | null;
 }
 
 interface PemasukanBerasFormProps {

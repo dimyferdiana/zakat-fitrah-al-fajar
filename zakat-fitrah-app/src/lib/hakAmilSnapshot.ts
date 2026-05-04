@@ -88,7 +88,6 @@ export async function upsertHakAmilSnapshot(input: CreateSnapshotInput): Promise
   if (existingRows && existingRows.length > 0) {
     const { error: updateError } = await supabase
       .from('hak_amil_snapshots')
-      // @ts-expect-error - table exists but generated DB types may lag migration
       .update(snapshotPayload)
       .eq(sourceColumn, input.sourceId);
 

@@ -30,13 +30,9 @@ import {
   useDeleteAccount,
   useUpdateAccount,
 } from '@/hooks/useAccountsLedger';
-import type { Account as DbAccount, AccountLedgerEntryType } from '@/types/database.types';
+import type { Account, AccountLedgerEntryType } from '@/types/database.types';
 import { AccountFormDialog, type AccountFormValues } from '@/components/accounts/AccountFormDialog';
 import { AccountLedgerTable } from '@/components/accounts/AccountLedgerTable';
-
-interface Account extends DbAccount {
-  account_number?: string;
-}
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('id-ID', {
@@ -220,7 +216,8 @@ export function AccountsManagement() {
                 {accounts.map((account) => {
                   const accountType = account.account_channel || '-';
                   const accountName = account.account_name || '-';
-                  const accountNumber = account.account_number || '-';
+                  const metadata = typeof account.metadata === 'object' ? account.metadata : {};
+                  const accountNumber = (metadata as any)?.account_number || '-';
                   const isSelected = selectedAccountId === account.id;
 
                   return (
