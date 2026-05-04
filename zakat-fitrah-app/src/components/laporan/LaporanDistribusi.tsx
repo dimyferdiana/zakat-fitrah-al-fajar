@@ -277,9 +277,9 @@ export function LaporanDistribusi({ tahunZakatId }: LaporanDistribusiProps) {
                 filteredList.map((distribusi: any) => (
                   <TableRow key={distribusi.id}>
                     <TableCell>
-                      {format(new Date(distribusi.tanggal_distribusi), 'dd MMM yyyy', {
-                        locale: localeId,
-                      })}
+                      {distribusi.tanggal_distribusi && !isNaN(new Date(distribusi.tanggal_distribusi).getTime())
+                        ? format(new Date(distribusi.tanggal_distribusi), 'dd MMM yyyy', { locale: localeId })
+                        : '-'}
                     </TableCell>
                     <TableCell className="font-medium">{distribusi.mustahik?.nama}</TableCell>
                     <TableCell>

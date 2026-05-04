@@ -358,7 +358,9 @@ export function LaporanPemasukan({ tahunZakatId }: LaporanPemasukanProps) {
                 paginatedRows.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell>
-                      {format(new Date(row.tanggal), 'dd MMM yyyy', { locale: localeId })}
+                      {row.tanggal && !isNaN(new Date(row.tanggal).getTime())
+                        ? format(new Date(row.tanggal), 'dd MMM yyyy', { locale: localeId })
+                        : '-'}
                     </TableCell>
                     <TableCell>{row.kategori}</TableCell>
                     <TableCell>{row.muzakki}</TableCell>

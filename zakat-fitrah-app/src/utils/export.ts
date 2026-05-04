@@ -26,8 +26,11 @@ const formatPercentage = (value: number) => {
   }).format(value) + '%';
 };
 
-const formatDate = (date: string) => {
-  return format(new Date(date), 'dd/MM/yyyy', { locale: localeId });
+const formatDate = (date: string | Date | null | undefined): string => {
+  if (!date) return '-';
+  const d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) return '-';
+  return format(d, 'dd/MM/yyyy', { locale: localeId });
 };
 
 // PDF Header
@@ -99,21 +102,22 @@ export const exportPemasukanPDF = (data: any[], summary: any) => {
     y += 8;
   }
   
-  // Table
+  // Table — supports both old (tanggal_bayar) and new (tanggal) field names
   const tableData = data.map((item: any) => [
-    formatDate(item.tanggal_bayar),
-    item.muzakki?.nama_kk || '',
-    item.jumlah_jiwa,
-    item.jenis_zakat === 'beras' ? 'Beras' : 'Uang',
+    formatDate(item.tanggal_bayar || item.tanggal),
+    item.muzakki?.nama_kk || item.muzakki || '',
+    item.jumlah_jiwa ?? '-',
+    item.jenis ?? (item.jenis_zakat === 'beras' ? 'Beras' : 'Uang'),
     item.tag?.name || '-',
-    item.jenis_zakat === 'beras'
-      ? `${formatNumber(item.jumlah_beras_kg)} kg`
-      : formatCurrency(item.jumlah_uang_rp),
+    item.nominalDisplay
+      ?? (item.jenis_zakat === 'beras'
+        ? `${formatNumber(item.jumlah_beras_kg ?? 0)} kg`
+        : formatCurrency(item.jumlah_uang_rp ?? 0)),
   ]);
 
   autoTable(pdf, {
     startY: y,
-    head: [['Tanggal', 'Nama KK', 'Jiwa', 'Jenis', 'Tag', 'Jumlah']],
+    head: [['Tanggal', 'Nama KK / Muzakki', 'Jiwa', 'Jenis', 'Tag', 'Jumlah']],
     body: tableData,
     styles: { fontSize: 9 },
     headStyles: { fillColor: [59, 130, 246] },
@@ -132,17 +136,18 @@ export const exportPemasukanExcel = (data: any[], summary: any) => {
     ['Total Uang', formatCurrency(summary.totalUang)],
     ['Total Muzakki', `${summary.totalMuzakki} KK`],
     [],
-    ['Tanggal', 'Nama KK', 'Alamat', 'Jiwa', 'Jenis', 'Tag', 'Jumlah'],
+    ['Tanggal', 'Nama KK / Muzakki', 'Alamat', 'Jiwa', 'Jenis', 'Tag', 'Jumlah'],
     ...data.map((item: any) => [
-      formatDate(item.tanggal_bayar),
-      item.muzakki?.nama_kk || '',
+      formatDate(item.tanggal_bayar || item.tanggal),
+      item.muzakki?.nama_kk || item.muzakki || '',
       item.muzakki?.alamat || '',
-      item.jumlah_jiwa,
-      item.jenis_zakat === 'beras' ? 'Beras' : 'Uang',
+      item.jumlah_jiwa ?? '-',
+      item.jenis ?? (item.jenis_zakat === 'beras' ? 'Beras' : 'Uang'),
       item.tag?.name || '-',
-      item.jenis_zakat === 'beras'
-        ? `${formatNumber(item.jumlah_beras_kg)} kg`
-        : formatCurrency(item.jumlah_uang_rp),
+      item.nominalDisplay
+        ?? (item.jenis_zakat === 'beras'
+          ? `${formatNumber(item.jumlah_beras_kg ?? 0)} kg`
+          : formatCurrency(item.jumlah_uang_rp ?? 0)),
     ]),
   ]);
   
