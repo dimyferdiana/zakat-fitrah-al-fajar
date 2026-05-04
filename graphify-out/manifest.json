@@ -1,0 +1,610 @@
+{
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/App.tsx": {
+    "mtime": 1777468953.9837713,
+    "hash": "cf54093a90b4cfe1c376de839c28dac6"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/main.tsx": {
+    "mtime": 1777468953.9964533,
+    "hash": "787e5a07efeb2bf6209d5937195f2f68"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/types/dashboard.ts": {
+    "mtime": 1777468953.9988809,
+    "hash": "78d5ae12e126b7b1ce85b901111b07bb"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/types/database.types.ts": {
+    "mtime": 1777857698.8976226,
+    "hash": "7571778e6fe0625b5490eadb131a9f43"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/types/bulk.ts": {
+    "mtime": 1777468953.9988034,
+    "hash": "756709cd6567c5f2b1f58360b7fdbd5e"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/utils/export.ts": {
+    "mtime": 1777616964.6677551,
+    "hash": "5917ade8e72c57602eb48e111a50086b"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/utils/suratPengantar.ts": {
+    "mtime": 1777616964.6687639,
+    "hash": "3c320ed154e7b9b8f5eebf9bc79f1f1e"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/utils/sedekahReceipt.ts": {
+    "mtime": 1777616964.6683416,
+    "hash": "64eed1d5bbab4d01e1a36325b7dd25fb"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/utils/hakAmilCalculator.ts": {
+    "mtime": 1777468953.9992428,
+    "hash": "7cd8163b1b63eb2f97f8e23b9dbce35d"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/utils/hakAmilCalculator.test.ts": {
+    "mtime": 1777468953.999182,
+    "hash": "86b437b3f51332561ae0a2ee42b75dc0"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/alert-dialog.tsx": {
+    "mtime": 1777468953.9911013,
+    "hash": "aca8996e4020285a789d58348abce552"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/tabs.tsx": {
+    "mtime": 1777468953.992914,
+    "hash": "edad06f905be7a7e3634fdbe1b6ad61a"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/card.tsx": {
+    "mtime": 1777468953.9916053,
+    "hash": "4be937e00a434ffa44e7f0e82ae79d17"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/popover.tsx": {
+    "mtime": 1777468953.9921775,
+    "hash": "fc70a6c55ac2e65fef3344cdb78a3258"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/sheet.tsx": {
+    "mtime": 1777468953.9926188,
+    "hash": "6ed1cc4d2fcfcc83566bbefd00ca72bc"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/scroll-area.tsx": {
+    "mtime": 1777468953.9923286,
+    "hash": "c4d63c56a99feb600ed0e9bbcfd70829"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/label.tsx": {
+    "mtime": 1777468953.9920952,
+    "hash": "7ea839d3fa873fb063a9709a79e47561"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/sonner.tsx": {
+    "mtime": 1777468953.9926903,
+    "hash": "1304356a025259dd12f8311cac2d81b4"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/alert.tsx": {
+    "mtime": 1777468953.991179,
+    "hash": "48dac79c18e0c3ff687c320c6fcf1590"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/switch.tsx": {
+    "mtime": 1777468953.9927645,
+    "hash": "1210b13831d433e8a9488bab91432dd4"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/calendar.tsx": {
+    "mtime": 1777468953.9915195,
+    "hash": "7168347f8b1856c73700206300a511a4"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/radio-group.tsx": {
+    "mtime": 1777468953.9922528,
+    "hash": "fcc2d06bacaf88963594ffc797620548"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/avatar.tsx": {
+    "mtime": 1777468953.991269,
+    "hash": "ce4fe60f4c48c01a5a601d9835648b40"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/dialog.tsx": {
+    "mtime": 1777468953.991766,
+    "hash": "4c28a5d6519848ce7e26fb37759a97b4"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/badge.tsx": {
+    "mtime": 1777468953.9913437,
+    "hash": "f9c097d427c421f83eb92772a4b8ec06"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/table.tsx": {
+    "mtime": 1777468953.9928398,
+    "hash": "efdbaeb9710b2f60de7c0e18bd4e3528"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/separator.tsx": {
+    "mtime": 1777468953.992522,
+    "hash": "85fd1a835601a122f1f226ccb31a0d67"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/button.tsx": {
+    "mtime": 1777468953.9914203,
+    "hash": "33f8ef5c351115f8904b2a2f3decef54"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/checkbox.tsx": {
+    "mtime": 1777468953.9916837,
+    "hash": "ca06e9d95214f6c4b90a760098d21830"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/dropdown-menu.tsx": {
+    "mtime": 1777468953.991848,
+    "hash": "faf8c7daea22a77bfc6b2b3d764c93f2"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/select.tsx": {
+    "mtime": 1777468953.9924304,
+    "hash": "31739725dce262a1b69f0798d2d5ad5d"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/textarea.tsx": {
+    "mtime": 1777468953.9929943,
+    "hash": "6eb8633e9e461056b9bf88dfaf25fc6d"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/input.tsx": {
+    "mtime": 1777468953.9920175,
+    "hash": "c7cbc8cd45d01649277bd7107581cb36"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/ui/form.tsx": {
+    "mtime": 1777468953.9919386,
+    "hash": "09ca07a7a4fbaf37c166c3aca7f6a797"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/settings/UserTable.tsx": {
+    "mtime": 1777468953.9909496,
+    "hash": "794197dbe0ae9a08ecb9e9099b36caee"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/settings/NilaiZakatForm.tsx": {
+    "mtime": 1777468953.990241,
+    "hash": "a60930d6f949b03fd907a53562acaec6"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/settings/InvitationTable.tsx": {
+    "mtime": 1777857647.0718954,
+    "hash": "041df288def6f2443643acb72f0ccfcd"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/settings/RekonsiliasiForm.tsx": {
+    "mtime": 1777468953.990624,
+    "hash": "95d309aece68888c40e7cbc3b2f4f8ea"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/settings/ProfileForm.tsx": {
+    "mtime": 1777468953.990478,
+    "hash": "61e2b2369a8ad706f773642b1c89fc3c"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/settings/HakAmilConfigForm.tsx": {
+    "mtime": 1777468953.9898586,
+    "hash": "bf03030c2ec2391d96408860f9c2e16c"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/settings/TagTable.tsx": {
+    "mtime": 1777616964.6632786,
+    "hash": "af28929687d45d4839bcdac09bd8afca"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/settings/UserForm.tsx": {
+    "mtime": 1777468953.9908254,
+    "hash": "8a66352fcbd1912487692503c05f7689"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/settings/RekonsiliasiTable.tsx": {
+    "mtime": 1777468953.9907324,
+    "hash": "ad210774c1e4c97877e75ff93ebc2a1b"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/settings/NilaiZakatTable.tsx": {
+    "mtime": 1777468953.9903646,
+    "hash": "cd7aa7cf41759d06a46259e0a5845126"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/settings/HakAmilConfigTable.tsx": {
+    "mtime": 1777468953.9899492,
+    "hash": "20fcc5cf5b77999ee1267a85d2453eec"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/settings/TagForm.tsx": {
+    "mtime": 1777616964.6631346,
+    "hash": "b440c902655a1438ff2f81f63d8223f0"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/settings/InvitationForm.tsx": {
+    "mtime": 1777468953.990042,
+    "hash": "41fe0e658ede1d4f57fc48f4f259c1ea"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/auth/ProtectedRoute.tsx": {
+    "mtime": 1777468953.984243,
+    "hash": "85b8fb01206bb2767724e57d8f942d31"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/mustahik/MustahikTable.tsx": {
+    "mtime": 1777468953.987813,
+    "hash": "55f9d8c6f8eadbdedbd2391da54870bf"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/mustahik/MustahikForm.tsx": {
+    "mtime": 1777468953.987704,
+    "hash": "35a40bac518a76f8dafb95d456aad828"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/mustahik/RiwayatMustahik.tsx": {
+    "mtime": 1777468953.98794,
+    "hash": "6028244388e4a75bcfdcc3e76973e0f8"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/mustahik/ImportTahunLalu.tsx": {
+    "mtime": 1777468953.987588,
+    "hash": "ab95eafdff060f172948db9dacda5c73"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/sedekah/SedekahReceiptForm.tsx": {
+    "mtime": 1777468953.9896746,
+    "hash": "932ac0c038cb59f7f0d2895c7e4f40bd"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/laporan/PerbandinganTahun.tsx": {
+    "mtime": 1777468953.9872916,
+    "hash": "15f0ae7ecceb6f8b19267451becaf701"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/laporan/LaporanDistribusi.tsx": {
+    "mtime": 1777468953.9868627,
+    "hash": "b7b2dee0b5af13d4bb2111edb268ea9f"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/laporan/LaporanHakAmil.tsx": {
+    "mtime": 1777857685.0554292,
+    "hash": "92a2abae8e9755c1c95606e101301b39"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/laporan/LaporanPemasukan.tsx": {
+    "mtime": 1777862460.0635674,
+    "hash": "95eb24bfc059cbde88858728e6af14c6"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/laporan/LaporanMustahik.tsx": {
+    "mtime": 1777468953.9870863,
+    "hash": "b2edfb3bcc3bc9015cc3e1936b3fe554"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/muzakki/BuktiPembayaran.tsx": {
+    "mtime": 1777857653.4809082,
+    "hash": "81f8e55f153cbeea553647cbea821b3c"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/muzakki/MuzakkiTable.tsx": {
+    "mtime": 1777468953.9883034,
+    "hash": "990e0a80c2dfc2dacc171fed34d4c074"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/muzakki/MuzakkiForm.tsx": {
+    "mtime": 1777468953.9882107,
+    "hash": "560db19a392d67731c4e98f04513c3ce"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/distribusi/DistribusiTable.tsx": {
+    "mtime": 1777616964.6604323,
+    "hash": "0d33bbbc5f13fd8630f5cb83a85ff116"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/distribusi/BuktiTerima.tsx": {
+    "mtime": 1777616964.6597264,
+    "hash": "178755649fd6ddd21149f688bcb80474"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/distribusi/DistribusiForm.tsx": {
+    "mtime": 1777616964.660075,
+    "hash": "264d0ebbc209d027899c1c3b6bceef9d"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/HakAmilCard.tsx": {
+    "mtime": 1777468953.9849162,
+    "hash": "f7e84119959c5751d945500caea10f46"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/DashboardTabSwitcher.tsx": {
+    "mtime": 1777468953.9846878,
+    "hash": "5cf60e46b6108f1a217ac7223649e15e"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/StatCard.tsx": {
+    "mtime": 1777468953.9851484,
+    "hash": "d27ecb4e779d963966f4a12f7cdb7886"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/DistribusiProgress.tsx": {
+    "mtime": 1777468953.9847596,
+    "hash": "66a439b56319e81a91d3b281e57a9422"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/HakAmilTrendChart.tsx": {
+    "mtime": 1777468953.9850066,
+    "hash": "e239189ed78872af9477bf099c756a9f"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/DashboardRenderer.tsx": {
+    "mtime": 1777468953.9846165,
+    "hash": "4f2085578d09df7acd24a3769325456d"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/PemasukanChart.tsx": {
+    "mtime": 1777468953.985078,
+    "hash": "39c99f445e008d8dcc39d3074eae0e44"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/settings/DashboardList.tsx": {
+    "mtime": 1777468953.985428,
+    "hash": "6df4e7e0d35034de4df6cf97587d738f"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/settings/DashboardFormDialog.tsx": {
+    "mtime": 1777468953.985325,
+    "hash": "293edbc67ac3536082d77ff23758fe1a"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/settings/WidgetEditorSheet.tsx": {
+    "mtime": 1777468953.985535,
+    "hash": "0b461ebf3a121f55348cafb08317713c"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/settings/WidgetList.tsx": {
+    "mtime": 1777468953.9856508,
+    "hash": "079feafcda3a6f319fec75470764b6ee"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/widgets/TextNoteWidget.tsx": {
+    "mtime": 1777468953.9862509,
+    "hash": "ba5d8eb448a368fd12f1deb77aa8a8f6"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/widgets/DistribusiProgressWidget.tsx": {
+    "mtime": 1777468953.9858608,
+    "hash": "7e855cc07e3bb0e7bad1b3a19a69adb1"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/widgets/SectionTitleWidget.tsx": {
+    "mtime": 1777468953.9860947,
+    "hash": "1f79278befe7425cdfdbd3844262bc5c"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/widgets/HakAmilTrendWidget.tsx": {
+    "mtime": 1777468953.9859388,
+    "hash": "77355275ea21b355bb9f3c3d8ea908bb"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/widgets/ChartWidget.tsx": {
+    "mtime": 1777468953.9857807,
+    "hash": "10c2bdccc47f28cb5c7050973a93e2f4"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/widgets/StatCardWidget.tsx": {
+    "mtime": 1777468953.986171,
+    "hash": "2f2256b83b90538dfe115751ef8dde7e"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/dashboard/widgets/HakAmilWidget.tsx": {
+    "mtime": 1777468953.986015,
+    "hash": "52e1e896b5d8a392353b6fe059c89ebd"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/common/PageHeader.tsx": {
+    "mtime": 1777468953.9844909,
+    "hash": "bd928be4240d99254978da9dd467f023"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/common/LoadingSpinner.tsx": {
+    "mtime": 1777468953.9844205,
+    "hash": "ec9c109b67027cdd67d695334264dee9"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/common/EmptyState.tsx": {
+    "mtime": 1777468953.98435,
+    "hash": "76d0722fc659ed325d07798edfd29e91"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/layouts/MainLayout.tsx": {
+    "mtime": 1777616964.660761,
+    "hash": "644d360d20d7ee72388b4371262b1102"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/accounts/AccountFormDialog.tsx": {
+    "mtime": 1777468953.98406,
+    "hash": "f4dd4ed12bad724f9e38db93b853b43b"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/accounts/AccountLedgerTable.tsx": {
+    "mtime": 1777468953.984132,
+    "hash": "16eaf4217de798fd58963d7cf58902e9"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/pemasukan/MuzakkiCreatableCombobox.tsx": {
+    "mtime": 1777468953.9891872,
+    "hash": "1125fbe23d63e9a02c5924492997b1d1"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/pemasukan/BulkTandaTerima.tsx": {
+    "mtime": 1777468953.9890473,
+    "hash": "9d09e3d9cc6ebda0297a24477866637b"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/pemasukan/BuktiPemasukanUang.tsx": {
+    "mtime": 1777616964.6620276,
+    "hash": "7b023c5c0d6044bf95e2b25c66bb2523"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/pemasukan/BulkPemasukanForm.tsx": {
+    "mtime": 1777468953.9887278,
+    "hash": "25551a8d4b3b54206a44c8b6f8b2025d"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/pemasukan/ReceiptShell.tsx": {
+    "mtime": 1777616964.662981,
+    "hash": "aae305d06b3589c016d82947cf54c0cc"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/pemasukan/BuktiPemasukanBeras.tsx": {
+    "mtime": 1777616964.6617181,
+    "hash": "9bcb3447d03d2125f0b9741a98f2fc45"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/pemasukan/PemasukanBerasForm.tsx": {
+    "mtime": 1777857641.1050024,
+    "hash": "d5d53ae945039ac22fcc51b6a139dbfa"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/components/pemasukan/PemasukanForm.tsx": {
+    "mtime": 1777857635.3492272,
+    "hash": "2f81fbc9b97f99410b95c3a4940537c2"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/usePemasukanUang.ts": {
+    "mtime": 1777862397.9508462,
+    "hash": "7d2be1edb4e0fc3c3f04ce7cb0224c19"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useMuzakki.test.ts": {
+    "mtime": 1777468953.9942076,
+    "hash": "0a02dbe7af3b922f4405b92d3e80a105"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useMuzakki.ts": {
+    "mtime": 1777860588.9704747,
+    "hash": "48dff97b9df2aadd320a43fc10e591c6"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useAccountsLedger.ts": {
+    "mtime": 1777468953.993167,
+    "hash": "cfe1a388302aeab5d4cfac712522605f"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useSedekahReceipts.ts": {
+    "mtime": 1777468953.9951565,
+    "hash": "ae875c7916934a5a6970f5ad7d5d1a44"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useRekonsiliasi.test.ts": {
+    "mtime": 1777468953.9949443,
+    "hash": "56166723ac864d63d69e1d413485f3a9"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useHakAmil.ts": {
+    "mtime": 1777468953.993895,
+    "hash": "6712ec5210695b56d02911380ad0267d"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useDonor.ts": {
+    "mtime": 1777468953.9937901,
+    "hash": "5ded5411acd88ee3cb623b892be8f7cf"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useUsers.ts": {
+    "mtime": 1777468953.9952507,
+    "hash": "88acbcbbe983da00bd09f275309e67b9"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useRekonsiliasi.ts": {
+    "mtime": 1777468953.9950776,
+    "hash": "d23451507f1ad6701e882055ce174a77"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useDistribusi.ts": {
+    "mtime": 1777857496.058826,
+    "hash": "92a91d5f63ae08f6645ec8ab0f34c0aa"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useProfile.ts": {
+    "mtime": 1777857597.9485118,
+    "hash": "731a8ae1d9fe437ddc87484498231c1a"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useDashboard.ts": {
+    "mtime": 1777857592.5938501,
+    "hash": "a5fa95ef9436966090571f34b61e585d"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useDashboardConfig.ts": {
+    "mtime": 1777468953.9935524,
+    "hash": "eb56c5fe35a27614e3b7c8a76defe9c3"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useTransactionTags.ts": {
+    "mtime": 1777616964.6647274,
+    "hash": "5a6f455112aff022c175ce0bcb4a73e9"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/usePemasukanBeras.test.ts": {
+    "mtime": 1777468953.994508,
+    "hash": "90492ea76be347b83f524e1029d6f11d"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/usePemasukanUang.test.ts": {
+    "mtime": 1777468953.99469,
+    "hash": "f20e117c8a827c8e82bfc8e5902df84a"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/usePemasukanBeras.ts": {
+    "mtime": 1777862411.579339,
+    "hash": "6ebd2f3c544a7c4fe80fe6c09b22213c"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useBulkPembayaran.test.ts": {
+    "mtime": 1777468953.9932632,
+    "hash": "89f0b338b3618cbde84bf17ba869d97e"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useBulkPembayaran.ts": {
+    "mtime": 1777468953.9933531,
+    "hash": "e1f327b6fce5ad06eb148be37b6e8520"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useInvitations.ts": {
+    "mtime": 1777468953.9939969,
+    "hash": "3346d5aec62756f05b8eac02afd78d21"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useMustahik.ts": {
+    "mtime": 1777857507.5932128,
+    "hash": "68af186ceb2234f0c6e8119f2011afa8"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/hooks/useNilaiZakat.ts": {
+    "mtime": 1777468953.9944372,
+    "hash": "b978ad918b03cfda0d4966b64661d4e9"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/lib/mockAuth.ts": {
+    "mtime": 1777468953.9958215,
+    "hash": "9e4e5490f96f589f794b553f2b2504b4"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/lib/auth.tsx": {
+    "mtime": 1777468953.9955077,
+    "hash": "7c16011738cb1a63255617edc4e363f9"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/lib/dashboardDefaults.ts": {
+    "mtime": 1777468953.9955904,
+    "hash": "aae0643a1fdc3351f31dbf34d3894516"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/lib/hakAmilSnapshot.ts": {
+    "mtime": 1777857603.4867797,
+    "hash": "3cc13cf90ef98d4591323ec09e015a7b"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/lib/utils.ts": {
+    "mtime": 1777468953.9963934,
+    "hash": "61bf23d4611de057d26cb705fadb82fb"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/lib/constants.ts": {
+    "mtime": 1777616964.6650252,
+    "hash": "a64172e99d205068ba0b0d6f2c76aa0b"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/lib/dashboardTemplates.ts": {
+    "mtime": 1777468953.9956586,
+    "hash": "118a44310e697c510fac0488aa5fd28e"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/lib/offlineStore.ts": {
+    "mtime": 1777616964.6654575,
+    "hash": "77fbd2dacb9447a221b1bb60da88f60d"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/lib/branding.ts": {
+    "mtime": 1777616964.664878,
+    "hash": "abeb43ae5b021c4b6392a0dad3089ff1"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/lib/supabase.ts": {
+    "mtime": 1777468953.9962478,
+    "hash": "66282b81b70717f5a9a3802363c78563"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/lib/terbilang.ts": {
+    "mtime": 1777468953.996321,
+    "hash": "27f59b83c99369e08ec6e9598e24a5fd"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/lib/aggregationRules.ts": {
+    "mtime": 1777468953.995422,
+    "hash": "057ca2a6ccf69a4b4efadb984a092dca"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/Settings.tsx": {
+    "mtime": 1777857484.7939982,
+    "hash": "749b135d24735c0172083257cd014f11"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/LaporanPage.tsx": {
+    "mtime": 1777468953.9973495,
+    "hash": "97fe70ce1c0978f5795c5d2e81fc485f"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/Distribusi.tsx": {
+    "mtime": 1777616964.6657982,
+    "hash": "df5b55552df7aa630041557ca3a34fc3"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/SuratPengantar.tsx": {
+    "mtime": 1777468953.9987028,
+    "hash": "9cd6fd1bd26fec467d7cc4f40d41b09c"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/AccountsManagement.tsx": {
+    "mtime": 1777857621.6019425,
+    "hash": "644ae0fa1d08b6a4b8369d85bfa24b8c"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/Laporan.tsx": {
+    "mtime": 1777859317.5161557,
+    "hash": "819cb56e40ead1a26ba6d7eca79ea8b7"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/Login.tsx": {
+    "mtime": 1777616964.6660483,
+    "hash": "18dee7da6dcfc8cab2b64790a411597b"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/Dashboard.tsx": {
+    "mtime": 1777468953.9967048,
+    "hash": "63202dbc6ff1df8a0d7724aedbb6e7c6"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/SettingsPage.tsx": {
+    "mtime": 1777468953.9986246,
+    "hash": "0c6ed13150db44b7a8e0b87a7d4ee7ef"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/Muzakki.tsx": {
+    "mtime": 1777616964.6663733,
+    "hash": "2a67a862bbdd802a0473d7e6636d5d4b"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/EmailConfirmation.tsx": {
+    "mtime": 1777468953.9971077,
+    "hash": "72fc1a367068ce6106a6ecd20bed4fe0"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/MustahikPage.tsx": {
+    "mtime": 1777468953.9976559,
+    "hash": "72eddf68d887d1cf0ee1552716be08bb"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/Register.tsx": {
+    "mtime": 1777468953.9981668,
+    "hash": "7804c17f47dccc42cca8641b8c275a26"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/SedekahReceipt.tsx": {
+    "mtime": 1777468953.998442,
+    "hash": "2af2cce47ae4e2bf174310ea3dcd163f"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/PemasukanUang.tsx": {
+    "mtime": 1777858716.9637172,
+    "hash": "8e77d246186614069475284aab85b24e"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/DistribusiPage.tsx": {
+    "mtime": 1777468953.9970334,
+    "hash": "3dfa92fdaa04192dee75989bfd0d639a"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/DashboardSettings.tsx": {
+    "mtime": 1777468953.996772,
+    "hash": "4cff4a7220e230bcda8fffd0a2f8db15"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/MuzakkiPage.tsx": {
+    "mtime": 1777468953.9978454,
+    "hash": "d936d00b3a336befecbcb17392ee0765"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/Mustahik.tsx": {
+    "mtime": 1777468953.9975915,
+    "hash": "cfeeb3c656ebbe18adcc2d06d9a9aba5"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/pages/PemasukanBeras.tsx": {
+    "mtime": 1777858737.202405,
+    "hash": "87b77eb4b1dda66b36fc4ee51c74688e"
+  },
+  "/Users/macbookairm2/Codes/zakat-fitrah-al-fajar/zakat-fitrah-app/src/assets/react.svg": {
+    "mtime": 1777468953.9839025,
+    "hash": "f0402b67b6ce880f65666bb49e841696"
+  }
+}
