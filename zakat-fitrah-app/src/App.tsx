@@ -30,6 +30,7 @@ const DashboardSettings = lazy(() => import('@/pages/DashboardSettings').then(m 
 const SedekahReceipt = lazy(() => import('@/pages/SedekahReceipt'));
 const SuratPengantar = lazy(() => import('@/pages/SuratPengantar'));
 const AccountsManagement = lazy(() => import('@/pages/AccountsManagement'));
+const Qurban = lazy(() => import('@/pages/Qurban'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -184,6 +185,16 @@ function App() {
                   <ProtectedRoute allowedRoles={['admin', 'petugas']}>
                     <AppLayout>
                       <AccountsManagement />
+                    </AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/qurban"
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'petugas']}>
+                    <AppLayout>
+                      <Qurban />
                     </AppLayout>
                   </ProtectedRoute>
                 }

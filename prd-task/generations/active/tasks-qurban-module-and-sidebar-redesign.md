@@ -71,22 +71,22 @@ Update the file after completing each sub-task, not just after completing an ent
   - [x] 3.8 Apply migration ke Supabase (gunakan Supabase MCP tool `apply_migration` atau `supabase db push`)
   - [x] 3.9 Regenerate TypeScript types setelah migration berhasil: `supabase gen types typescript > src/types/database.types.ts`
 
-- [ ] 4.0 Modul Qurban Core — Types, hooks, halaman, tabel, dan form pendaftaran
-  - [ ] 4.1 Buat `src/types/qurban.ts` — definisikan interfaces: `QurbanRegistration`, `QurbanParticipant`, `QurbanFormValues`, `QurbanListParams`
-  - [ ] 4.2 Buat `src/hooks/useQurban.ts` — implementasikan hooks berikut mengikuti pola `useMuzakki.ts`:
+- [x] 4.0 Modul Qurban Core — Types, hooks, halaman, tabel, dan form pendaftaran
+  - [x] 4.1 Buat `src/types/qurban.ts` — definisikan interfaces: `QurbanRegistration`, `QurbanParticipant`, `QurbanFormValues`, `QurbanListParams`
+  - [x] 4.2 Buat `src/hooks/useQurban.ts` — implementasikan hooks berikut mengikuti pola `useMuzakki.ts`:
     - `useQurbanList(params)` — fetch daftar pendaftaran dengan filter & pagination
     - `useCreateQurban()` — mutation untuk buat pendaftaran baru (termasuk insert participants)
     - `useUpdateQurban()` — mutation untuk edit pendaftaran
     - `useDeleteQurban()` — mutation untuk hapus pendaftaran
-  - [ ] 4.3 Buat `src/components/qurban/QurbanTable.tsx` — tabel dengan kolom: Tanggal, No. Qurban, Nama, Jenis, Qurban a/n (ringkasan jumlah nama), Nominal (formatted Rp), Status (badge), Aksi (edit, hapus, unduh kuitansi)
-  - [ ] 4.4 Implementasikan search bar (Nama, No HP) dan filter (Jenis Qurban, Status, rentang Tanggal) di `QurbanTable`
-  - [ ] 4.5 Implementasikan pagination di `QurbanTable`
-  - [ ] 4.6 Buat `src/components/qurban/QurbanForm.tsx` — form dalam Dialog dengan semua field sesuai PRD
-  - [ ] 4.7 Implementasikan conditional field: field **Biaya Perawatan** hanya tampil saat Sumber Hewan = `Titipan (Bawa Sendiri)` menggunakan `watch()` dari React Hook Form
-  - [ ] 4.8 Implementasikan dynamic field array untuk **Qurban a/n** menggunakan `useFieldArray` — tombol `+` tambah nama, tombol `×` hapus nama; batasi max sesuai jenis (Sapi: 7, Kambing: 1)
-  - [ ] 4.9 Buat Zod validation schema: validasi semua field wajib, format No HP, batas jumlah a/n per jenis hewan
-  - [ ] 4.10 Buat `src/pages/Qurban.tsx` — halaman utama yang menyatukan `QurbanTable` + dialog `QurbanForm` (create & edit)
-  - [ ] 4.11 Tambahkan route `/qurban` di `src/App.tsx` dengan `ProtectedRoute` (admin, petugas), di-render dalam `AppLayout`
+  - [x] 4.3 Buat `src/components/qurban/QurbanTable.tsx` — tabel dengan kolom: Tanggal, No. Qurban, Nama, Jenis, Qurban a/n (ringkasan jumlah nama), Nominal (formatted Rp), Status (badge), Aksi (edit, hapus, unduh kuitansi)
+  - [x] 4.4 Implementasikan search bar (Nama, No HP) dan filter (Jenis Qurban, Status, rentang Tanggal) di `QurbanTable`
+  - [x] 4.5 Implementasikan pagination di `QurbanTable`
+  - [x] 4.6 Buat `src/components/qurban/QurbanForm.tsx` — form dalam Dialog dengan semua field sesuai PRD
+  - [x] 4.7 Implementasikan conditional field: field **Biaya Perawatan** hanya tampil saat Sumber Hewan = `Titipan (Bawa Sendiri)` menggunakan `watch()` dari React Hook Form
+  - [x] 4.8 Implementasikan dynamic field array untuk **Qurban a/n** menggunakan `useFieldArray` — tombol `+` tambah nama, tombol `×` hapus nama; batasi max sesuai jenis (Sapi: 7, Kambing: 1)
+  - [x] 4.9 Buat Zod validation schema: validasi semua field wajib, format No HP, batas jumlah a/n per jenis hewan
+  - [x] 4.10 Buat `src/pages/Qurban.tsx` — halaman utama yang menyatukan `QurbanTable` + dialog `QurbanForm` (create & edit)
+  - [x] 4.11 Tambahkan route `/qurban` di `src/App.tsx` dengan `ProtectedRoute` (admin, petugas), di-render dalam `AppLayout`
 
 - [ ] 5.0 Kuitansi PDF Qurban — Generate & download bukti pendaftaran Qurban
   - [ ] 5.1 Buat `src/components/qurban/BuktiQurban.tsx` mengikuti pola `src/components/muzakki/BuktiPembayaran.tsx`
