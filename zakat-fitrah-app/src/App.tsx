@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from '@/lib/auth';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { MainLayout } from '@/components/layouts/MainLayout';
+import { AppLayout } from '@/components/layouts/AppLayout';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 // Eager load Login page (needed immediately)
@@ -56,9 +56,9 @@ function App() {
                 path="/dashboard"
                 element={
                   <ProtectedRoute>
-                    <MainLayout>
+                    <AppLayout>
                       <Dashboard />
-                    </MainLayout>
+                    </AppLayout>
                   </ProtectedRoute>
                 }
               />
@@ -66,9 +66,9 @@ function App() {
                 path="/muzakki"
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'petugas']}>
-                    <MainLayout>
+                    <AppLayout>
                       <Muzakki />
-                    </MainLayout>
+                    </AppLayout>
                   </ProtectedRoute>
                 }
               />
@@ -76,9 +76,9 @@ function App() {
                 path="/penerimaan-uang"
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'petugas']}>
-                    <MainLayout>
+                    <AppLayout>
                       <PemasukanUang />
-                    </MainLayout>
+                    </AppLayout>
                   </ProtectedRoute>
                 }
               />
@@ -86,9 +86,9 @@ function App() {
                 path="/penerimaan-beras"
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'petugas']}>
-                    <MainLayout>
+                    <AppLayout>
                       <PemasukanBeras />
-                    </MainLayout>
+                    </AppLayout>
                   </ProtectedRoute>
                 }
               />
@@ -112,9 +112,9 @@ function App() {
                 path="/mustahik"
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'petugas']}>
-                    <MainLayout>
+                    <AppLayout>
                       <Mustahik />
-                    </MainLayout>
+                    </AppLayout>
                   </ProtectedRoute>
                 }
               />
@@ -122,9 +122,9 @@ function App() {
                 path="/distribusi"
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'petugas']}>
-                    <MainLayout>
+                    <AppLayout>
                       <Distribusi />
-                    </MainLayout>
+                    </AppLayout>
                   </ProtectedRoute>
                 }
               />
@@ -132,9 +132,9 @@ function App() {
                 path="/laporan"
                 element={
                   <ProtectedRoute>
-                    <MainLayout>
+                    <AppLayout>
                       <Laporan />
-                    </MainLayout>
+                    </AppLayout>
                   </ProtectedRoute>
                 }
               />
@@ -142,9 +142,9 @@ function App() {
                 path="/settings"
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
-                    <MainLayout>
+                    <AppLayout>
                       <Settings />
-                    </MainLayout>
+                    </AppLayout>
                   </ProtectedRoute>
                 }
               />
@@ -152,9 +152,9 @@ function App() {
                 path="/dashboard-settings"
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
-                    <MainLayout>
+                    <AppLayout>
                       <DashboardSettings />
-                    </MainLayout>
+                    </AppLayout>
                   </ProtectedRoute>
                 }
               />
@@ -162,9 +162,9 @@ function App() {
                 path="/sedekah-receipt"
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'petugas']}>
-                    <MainLayout>
+                    <AppLayout>
                       <SedekahReceipt />
-                    </MainLayout>
+                    </AppLayout>
                   </ProtectedRoute>
                 }
               />
@@ -172,9 +172,9 @@ function App() {
                 path="/surat-pengantar"
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
-                    <MainLayout>
+                    <AppLayout>
                       <SuratPengantar />
-                    </MainLayout>
+                    </AppLayout>
                   </ProtectedRoute>
                 }
               />
@@ -182,9 +182,9 @@ function App() {
                 path="/accounts"
                 element={
                   <ProtectedRoute allowedRoles={['admin', 'petugas']}>
-                    <MainLayout>
+                    <AppLayout>
                       <AccountsManagement />
-                    </MainLayout>
+                    </AppLayout>
                   </ProtectedRoute>
                 }
               />

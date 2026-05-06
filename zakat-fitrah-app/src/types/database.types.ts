@@ -1569,6 +1569,21 @@ export type CompositeTypes<
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
+// Type aliases for convenience
+export type User = Database['public']['Tables']['users']['Row']
+export type UserRole = Database['public']['Enums']['user_role']
+export type UserInvitation = Database['public']['Tables']['user_invitations']['Row']
+export type InvitationStatus = 'pending' | 'used' | 'revoked' | 'expired'
+export type AccountLedgerEntryType = Database['public']['Enums']['account_ledger_entry_type']
+export type HakAmilKategori = Database['public']['Enums']['hak_amil_kategori']
+export type HakAmilBasisMode = Database['public']['Enums']['hak_amil_basis_mode']
+export type HakAmilConfig = Database['public']['Tables']['hak_amil_configs']['Row']
+export type Account = Database['public']['Tables']['accounts']['Row']
+export type AccountChannel = Database['public']['Enums']['account_channel']
+export type AccountLedgerEntry = Database['public']['Tables']['account_ledger_entries']['Row']
+export type QurbanRegistration = Database['public']['Tables']['qurban_registrations']['Row']
+export type QurbanParticipant = Database['public']['Tables']['qurban_participants']['Row']
+
 export const Constants = {
   public: {
     Enums: {

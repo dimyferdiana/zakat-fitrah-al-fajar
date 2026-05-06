@@ -41,24 +41,24 @@ Update the file after completing each sub-task, not just after completing an ent
 - [ ] 0.0 Create feature branch
   - [ ] 0.1 Buat dan checkout branch baru: `git checkout -b feature/qurban-module-sidebar-07`
 
-- [ ] 1.0 Sidebar Redesign — Ganti MainLayout dengan shadcn sidebar-07
-  - [ ] 1.1 Install komponen sidebar-07 dari shadcn: `cd zakat-fitrah-app && npx shadcn@latest add sidebar-07`
-  - [ ] 1.2 Baca dan pahami struktur `src/components/layouts/MainLayout.tsx` yang lama (navigasi sections, role filtering, responsive mobile)
-  - [ ] 1.3 Buat `src/components/layouts/AppLayout.tsx` berbasis sidebar-07 — migrasikan semua navigation sections Zakat Fitrah (Ringkasan, Data Master, Transaksi, Laporan, Sistem) ke config baru
-  - [ ] 1.4 Pastikan role-based nav filtering tetap berfungsi di AppLayout (items disembunyikan per role)
-  - [ ] 1.5 Pastikan responsive mobile sidebar (Sheet/drawer) tetap berfungsi dengan sidebar-07
-  - [ ] 1.6 Pastikan header dinamis (judul halaman berdasarkan route aktif) tetap tampil
-  - [ ] 1.7 Ganti semua referensi `MainLayout` di `src/App.tsx` dengan `AppLayout`
-  - [ ] 1.8 Jalankan `npm run build` — pastikan tidak ada error TypeScript setelah migrasi layout
+- [x] 1.0 Sidebar Redesign — Ganti MainLayout dengan shadcn sidebar-07
+  - [x] 1.1 Install komponen sidebar-07 dari shadcn: `cd zakat-fitrah-app && npx shadcn@latest add sidebar-07`
+  - [x] 1.2 Baca dan pahami struktur `src/components/layouts/MainLayout.tsx` yang lama (navigasi sections, role filtering, responsive mobile)
+  - [x] 1.3 Buat `src/components/layouts/AppLayout.tsx` berbasis sidebar-07 — migrasikan semua navigation sections Zakat Fitrah (Ringkasan, Data Master, Transaksi, Laporan, Sistem) ke config baru
+  - [x] 1.4 Pastikan role-based nav filtering tetap berfungsi di AppLayout (items disembunyikan per role)
+  - [x] 1.5 Pastikan responsive mobile sidebar (Sheet/drawer) tetap berfungsi dengan sidebar-07
+  - [x] 1.6 Pastikan header dinamis (judul halaman berdasarkan route aktif) tetap tampil
+  - [x] 1.7 Ganti semua referensi `MainLayout` di `src/App.tsx` dengan `AppLayout`
+  - [x] 1.8 Jalankan `npm run build` — pastikan tidak ada error TypeScript setelah migrasi layout
 
-- [ ] 2.0 App Switcher — Tambah switcher Zakat Fitrah ↔ Qurban di pojok kiri atas
-  - [ ] 2.1 Buat `src/store/appStore.ts` — Zustand store dengan state `activeApp: 'zakat' | 'qurban'` dan setter-nya
-  - [ ] 2.2 Definisikan nav config untuk app Qurban: `Ringkasan Qurban` (`/qurban/ringkasan`) dan `Data Qurban` (`/qurban`)
-  - [ ] 2.3 Buat `src/components/layouts/AppSwitcher.tsx` — dropdown/popover mengikuti pola ACME/team switcher bawaan sidebar-07, menampilkan dua pilihan: **Zakat Fitrah** dan **Qurban**
-  - [ ] 2.4 Integrasikan `AppSwitcher` ke `AppLayout` di pojok kiri atas, menggantikan area logo/nama aplikasi saat ini
-  - [ ] 2.5 Implementasikan logika: saat app switcher berubah, sidebar menampilkan nav items sesuai app aktif (Zakat atau Qurban)
-  - [ ] 2.6 Saat switch ke Qurban, redirect ke `/qurban`; saat switch ke Zakat Fitrah, redirect ke `/dashboard`
-  - [ ] 2.7 Test switching bolak-balik Zakat ↔ Qurban — pastikan navigasi dan state konsisten
+- [x] 2.0 App Switcher — Tambah switcher Zakat Fitrah ↔ Qurban di pojok kiri atas
+  - [x] 2.1 Buat `src/store/appStore.ts` — Zustand store dengan state `activeApp: 'zakat' | 'qurban'` dan setter-nya
+  - [x] 2.2 Definisikan nav config untuk app Qurban: `Ringkasan Qurban` (`/qurban/ringkasan`) dan `Data Qurban` (`/qurban`)
+  - [x] 2.3 Buat `src/components/layouts/AppSwitcher.tsx` — dropdown/popover mengikuti pola ACME/team switcher bawaan sidebar-07, menampilkan dua pilihan: **Zakat Fitrah** dan **Qurban**
+  - [x] 2.4 Integrasikan `AppSwitcher` ke `AppLayout` di pojok kiri atas, menggantikan area logo/nama aplikasi saat ini
+  - [x] 2.5 Implementasikan logika: saat app switcher berubah, sidebar menampilkan nav items sesuai app aktif (Zakat atau Qurban)
+  - [x] 2.6 Saat switch ke Qurban, redirect ke `/qurban`; saat switch ke Zakat Fitrah, redirect ke `/dashboard`
+  - [x] 2.7 Test switching bolak-balik Zakat ↔ Qurban — pastikan navigasi dan state konsisten
 
 - [x] 3.0 Database & Backend — Migration tabel Qurban + RLS policies
   - [x] 3.1 Cek nomor migration terakhir di `supabase/migrations/` untuk menentukan nomor berikutnya
