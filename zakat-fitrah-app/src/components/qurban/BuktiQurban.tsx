@@ -7,15 +7,15 @@ import { BRANDING } from '@/lib/branding'
 import { ORG_SERVICE } from '@/lib/constants'
 import type { QurbanRegistrationWithParticipants } from '@/types/qurban'
 
-// ─── Layout constants (A5 landscape: 210×148mm) ──────────────────────────────
+// ─── Layout constants (A4 portrait: 210×297mm) ───────────────────────────────
 const SCALE_FACTOR = 210 / 800
 const MARGIN = 80 * SCALE_FACTOR        // ~21mm
-const LOGO_SIZE = 80 * SCALE_FACTOR     // ~21mm
-const LABEL_WIDTH = 180 * SCALE_FACTOR  // ~47.25mm
-const ROW_GAP = 8 * SCALE_FACTOR        // ~2.1mm
-const SECTION_GAP = 20 * SCALE_FACTOR   // ~5.25mm
-const HEADER_GAP = 16 * SCALE_FACTOR    // ~4.2mm
-const LINE_HEIGHT = 17 * SCALE_FACTOR   // ~4.46mm
+const LOGO_SIZE = 95 * SCALE_FACTOR     // ~24.9mm
+const LABEL_WIDTH = 190 * SCALE_FACTOR  // ~49.9mm
+const ROW_GAP = 12 * SCALE_FACTOR       // ~3.15mm
+const SECTION_GAP = 26 * SCALE_FACTOR   // ~6.83mm
+const HEADER_GAP = 18 * SCALE_FACTOR    // ~4.73mm
+const LINE_HEIGHT = 20 * SCALE_FACTOR   // ~5.25mm
 const DIVIDER_HEIGHT = 2 * SCALE_FACTOR // ~0.525mm
 
 const KETUA_NAME = 'H. Eldin Rizal Nasution'
@@ -47,13 +47,13 @@ export function generateQurbanReceiptPDF(
   data: QurbanRegistrationWithParticipants,
 ): jsPDF {
   const pdf = new jsPDF({
-    orientation: 'landscape',
+    orientation: 'portrait',
     unit: 'mm',
-    format: 'a5',
+    format: 'a4',
   })
 
   const pageWidth = pdf.internal.pageSize.getWidth()   // 210mm
-  const pageHeight = pdf.internal.pageSize.getHeight() // 148mm
+  const pageHeight = pdf.internal.pageSize.getHeight() // 297mm
 
   // White background
   pdf.setFillColor(255, 255, 255)
@@ -78,12 +78,12 @@ export function generateQurbanReceiptPDF(
   const headerTextX = headerStartX + LOGO_SIZE + HEADER_GAP
   const headerTextGap = 4 * SCALE_FACTOR
 
-  pdf.setFontSize(16 * 0.75)
+  pdf.setFontSize(14)
   pdf.setFont('Helvetica', 'bold')
   const orgNameY = y + LOGO_SIZE / 2 - 2
   pdf.text(BRANDING.ORGANIZATION_FULL, headerTextX, orgNameY)
 
-  pdf.setFontSize(11 * 0.75)
+  pdf.setFontSize(10)
   pdf.setFont('Helvetica', 'normal')
   const addressY = orgNameY + 4 + headerTextGap
   pdf.text(BRANDING.ADDRESS, headerTextX, addressY)
@@ -98,13 +98,13 @@ export function generateQurbanReceiptPDF(
   y += SECTION_GAP
 
   // ── TITLE ───────────────────────────────────────────────────────────────────
-  pdf.setFontSize(14 * 0.75)
+  pdf.setFontSize(14)
   pdf.setFont('Helvetica', 'bold')
   pdf.text('BUKTI PENDAFTARAN QURBAN', pageWidth / 2, y, { align: 'center' })
   y += SECTION_GAP + 10 * SCALE_FACTOR
 
   // ── BODY DETAILS ────────────────────────────────────────────────────────────
-  pdf.setFontSize(11 * 0.75)
+  pdf.setFontSize(10)
 
   const row = (label: string, value: string, bold = false) => {
     pdf.setFont('Helvetica', 'normal')
@@ -152,7 +152,7 @@ export function generateQurbanReceiptPDF(
   if (participants.length > 0) {
     y += 2
     pdf.setFont('Helvetica', 'bold')
-    pdf.setFontSize(11 * 0.75)
+    pdf.setFontSize(10)
     pdf.text('Qurban Atas Nama:', leftX, y)
     y += LINE_HEIGHT
 
@@ -167,7 +167,7 @@ export function generateQurbanReceiptPDF(
 
   // ── PAYMENT SECTION ─────────────────────────────────────────────────────────
   pdf.setFont('Helvetica', 'normal')
-  pdf.setFontSize(11 * 0.75)
+  pdf.setFontSize(10)
   pdf.text('Nominal', leftX, y)
   pdf.setFont('Helvetica', 'bold')
   pdf.text(': ' + formatCurrencyPdf(data.nominal), valueX, y)
@@ -208,7 +208,7 @@ export function generateQurbanReceiptPDF(
   const signX = pageWidth - MARGIN - stampW / 2
 
   pdf.setFont('Helvetica', 'normal')
-  pdf.setFontSize(11 * 0.75)
+  pdf.setFontSize(10)
   pdf.setTextColor(0, 0, 0)
   pdf.text(BRANDING.ORGANIZATION_FULL, signX, y, { align: 'center' })
   y += 3
@@ -233,7 +233,7 @@ export function generateQurbanReceiptPDF(
 
   // Safety: warn if content overflowed the page
   if (y > pageHeight - MARGIN) {
-    console.warn('BuktiQurban: content may have overflowed the A5 page')
+    console.warn('BuktiQurban: content may have overflowed the A4 page')
   }
 
   return pdf
