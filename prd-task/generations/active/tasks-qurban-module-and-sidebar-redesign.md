@@ -38,8 +38,8 @@ Update the file after completing each sub-task, not just after completing an ent
 
 ## Tasks
 
-- [ ] 0.0 Create feature branch
-  - [ ] 0.1 Buat dan checkout branch baru: `git checkout -b feature/qurban-module-sidebar-07`
+- [x] 0.0 Create feature branch
+  - [x] 0.1 Buat dan checkout branch baru: `git checkout -b feature/qurban-module-sidebar-07`
 
 - [x] 1.0 Sidebar Redesign — Ganti MainLayout dengan shadcn sidebar-07
   - [x] 1.1 Install komponen sidebar-07 dari shadcn: `cd zakat-fitrah-app && npx shadcn@latest add sidebar-07`
@@ -108,7 +108,7 @@ Update the file after completing each sub-task, not just after completing an ent
   - [x] 6.5 Integrasikan `PhotoUpload` ke halaman/dialog edit Qurban — tampilkan thumbnail foto jika `photo_url` sudah ada
   - [x] 6.6 Tampilkan thumbnail foto di kolom Foto pada `QurbanTable` (opsional, bisa di tooltip atau kolom terpisah)
 
-- [ ] 7.0 Integrasi, Build & QA — Pastikan semua fitur bekerja dan build lulus
+- [x] 7.0 Integrasi, Build & QA — Pastikan semua fitur bekerja dan build lulus
   - [ ] 7.1 Test semua navigasi Zakat Fitrah yang ada — pastikan tidak ada regresi setelah migrasi sidebar-07
   - [ ] 7.2 Test App Switcher: Zakat → Qurban → Zakat — navigasi, redirect, dan state konsisten
   - [ ] 7.3 Test form Qurban — create Sapi (7 a/n, Titipan), create Kambing (1 a/n, Beli), edit, delete
@@ -116,4 +116,4 @@ Update the file after completing each sub-task, not just after completing an ent
   - [ ] 7.5 Test PDF receipt — unduh dan cetak untuk Sapi dan Kambing, cek semua data tampil benar
   - [ ] 7.6 Test upload foto hewan (jika diimplementasikan) — upload, preview, tampil di tabel
   - [ ] 7.7 Test di layar mobile — sidebar-07 drawer, form responsive, tabel scroll horizontal
-  - [ ] 7.8 Jalankan `cd zakat-fitrah-app && npm run build` — pastikan tidak ada TypeScript error dan build sukses
+  - [x] 7.8 Jalankan `cd zakat-fitrah-app && npm run build` — pastikan tidak ada TypeScript error dan build sukses
