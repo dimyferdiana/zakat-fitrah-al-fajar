@@ -338,12 +338,12 @@ export function QurbanForm({ open, onOpenChange, initialData, onSuccess }: Qurba
 
             {/* Participants / Qurban a/n */}
             <div className="space-y-2">
-              <FormLabel>
+              <p className="text-sm font-medium leading-none">
                 Qurban a/n *{' '}
-                <span className="text-muted-foreground text-xs">
-                  (maks. {maxParticipants} {watchJenis === 'sapi' ? 'orang' : 'orang'})
+                <span className="text-muted-foreground font-normal">
+                  (maks. {maxParticipants} orang)
                 </span>
-              </FormLabel>
+              </p>
               {fields.map((fieldItem, index) => (
                 <FormField
                   key={fieldItem.id}
