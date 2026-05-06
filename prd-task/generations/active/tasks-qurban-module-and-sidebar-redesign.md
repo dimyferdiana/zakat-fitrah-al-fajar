@@ -88,17 +88,17 @@ Update the file after completing each sub-task, not just after completing an ent
   - [x] 4.10 Buat `src/pages/Qurban.tsx` — halaman utama yang menyatukan `QurbanTable` + dialog `QurbanForm` (create & edit)
   - [x] 4.11 Tambahkan route `/qurban` di `src/App.tsx` dengan `ProtectedRoute` (admin, petugas), di-render dalam `AppLayout`
 
-- [ ] 5.0 Kuitansi PDF Qurban — Generate & download bukti pendaftaran Qurban
-  - [ ] 5.1 Buat `src/components/qurban/BuktiQurban.tsx` mengikuti pola `src/components/muzakki/BuktiPembayaran.tsx`
-  - [ ] 5.2 Implementasikan fungsi `generateQurbanReceiptPDF(data: QurbanRegistration)` menggunakan `jsPDF`:
+- [x] 5.0 Kuitansi PDF Qurban — Generate & download bukti pendaftaran Qurban
+  - [x] 5.1 Buat `src/components/qurban/BuktiQurban.tsx` mengikuti pola `src/components/muzakki/BuktiPembayaran.tsx`
+  - [x] 5.2 Implementasikan fungsi `generateQurbanReceiptPDF(data: QurbanRegistration)` menggunakan `jsPDF`:
     - Header: logo Al-Fajar, nama organisasi, alamat (dari `branding.ts`)
     - Body: No. Qurban, Tanggal, Nama, Alamat, No HP, Jenis Qurban, Sumber Hewan
     - Daftar Qurban a/n (list bernomor)
     - Nominal Rp + Biaya Perawatan (jika berlaku), Status pembayaran
     - Footer: tanda tangan / cap (jika tersedia)
-  - [ ] 5.3 Implementasikan fungsi `downloadQurbanReceipt()` dan `printQurbanReceipt()`
-  - [ ] 5.4 Tambahkan tombol **Unduh Kuitansi** dan **Cetak** di kolom Aksi pada `QurbanTable`
-  - [ ] 5.5 Test PDF: generate dengan data Sapi (7 a/n) dan Kambing (1 a/n) — pastikan layout tidak overflow
+  - [x] 5.3 Implementasikan fungsi `downloadQurbanReceipt()` dan `printQurbanReceipt()`
+  - [x] 5.4 Tambahkan tombol **Unduh Kuitansi** dan **Cetak** di kolom Aksi pada `QurbanTable`
+  - [x] 5.5 Test PDF: generate dengan data Sapi (7 a/n) dan Kambing (1 a/n) — pastikan layout tidak overflow
 
 - [x] 6.0 Upload Foto Hewan (Opsional) — Supabase Storage + tampilan foto di detail
   - [x] 6.1 Buat Supabase Storage bucket `qurban-photos` (public read, authenticated write) via Supabase MCP tool atau migration SQL

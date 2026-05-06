@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import { QurbanTable } from '@/components/qurban/QurbanTable'
 import { QurbanForm } from '@/components/qurban/QurbanForm'
+import { downloadQurbanReceipt } from '@/components/qurban/BuktiQurban'
 import type { QurbanRegistrationWithParticipants } from '@/types/qurban'
 
 export default function Qurban() {
@@ -19,8 +20,8 @@ export default function Qurban() {
     setDialogOpen(true)
   }
 
-  const handleDownloadPdf = (_data: QurbanRegistrationWithParticipants) => {
-    // PDF download will be implemented in Task 5.0
+  const handleDownloadPdf = (data: QurbanRegistrationWithParticipants) => {
+    downloadQurbanReceipt(data)
   }
 
   const handleDialogClose = (open: boolean) => {
