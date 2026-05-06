@@ -35,6 +35,7 @@ import { CalendarIcon, Plus, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { QurbanRegistrationWithParticipants } from '@/types/qurban'
 import { useCreateQurban, useUpdateQurban } from '@/hooks/useQurban'
+import { PhotoUpload } from '@/components/qurban/PhotoUpload'
 
 const qurbanSchema = z.object({
   tanggal: z.date({ message: 'Tanggal wajib diisi' }),
@@ -460,6 +461,17 @@ export function QurbanForm({ open, onOpenChange, initialData, onSuccess }: Qurba
                 </FormItem>
               )}
             />
+
+            {/* Foto Hewan — only shown when editing an existing record */}
+            {initialData?.id && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Foto Hewan (Opsional)</p>
+                <PhotoUpload
+                  registrationId={initialData.id}
+                  currentPhotoUrl={initialData.photo_url}
+                />
+              </div>
+            )}
 
             <DialogFooter>
               <Button

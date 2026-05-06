@@ -37,6 +37,7 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  ImageOff,
 } from 'lucide-react'
 import type { QurbanRegistrationWithParticipants, QurbanListParams } from '@/types/qurban'
 import { useQurbanList, useDeleteQurban } from '@/hooks/useQurban'
@@ -239,6 +240,7 @@ export function QurbanTable({ onEdit, onDownloadPdf }: QurbanTableProps) {
               <TableHead>Nama</TableHead>
               <TableHead>No HP</TableHead>
               <TableHead>Jenis</TableHead>
+              <TableHead className="text-center">Foto</TableHead>
               <TableHead>Qurban a/n</TableHead>
               <TableHead className="text-right">Nominal</TableHead>
               <TableHead className="text-center">Status</TableHead>
@@ -248,13 +250,13 @@ export function QurbanTable({ onEdit, onDownloadPdf }: QurbanTableProps) {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center">
+                <TableCell colSpan={10} className="h-24 text-center">
                   Memuat data...
                 </TableCell>
               </TableRow>
             ) : data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center">
+                <TableCell colSpan={10} className="h-24 text-center">
                   Tidak ada data pendaftaran qurban.
                 </TableCell>
               </TableRow>
@@ -271,6 +273,19 @@ export function QurbanTable({ onEdit, onDownloadPdf }: QurbanTableProps) {
                   <TableCell>{reg.no_hp}</TableCell>
                   <TableCell className="whitespace-nowrap">
                     {getJenisLabel(reg.jenis)}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {reg.photo_url ? (
+                      <img
+                        src={reg.photo_url}
+                        alt="Foto hewan"
+                        className="h-8 w-8 rounded object-cover mx-auto"
+                      />
+                    ) : (
+                      <div className="h-8 w-8 rounded bg-muted flex items-center justify-center mx-auto">
+                        <ImageOff className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="max-w-[160px] truncate">
                     {getParticipantSummary(reg)}
@@ -311,8 +326,7 @@ export function QurbanTable({ onEdit, onDownloadPdf }: QurbanTableProps) {
                         variant="ghost"
                         size="icon"
                         onClick={() => onDownloadPdf(reg)}
-                        title="Unduh Kuitansi (segera hadir)"
-                        disabled
+                        title="Unduh Kuitansi PDF"
                       >
                         <FileDown className="h-4 w-4" />
                       </Button>

@@ -100,13 +100,13 @@ Update the file after completing each sub-task, not just after completing an ent
   - [ ] 5.4 Tambahkan tombol **Unduh Kuitansi** dan **Cetak** di kolom Aksi pada `QurbanTable`
   - [ ] 5.5 Test PDF: generate dengan data Sapi (7 a/n) dan Kambing (1 a/n) — pastikan layout tidak overflow
 
-- [ ] 6.0 Upload Foto Hewan (Opsional) — Supabase Storage + tampilan foto di detail
-  - [ ] 6.1 Buat Supabase Storage bucket `qurban-photos` (public read, authenticated write) via Supabase MCP tool atau migration SQL
-  - [ ] 6.2 Buat `src/components/qurban/PhotoUpload.tsx` — komponen file input dengan preview thumbnail, accept `image/*`
-  - [ ] 6.3 Implementasikan upload ke Supabase Storage: `supabase.storage.from('qurban-photos').upload(path, file)`
-  - [ ] 6.4 Setelah upload berhasil, simpan public URL ke kolom `photo_url` di record `qurban_registrations` via `useUpdateQurban()`
-  - [ ] 6.5 Integrasikan `PhotoUpload` ke halaman/dialog edit Qurban — tampilkan thumbnail foto jika `photo_url` sudah ada
-  - [ ] 6.6 Tampilkan thumbnail foto di kolom Foto pada `QurbanTable` (opsional, bisa di tooltip atau kolom terpisah)
+- [x] 6.0 Upload Foto Hewan (Opsional) — Supabase Storage + tampilan foto di detail
+  - [x] 6.1 Buat Supabase Storage bucket `qurban-photos` (public read, authenticated write) via Supabase MCP tool atau migration SQL
+  - [x] 6.2 Buat `src/components/qurban/PhotoUpload.tsx` — komponen file input dengan preview thumbnail, accept `image/*`
+  - [x] 6.3 Implementasikan upload ke Supabase Storage: `supabase.storage.from('qurban-photos').upload(path, file)`
+  - [x] 6.4 Setelah upload berhasil, simpan public URL ke kolom `photo_url` di record `qurban_registrations` via `useUpdateQurban()`
+  - [x] 6.5 Integrasikan `PhotoUpload` ke halaman/dialog edit Qurban — tampilkan thumbnail foto jika `photo_url` sudah ada
+  - [x] 6.6 Tampilkan thumbnail foto di kolom Foto pada `QurbanTable` (opsional, bisa di tooltip atau kolom terpisah)
 
 - [ ] 7.0 Integrasi, Build & QA — Pastikan semua fitur bekerja dan build lulus
   - [ ] 7.1 Test semua navigasi Zakat Fitrah yang ada — pastikan tidak ada regresi setelah migrasi sidebar-07
