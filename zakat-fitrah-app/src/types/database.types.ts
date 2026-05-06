@@ -1090,6 +1090,92 @@ export type Database = {
           },
         ]
       }
+      qurban_participants: {
+        Row: {
+          id: string
+          nama: string
+          qurban_registration_id: string
+          urutan: number
+        }
+        Insert: {
+          id?: string
+          nama: string
+          qurban_registration_id: string
+          urutan: number
+        }
+        Update: {
+          id?: string
+          nama?: string
+          qurban_registration_id?: string
+          urutan?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qurban_participants_qurban_registration_id_fkey"
+            columns: ["qurban_registration_id"]
+            isOneToOne: false
+            referencedRelation: "qurban_registrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qurban_registrations: {
+        Row: {
+          alamat: string
+          biaya_perawatan: number | null
+          catatan: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          jenis: string
+          nama: string
+          no_hp: string
+          no_qurban: string
+          nominal: number
+          photo_url: string | null
+          status: string
+          sumber_hewan: string
+          tanggal: string
+          updated_at: string
+        }
+        Insert: {
+          alamat: string
+          biaya_perawatan?: number | null
+          catatan?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          jenis: string
+          nama: string
+          no_hp: string
+          no_qurban: string
+          nominal: number
+          photo_url?: string | null
+          status?: string
+          sumber_hewan: string
+          tanggal: string
+          updated_at?: string
+        }
+        Update: {
+          alamat?: string
+          biaya_perawatan?: number | null
+          catatan?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          jenis?: string
+          nama?: string
+          no_hp?: string
+          no_qurban?: string
+          nominal?: number
+          photo_url?: string | null
+          status?: string
+          sumber_hewan?: string
+          tanggal?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       rekonsiliasi: {
         Row: {
           account_id: string | null
@@ -1483,19 +1569,6 @@ export type CompositeTypes<
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
-// Type aliases for convenience
-export type User = Database['public']['Tables']['users']['Row']
-export type UserRole = Database['public']['Enums']['user_role']
-export type UserInvitation = Database['public']['Tables']['user_invitations']['Row']
-export type InvitationStatus = 'pending' | 'used' | 'revoked' | 'expired'
-export type AccountLedgerEntryType = Database['public']['Enums']['account_ledger_entry_type']
-export type HakAmilKategori = Database['public']['Enums']['hak_amil_kategori']
-export type HakAmilBasisMode = Database['public']['Enums']['hak_amil_basis_mode']
-export type HakAmilConfig = Database['public']['Tables']['hak_amil_configs']['Row']
-export type Account = Database['public']['Tables']['accounts']['Row']
-export type AccountChannel = Database['public']['Enums']['account_channel']
-export type AccountLedgerEntry = Database['public']['Tables']['account_ledger_entries']['Row']
-
 export const Constants = {
   public: {
     Enums: {
@@ -1531,3 +1604,4 @@ export const Constants = {
     },
   },
 } as const
+
