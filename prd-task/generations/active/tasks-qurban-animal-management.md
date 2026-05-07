@@ -96,22 +96,22 @@ Update the file after completing each sub-task, not just after completing an ent
 
 ---
 
-- [ ] 5.0 Participant Slot & Payment UI
-  - [ ] 5.1 Create `src/components/qurban/AnimalDetailDialog.tsx`. Opens when a user clicks an `AnimalCard`. Shows animal info at the top (nomor, jenis, harga, berat, foto). Below: a list of all slots (max_slots rows). Each row shows its slot number (urutan). If a share exists for that slot, show participant name + nominal + payment badge. If no share exists, show a dashed placeholder row with an "Assign" button.
-  - [ ] 5.2 In `AnimalDetailDialog.tsx`, show the payment summary at the bottom: "X dari Y peserta sudah lunas — Rp X terkumpul dari Rp Y." Compute this from `useQurbanShareList(animalId)`.
-  - [ ] 5.3 Create `src/components/qurban/SlotAssignDialog.tsx`. A Dialog that opens when petugas clicks an empty slot's "Assign" button. Contains two modes toggled by a tab or radio: (A) "Pilih dari data" — a Combobox (shadcn/ui) that searches muzakki by nama_kk or no_telp using `useMuzakkiSearch`; (B) "Tambah peserta baru" — an inline mini-form with fields nama_kk, alamat, no_hp. Below the muzakki selector: a `nominal` number input pre-filled with `animal.harga / max_slots` (editable). A "Simpan" button that: if mode B, first creates the muzakki record then links it; calls `useAssignQurbanShare`.
-  - [ ] 5.4 In `AnimalDetailDialog.tsx`, disable the slot rows' "Assign" buttons when all slots are filled. Show a tooltip or message: "Semua slot sudah terisi." The "Tambah Peserta" action should also be hidden/disabled.
-  - [ ] 5.5 On each filled slot row in `AnimalDetailDialog.tsx`, add a "Hapus" icon button. Clicking it shows a small confirmation popover/alert: "Yakin hapus peserta ini?" On confirm, call `useRemoveQurbanShare`. The slot becomes empty again.
-  - [ ] 5.6 On each filled slot row, add a payment toggle button. If status is "Belum Bayar" show an amber badge with a "Tandai Lunas" button. If status is "Lunas" show a green badge with a "Batal Lunas" button. Clicking either calls `useUpdateSharePayment` to toggle the status.
+- [x] 5.0 Participant Slot & Payment UI
+  - [x] 5.1 Create `src/components/qurban/AnimalDetailDialog.tsx`. Opens when a user clicks an `AnimalCard`. Shows animal info at the top (nomor, jenis, harga, berat, foto). Below: a list of all slots (max_slots rows). Each row shows its slot number (urutan). If a share exists for that slot, show participant name + nominal + payment badge. If no share exists, show a dashed placeholder row with an "Assign" button.
+  - [x] 5.2 In `AnimalDetailDialog.tsx`, show the payment summary at the bottom: "X dari Y peserta sudah lunas — Rp X terkumpul dari Rp Y." Compute this from `useQurbanShareList(animalId)`.
+  - [x] 5.3 Create `src/components/qurban/SlotAssignDialog.tsx`. A Dialog that opens when petugas clicks an empty slot's "Assign" button. Contains two modes toggled by a tab or radio: (A) "Pilih dari data" — a Combobox (shadcn/ui) that searches muzakki by nama_kk or no_telp using `useMuzakkiSearch`; (B) "Tambah peserta baru" — an inline mini-form with fields nama_kk, alamat, no_hp. Below the muzakki selector: a `nominal` number input pre-filled with `animal.harga / max_slots` (editable). A "Simpan" button that: if mode B, first creates the muzakki record then links it; calls `useAssignQurbanShare`.
+  - [x] 5.4 In `AnimalDetailDialog.tsx`, disable the slot rows' "Assign" buttons when all slots are filled. Show a tooltip or message: "Semua slot sudah terisi." The "Tambah Peserta" action should also be hidden/disabled.
+  - [x] 5.5 On each filled slot row in `AnimalDetailDialog.tsx`, add a "Hapus" icon button. Clicking it shows a small confirmation popover/alert: "Yakin hapus peserta ini?" On confirm, call `useRemoveQurbanShare`. The slot becomes empty again.
+  - [x] 5.6 On each filled slot row, add a payment toggle button. If status is "Belum Bayar" show an amber badge with a "Tandai Lunas" button. If status is "Lunas" show a green badge with a "Batal Lunas" button. Clicking either calls `useUpdateSharePayment` to toggle the status.
 
 ---
 
-- [ ] 6.0 Per-participant receipt (BuktiQurban adaptation)
-  - [ ] 6.1 Read the existing `src/components/qurban/BuktiQurban.tsx` carefully to understand its current props interface, PDF generation method (jsPDF or similar), and layout structure.
-  - [ ] 6.2 Update the props interface of `BuktiQurban.tsx` to accept the new data: `event: QurbanEvent`, `animal: QurbanAnimal`, `share: QurbanShareWithMuzakki`. Remove any props that reference the old `qurban_registrations` model.
-  - [ ] 6.3 Update the receipt layout content to display: masjid name/header, event name (from `event.nama`), animal code (from `animal.nomor`), animal type (`animal.jenis`), participant name (`share.muzakki.nama_kk`), slot number (`share.urutan`), nominal (`share.nominal` formatted as Rp currency), payment status (`share.status_pembayaran`), and generation date.
-  - [ ] 6.4 In `AnimalDetailDialog.tsx`, add a printer icon button to each filled slot row. Clicking it calls `BuktiQurban` with the relevant event, animal, and share data to trigger the print/PDF download.
-  - [ ] 6.5 Verify the print output renders correctly (open browser print dialog or download PDF) and all fields are populated.
+- [x] 6.0 Per-participant receipt (BuktiQurban adaptation)
+  - [x] 6.1 Read the existing `src/components/qurban/BuktiQurban.tsx` carefully to understand its current props interface, PDF generation method (jsPDF or similar), and layout structure.
+  - [x] 6.2 Update the props interface of `BuktiQurban.tsx` to accept the new data: `event: QurbanEvent`, `animal: QurbanAnimal`, `share: QurbanShareWithMuzakki`. Remove any props that reference the old `qurban_registrations` model.
+  - [x] 6.3 Update the receipt layout content to display: masjid name/header, event name (from `event.nama`), animal code (from `animal.nomor`), animal type (`animal.jenis`), participant name (`share.muzakki.nama_kk`), slot number (`share.urutan`), nominal (`share.nominal` formatted as Rp currency), payment status (`share.status_pembayaran`), and generation date.
+  - [x] 6.4 In `AnimalDetailDialog.tsx`, add a printer icon button to each filled slot row. Clicking it calls `BuktiQurban` with the relevant event, animal, and share data to trigger the print/PDF download.
+  - [x] 6.5 Verify the print output renders correctly (open browser print dialog or download PDF) and all fields are populated.
 
 ---
 
