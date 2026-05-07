@@ -107,10 +107,7 @@ export function useUpdateSharePayment() {
     mutationFn: async (input: UpdateSharePaymentInput) => {
       const { data, error } = await supabase
         .from('qurban_shares')
-        .update({
-          status_pembayaran: input.status_pembayaran,
-          updated_at: new Date().toISOString(),
-        })
+        .update({ status_pembayaran: input.status_pembayaran })
         .eq('id', input.id)
         .select()
         .single()
@@ -118,13 +115,33 @@ export function useUpdateSharePayment() {
       if (error) throw error
       return data
     },
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey: ['qurban-shares', variables.animal_id] })
+      const previousData = queryClient.getQueryData<QurbanShareWithMuzakki[]>(['qurban-shares', variables.animal_id])
+      if (previousData) {
+        queryClient.setQueryData(
+          ['qurban-shares', variables.animal_id],
+          previousData.map((share) =>
+            share.id === variables.id
+              ? { ...share, status_pembayaran: variables.status_pembayaran }
+              : share
+          )
+        )
+      }
+      return { previousData }
+    },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['qurban-shares', variables.animal_id] })
       const label = variables.status_pembayaran === 'lunas' ? 'Lunas' : 'Belum Bayar'
       toast.success(`Status pembayaran diperbarui menjadi ${label}`)
     },
-    onError: (error: Error) => {
+    onError: (error: Error, variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(['qurban-shares', variables.animal_id], context.previousData)
+      }
       toast.error(`Gagal memperbarui status pembayaran: ${error.message}`)
+    },
+    onSettled: (_data, _error, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['qurban-shares', variables.animal_id] })
     },
   })
 }

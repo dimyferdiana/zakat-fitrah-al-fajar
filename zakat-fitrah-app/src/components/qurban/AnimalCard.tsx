@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import type { QurbanAnimal } from '@/types/qurban'
 import { getMaxSlots } from '@/types/qurban'
+import { useQurbanShareList } from '@/hooks/useQurbanShares'
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat('id-ID', {
@@ -21,8 +22,6 @@ const formatCurrency = (amount: number) =>
 
 interface AnimalCardProps {
   animal: QurbanAnimal
-  shareCount: number
-  paidCount: number
   onSelect: () => void
   onEdit: () => void
   onDelete: () => void
@@ -31,14 +30,15 @@ interface AnimalCardProps {
 
 export function AnimalCard({
   animal,
-  shareCount,
-  paidCount,
   onSelect,
   onEdit,
   onDelete,
   canWrite,
 }: AnimalCardProps) {
   const maxSlots = getMaxSlots(animal.jenis)
+  const { data: shares = [] } = useQurbanShareList(animal.id)
+  const shareCount = shares.length
+  const paidCount = shares.filter((s) => s.status_pembayaran === 'lunas').length
   const isFull = shareCount === maxSlots
   const isSelesai = isFull && paidCount === shareCount
   const progressPercent = maxSlots > 0 ? Math.round((shareCount / maxSlots) * 100) : 0

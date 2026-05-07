@@ -12,8 +12,6 @@ interface AnimalGridProps {
   onDeleteAnimal: (animal: QurbanAnimal) => void
   onAddAnimal: () => void
   canWrite: boolean
-  // TODO: wire real share counts once useQurbanShares is available
-  shareCounts?: Record<string, { total: number; paid: number }>
 }
 
 export function AnimalGrid({
@@ -23,7 +21,6 @@ export function AnimalGrid({
   onDeleteAnimal,
   onAddAnimal,
   canWrite,
-  shareCounts = {},
 }: AnimalGridProps) {
   const { data: animals = [], isLoading } = useQurbanAnimalList(eventId)
 
@@ -69,8 +66,6 @@ export function AnimalGrid({
         <AnimalCard
           key={animal.id}
           animal={animal}
-          shareCount={shareCounts[animal.id]?.total ?? 0}
-          paidCount={shareCounts[animal.id]?.paid ?? 0}
           onSelect={() => onSelectAnimal(animal)}
           onEdit={() => onEditAnimal(animal)}
           onDelete={() => onDeleteAnimal(animal)}
