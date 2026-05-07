@@ -38,7 +38,7 @@ const animalSchema = z.object({
   sumber_hewan: z.enum(['beli', 'titipan']),
   nomor: z.string().min(1, 'Nomor hewan wajib diisi'),
   berat_kg: z.number().positive().nullable().optional(),
-  harga: z.number({ required_error: 'Harga wajib diisi' }).positive('Harga harus lebih dari 0'),
+  harga: z.number({ error: 'Harga wajib diisi' }).positive('Harga harus lebih dari 0'),
   biaya_perawatan: z.number().positive().nullable().optional(),
   catatan: z.string().optional(),
 })

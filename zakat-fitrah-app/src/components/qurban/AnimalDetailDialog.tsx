@@ -88,7 +88,7 @@ export function AnimalDetailDialog({
   const handleTogglePayment = (share: QurbanShareWithMuzakki) => {
     const newStatus =
       share.status_pembayaran === 'lunas' ? 'belum_bayar' : 'lunas'
-    updatePayment.mutate({ id: share.id, status_pembayaran: newStatus })
+    updatePayment.mutate({ id: share.id, animal_id: share.animal_id, status_pembayaran: newStatus })
   }
 
   const handleConfirmDelete = () => {

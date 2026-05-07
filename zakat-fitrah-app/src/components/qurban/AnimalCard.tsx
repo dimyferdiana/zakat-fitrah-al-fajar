@@ -1,4 +1,4 @@
-import { Beef, Goat, MoreVertical, ImageOff } from 'lucide-react'
+import { Beef, MoreVertical, ImageOff } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -61,7 +61,7 @@ export function AnimalCard({
             {animal.jenis === 'sapi' ? (
               <Beef className="h-12 w-12" />
             ) : (
-              <Goat className="h-12 w-12" />
+              <span className="text-4xl">🐐</span>
             )}
             <ImageOff className="h-4 w-4 absolute top-2 right-2 opacity-50" />
           </div>

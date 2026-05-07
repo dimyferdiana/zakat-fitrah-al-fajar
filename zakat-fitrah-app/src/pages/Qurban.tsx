@@ -22,6 +22,7 @@ import {
 import { QurbanEventDialog } from '@/components/qurban/QurbanEventDialog'
 import { AnimalForm } from '@/components/qurban/AnimalForm'
 import { AnimalGrid } from '@/components/qurban/AnimalGrid'
+import { AnimalDetailDialog } from '@/components/qurban/AnimalDetailDialog'
 import type { QurbanEvent, QurbanAnimal } from '@/types/qurban'
 import { useQurbanEventList, useDeleteQurbanEvent } from '@/hooks/useQurbanEvents'
 import { useQurbanAnimalList, useDeleteQurbanAnimal } from '@/hooks/useQurbanAnimals'
@@ -56,10 +57,9 @@ export default function Qurban() {
   const [deleteAnimalOpen, setDeleteAnimalOpen] = useState(false)
   const [deletingAnimal, setDeletingAnimal] = useState<QurbanAnimal | null>(null)
 
-  // --- Selected animal (for detail dialog placeholder) ---
+  // --- Selected animal (for detail dialog) ---
   const [selectedAnimal, setSelectedAnimal] = useState<QurbanAnimal | null>(null)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_detailOpen, setDetailOpen] = useState(false)
+  const [detailOpen, setDetailOpen] = useState(false)
 
   // --- Event handlers ---
   const handleCreateEvent = () => {
@@ -255,11 +255,14 @@ export default function Qurban() {
         </>
       )}
 
-      {/* AnimalDetailDialog will be added by integration step */}
-      {selectedAnimal && (
-        <div style={{ display: 'none' }}>
-          {/* Placeholder: selectedAnimal = {selectedAnimal.nomor} */}
-        </div>
+      {/* Animal detail dialog */}
+      {selectedAnimal && selectedEvent && (
+        <AnimalDetailDialog
+          open={detailOpen}
+          onOpenChange={setDetailOpen}
+          animal={selectedAnimal}
+          event={selectedEvent}
+        />
       )}
 
       {/* --- Dialogs --- */}

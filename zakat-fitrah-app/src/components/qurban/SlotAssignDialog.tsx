@@ -11,10 +11,11 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { X } from 'lucide-react'
-import type { QurbanAnimal, MuzakkiMaster } from '@/types/qurban'
+import type { QurbanAnimal } from '@/types/qurban'
 import {
   useAssignQurbanShare,
   useMuzakkiSearch,
+  type MuzakkiMaster,
 } from '@/hooks/useQurbanShares'
 import { createMuzakkiRecord } from '@/hooks/useMuzakki'
 
