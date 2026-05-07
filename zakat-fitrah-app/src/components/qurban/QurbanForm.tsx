@@ -41,16 +41,27 @@ const qurbanSchema = z.object({
   tanggal: z.date({ message: 'Tanggal wajib diisi' }),
   nama: z.string().min(1, 'Nama wajib diisi'),
   alamat: z.string().min(1, 'Alamat wajib diisi'),
-  no_hp: z.string().min(8, 'No HP tidak valid').max(15),
+  no_hp: z.string().max(15).refine(
+    (val) => val === '' || val.length >= 8,
+    'No HP tidak valid (minimal 8 karakter)'
+  ),
   jenis: z.enum(['sapi', 'kambing']),
   sumber_hewan: z.enum(['beli', 'titipan']),
   biaya_perawatan: z.number().nullable().optional(),
   participants: z
     .array(z.object({ nama: z.string().min(1, 'Nama peserta wajib diisi') }))
     .min(1, 'Minimal 1 peserta'),
-  nominal: z.number({ message: 'Nominal wajib diisi' }).positive(),
+  nominal: z.number().min(0).optional(),
   status: z.enum(['terdaftar', 'lunas']),
   catatan: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.sumber_hewan === 'beli' && (!data.nominal || data.nominal <= 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Nominal wajib diisi',
+      path: ['nominal'],
+    })
+  }
 })
 
 type QurbanFormValues = z.infer<typeof qurbanSchema>
@@ -77,7 +88,7 @@ export function QurbanForm({ open, onOpenChange, initialData, onSuccess }: Qurba
       sumber_hewan: 'beli',
       biaya_perawatan: null,
       participants: [{ nama: '' }],
-      nominal: 0,
+      nominal: undefined,
       status: 'terdaftar',
       catatan: '',
     },
@@ -124,7 +135,7 @@ export function QurbanForm({ open, onOpenChange, initialData, onSuccess }: Qurba
           sumber_hewan: 'beli',
           biaya_perawatan: null,
           participants: [{ nama: '' }],
-          nominal: 0,
+          nominal: undefined,
           status: 'terdaftar',
           catatan: '',
         })
@@ -152,7 +163,7 @@ export function QurbanForm({ open, onOpenChange, initialData, onSuccess }: Qurba
       sumber_hewan: values.sumber_hewan,
       biaya_perawatan: values.sumber_hewan === 'titipan' ? (values.biaya_perawatan ?? null) : null,
       participants: values.participants,
-      nominal: values.nominal,
+      nominal: values.nominal ?? 0,
       status: values.status,
       catatan: values.catatan || undefined,
     }
@@ -254,7 +265,7 @@ export function QurbanForm({ open, onOpenChange, initialData, onSuccess }: Qurba
               name="no_hp"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>No HP *</FormLabel>
+                  <FormLabel>No HP <span className="text-muted-foreground font-normal">(opsional)</span></FormLabel>
                   <FormControl>
                     <Input type="tel" placeholder="08123456789" {...field} />
                   </FormControl>
@@ -405,14 +416,23 @@ export function QurbanForm({ open, onOpenChange, initialData, onSuccess }: Qurba
               name="nominal"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nominal (Rp) *</FormLabel>
+                  <FormLabel>
+                    Nominal (Rp){' '}
+                    {watchSumberHewan === 'beli' ? (
+                      '*'
+                    ) : (
+                      <span className="text-muted-foreground font-normal">(opsional)</span>
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       min={0}
                       placeholder="0"
-                      value={field.value || ''}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      value={field.value ?? ''}
+                      onChange={(e) =>
+                        field.onChange(e.target.value === '' ? undefined : Number(e.target.value))
+                      }
                     />
                   </FormControl>
                   <FormMessage />
