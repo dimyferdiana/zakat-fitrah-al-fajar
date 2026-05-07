@@ -116,9 +116,9 @@ Update the file after completing each sub-task, not just after completing an ent
 
   - [X] 7.1 Test semua navigasi Zakat Fitrah yang ada — pastikan tidak ada regresi setelah migrasi sidebar-07
   - [X] 7.2 Test App Switcher: Zakat → Qurban → Zakat — navigasi, redirect, dan state konsisten
-  - [ ] 7.3 Test form Qurban — create Sapi (7 a/n, Titipan), create Kambing (1 a/n, Beli), edit, delete
+  - [X] 7.3 Test form Qurban — create Sapi (7 a/n, Titipan), create Kambing (1 a/n, Beli), edit, delete
   - [ ] 7.4 Test validasi form — coba submit dengan data tidak valid, pastikan error message muncul
-  - [ ] 7.5 Test PDF receipt — unduh dan cetak untuk Sapi dan Kambing, cek semua data tampil benar
-  - [ ] 7.6 Test upload foto hewan (jika diimplementasikan) — upload, preview, tampil di tabel
+  - [X] 7.5 Test PDF receipt — unduh dan cetak untuk Sapi dan Kambing, cek semua data tampil benar
+  - [X] 7.6 Test upload foto hewan (jika diimplementasikan) — upload, preview, tampil di tabel
   - [ ] 7.7 Test di layar mobile — sidebar-07 drawer, form responsive, tabel scroll horizontal
   - [X] 7.8 Jalankan `cd zakat-fitrah-app && npm run build` — pastikan tidak ada TypeScript error dan build sukses

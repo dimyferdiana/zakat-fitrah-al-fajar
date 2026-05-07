@@ -1119,6 +1119,107 @@ export type Database = {
           },
         ]
       }
+      qurban_animals: {
+        Row: {
+          id: string
+          event_id: string
+          jenis: string
+          sumber_hewan: string
+          nomor: string
+          berat_kg: number | null
+          harga: number
+          biaya_perawatan: number | null
+          foto_url: string | null
+          catatan: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          jenis: string
+          sumber_hewan?: string
+          nomor: string
+          berat_kg?: number | null
+          harga: number
+          biaya_perawatan?: number | null
+          foto_url?: string | null
+          catatan?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          jenis?: string
+          sumber_hewan?: string
+          nomor?: string
+          berat_kg?: number | null
+          harga?: number
+          biaya_perawatan?: number | null
+          foto_url?: string | null
+          catatan?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qurban_animals_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "qurban_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qurban_animals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qurban_events: {
+        Row: {
+          id: string
+          nama: string
+          tanggal: string
+          catatan: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          nama: string
+          tanggal: string
+          catatan?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          nama?: string
+          tanggal?: string
+          catatan?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qurban_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       qurban_registrations: {
         Row: {
           alamat: string
@@ -1175,6 +1276,67 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      qurban_shares: {
+        Row: {
+          id: string
+          animal_id: string
+          muzakki_id: string
+          urutan: number
+          nominal: number
+          status_pembayaran: string
+          catatan: string | null
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          animal_id: string
+          muzakki_id: string
+          urutan: number
+          nominal: number
+          status_pembayaran?: string
+          catatan?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          animal_id?: string
+          muzakki_id?: string
+          urutan?: number
+          nominal?: number
+          status_pembayaran?: string
+          catatan?: string | null
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qurban_shares_animal_id_fkey"
+            columns: ["animal_id"]
+            isOneToOne: false
+            referencedRelation: "qurban_animals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qurban_shares_muzakki_id_fkey"
+            columns: ["muzakki_id"]
+            isOneToOne: false
+            referencedRelation: "muzakki"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qurban_shares_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rekonsiliasi: {
         Row: {
@@ -1583,6 +1745,9 @@ export type AccountChannel = Database['public']['Enums']['account_channel']
 export type AccountLedgerEntry = Database['public']['Tables']['account_ledger_entries']['Row']
 export type QurbanRegistration = Database['public']['Tables']['qurban_registrations']['Row']
 export type QurbanParticipant = Database['public']['Tables']['qurban_participants']['Row']
+export type QurbanEvent = Database['public']['Tables']['qurban_events']['Row']
+export type QurbanAnimal = Database['public']['Tables']['qurban_animals']['Row']
+export type QurbanShare = Database['public']['Tables']['qurban_shares']['Row']
 
 export const Constants = {
   public: {
