@@ -217,7 +217,7 @@ function App() {
               <Route
                 path="/qurban/events"
                 element={
-                  <ProtectedRoute allowedRoles={['admin']}>
+                  <ProtectedRoute allowedRoles={['admin', 'petugas']}>
                     <AppLayout>
                       <QurbanEvents />
                     </AppLayout>

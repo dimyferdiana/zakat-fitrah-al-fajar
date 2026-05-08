@@ -180,7 +180,7 @@ const qurbanNavSections: NavSection[] = [
         label: 'Manajemen Event',
         path: '/qurban/events',
         icon: CalendarDays,
-        roles: ['admin'],
+        roles: ['admin', 'petugas'],
       },
       {
         label: 'Data Hewan',

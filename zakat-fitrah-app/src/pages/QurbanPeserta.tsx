@@ -103,7 +103,7 @@ async function fetchAnimalAndEvent(animalId: string): Promise<{ animal: QurbanAn
 
 export function QurbanPeserta() {
   const { hasRole } = useAuth()
-  const isAdmin = hasRole(['admin'])
+  const isAdmin = hasRole(['admin', 'petugas'])
   const canWrite = hasRole(['admin', 'petugas'])
 
   const { data: events } = useQurbanEventList()
