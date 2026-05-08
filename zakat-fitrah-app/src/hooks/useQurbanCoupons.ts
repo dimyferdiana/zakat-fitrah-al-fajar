@@ -132,7 +132,20 @@ export function useGenerateMustahikCoupons() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      const rows = mustahikIds.map((mustahikId) => ({
+      // Find mustahik who already have a coupon for this event to skip them
+      const { data: existing } = await supabase
+        .from('qurban_coupons')
+        .select('recipient_id')
+        .eq('event_id', eventId)
+        .eq('recipient_type', 'mustahik')
+        .in('recipient_id', mustahikIds)
+
+      const existingIds = new Set((existing || []).map((r) => r.recipient_id))
+      const newIds = mustahikIds.filter((id) => !existingIds.has(id))
+
+      if (newIds.length === 0) return []
+
+      const rows = newIds.map((mustahikId) => ({
         event_id: eventId,
         recipient_type: 'mustahik' as const,
         recipient_id: mustahikId,
@@ -140,10 +153,9 @@ export function useGenerateMustahikCoupons() {
         created_by: user.id,
       }))
 
-      // upsert: ignore duplicates (already has a coupon for this event)
       const { data, error } = await supabase
         .from('qurban_coupons')
-        .upsert(rows, { onConflict: 'event_id,recipient_type,recipient_id', ignoreDuplicates: true })
+        .insert(rows)
         .select()
 
       if (error) throw error
