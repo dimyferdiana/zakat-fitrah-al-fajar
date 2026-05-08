@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
-import type { QurbanShareWithMuzakki } from '@/types/qurban'
+import type { QurbanShareWithMuzakki, QurbanShareFlat, QurbanShareListParams } from '@/types/qurban'
 import { getMaxSlots } from '@/types/qurban'
 
 export interface MuzakkiMaster {
@@ -189,5 +189,64 @@ export function useMuzakkiSearch(query: string) {
       return (data || []) as MuzakkiMaster[]
     },
     enabled: query.length >= 2,
+  })
+}
+
+// ---- Flat list for Daftar Peserta page ----
+export function useQurbanShareListFlat(params: QurbanShareListParams) {
+  const { eventId, status, search, page = 1, pageSize = 20 } = params
+
+  return useQuery({
+    queryKey: ['qurban-shares-flat', eventId, status, search, page],
+    queryFn: async (): Promise<{ data: QurbanShareFlat[]; count: number }> => {
+      let query = supabase
+        .from('qurban_shares')
+        .select(`
+          id, animal_id, urutan, nominal, status_pembayaran, catatan, created_at, muzakki_id,
+          muzakki!inner(id, nama_kk, no_telp),
+          qurban_animals!inner(id, nomor, jenis, event_id,
+            qurban_events!inner(id, nama, tanggal)
+          ),
+          qurban_coupons(id, status, coupon_number, token, expires_at, redeemed_at)
+        `, { count: 'exact' })
+
+      if (eventId) {
+        query = query.eq('qurban_animals.event_id', eventId)
+      }
+      if (status && status !== 'all') {
+        query = query.eq('status_pembayaran', status)
+      }
+      if (search) {
+        query = query.ilike('muzakki.nama_kk', `%${search}%`)
+      }
+
+      query = query
+        .order('created_at', { ascending: false })
+        .range((page - 1) * pageSize, page * pageSize - 1)
+
+      const { data, error, count } = await query
+      if (error) throw error
+
+      const flat: QurbanShareFlat[] = (data || []).map((row: any) => ({
+        id: row.id,
+        animal_id: row.animal_id,
+        urutan: row.urutan,
+        nominal: row.nominal,
+        status_pembayaran: row.status_pembayaran,
+        catatan: row.catatan,
+        created_at: row.created_at,
+        muzakki_id: row.muzakki_id,
+        muzakki_nama: row.muzakki?.nama_kk ?? '',
+        muzakki_no_telp: row.muzakki?.no_telp ?? null,
+        animal_nomor: row.qurban_animals?.nomor ?? '',
+        animal_jenis: row.qurban_animals?.jenis ?? 'sapi',
+        event_id: row.qurban_animals?.event_id ?? '',
+        event_nama: row.qurban_animals?.qurban_events?.nama ?? '',
+        event_tanggal: row.qurban_animals?.qurban_events?.tanggal ?? '',
+        coupon: row.qurban_coupons?.[0] ?? null,
+      }))
+
+      return { data: flat, count: count ?? 0 }
+    },
   })
 }

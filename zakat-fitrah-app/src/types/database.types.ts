@@ -1090,6 +1090,161 @@ export type Database = {
           },
         ]
       }
+      qurban_animals: {
+        Row: {
+          berat_kg: number | null
+          biaya_perawatan: number | null
+          catatan: string | null
+          created_at: string
+          created_by: string | null
+          event_id: string
+          foto_url: string | null
+          harga: number
+          id: string
+          jenis: string
+          nomor: string
+          sumber_hewan: string
+          updated_at: string
+        }
+        Insert: {
+          berat_kg?: number | null
+          biaya_perawatan?: number | null
+          catatan?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_id: string
+          foto_url?: string | null
+          harga: number
+          id?: string
+          jenis: string
+          nomor: string
+          sumber_hewan?: string
+          updated_at?: string
+        }
+        Update: {
+          berat_kg?: number | null
+          biaya_perawatan?: number | null
+          catatan?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_id?: string
+          foto_url?: string | null
+          harga?: number
+          id?: string
+          jenis?: string
+          nomor?: string
+          sumber_hewan?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qurban_animals_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "qurban_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qurban_coupons: {
+        Row: {
+          catatan: string | null
+          coupon_number: string
+          created_at: string
+          created_by: string | null
+          event_id: string
+          expires_at: string
+          id: string
+          qurban_share_id: string | null
+          recipient_id: string
+          recipient_type: string
+          redeemed_at: string | null
+          redeemed_by: string | null
+          status: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          catatan?: string | null
+          coupon_number?: string
+          created_at?: string
+          created_by?: string | null
+          event_id: string
+          expires_at: string
+          id?: string
+          qurban_share_id?: string | null
+          recipient_id: string
+          recipient_type: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          catatan?: string | null
+          coupon_number?: string
+          created_at?: string
+          created_by?: string | null
+          event_id?: string
+          expires_at?: string
+          id?: string
+          qurban_share_id?: string | null
+          recipient_id?: string
+          recipient_type?: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qurban_coupons_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "qurban_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qurban_coupons_qurban_share_id_fkey"
+            columns: ["qurban_share_id"]
+            isOneToOne: false
+            referencedRelation: "qurban_shares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qurban_events: {
+        Row: {
+          catatan: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          nama: string
+          tanggal: string
+          updated_at: string
+        }
+        Insert: {
+          catatan?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nama: string
+          tanggal: string
+          updated_at?: string
+        }
+        Update: {
+          catatan?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nama?: string
+          tanggal?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       qurban_participants: {
         Row: {
           id: string
@@ -1115,107 +1270,6 @@ export type Database = {
             columns: ["qurban_registration_id"]
             isOneToOne: false
             referencedRelation: "qurban_registrations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      qurban_animals: {
-        Row: {
-          id: string
-          event_id: string
-          jenis: string
-          sumber_hewan: string
-          nomor: string
-          berat_kg: number | null
-          harga: number
-          biaya_perawatan: number | null
-          foto_url: string | null
-          catatan: string | null
-          created_by: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          event_id: string
-          jenis: string
-          sumber_hewan?: string
-          nomor: string
-          berat_kg?: number | null
-          harga: number
-          biaya_perawatan?: number | null
-          foto_url?: string | null
-          catatan?: string | null
-          created_by?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          event_id?: string
-          jenis?: string
-          sumber_hewan?: string
-          nomor?: string
-          berat_kg?: number | null
-          harga?: number
-          biaya_perawatan?: number | null
-          foto_url?: string | null
-          catatan?: string | null
-          created_by?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "qurban_animals_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "qurban_events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "qurban_animals_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      qurban_events: {
-        Row: {
-          id: string
-          nama: string
-          tanggal: string
-          catatan: string | null
-          created_by: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          nama: string
-          tanggal: string
-          catatan?: string | null
-          created_by?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          nama?: string
-          tanggal?: string
-          catatan?: string | null
-          created_by?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "qurban_events_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -1279,40 +1333,40 @@ export type Database = {
       }
       qurban_shares: {
         Row: {
-          id: string
           animal_id: string
+          catatan: string | null
+          created_at: string
+          created_by: string | null
+          id: string
           muzakki_id: string
-          urutan: number
           nominal: number
           status_pembayaran: string
-          catatan: string | null
-          created_by: string | null
-          created_at: string
           updated_at: string
+          urutan: number
         }
         Insert: {
-          id?: string
           animal_id: string
+          catatan?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
           muzakki_id: string
-          urutan: number
           nominal: number
           status_pembayaran?: string
-          catatan?: string | null
-          created_by?: string | null
-          created_at?: string
           updated_at?: string
+          urutan: number
         }
         Update: {
-          id?: string
           animal_id?: string
+          catatan?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
           muzakki_id?: string
-          urutan?: number
           nominal?: number
           status_pembayaran?: string
-          catatan?: string | null
-          created_by?: string | null
-          created_at?: string
           updated_at?: string
+          urutan?: number
         }
         Relationships: [
           {
@@ -1327,13 +1381,6 @@ export type Database = {
             columns: ["muzakki_id"]
             isOneToOne: false
             referencedRelation: "muzakki"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "qurban_shares_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -1731,24 +1778,6 @@ export type CompositeTypes<
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
-// Type aliases for convenience
-export type User = Database['public']['Tables']['users']['Row']
-export type UserRole = Database['public']['Enums']['user_role']
-export type UserInvitation = Database['public']['Tables']['user_invitations']['Row']
-export type InvitationStatus = 'pending' | 'used' | 'revoked' | 'expired'
-export type AccountLedgerEntryType = Database['public']['Enums']['account_ledger_entry_type']
-export type HakAmilKategori = Database['public']['Enums']['hak_amil_kategori']
-export type HakAmilBasisMode = Database['public']['Enums']['hak_amil_basis_mode']
-export type HakAmilConfig = Database['public']['Tables']['hak_amil_configs']['Row']
-export type Account = Database['public']['Tables']['accounts']['Row']
-export type AccountChannel = Database['public']['Enums']['account_channel']
-export type AccountLedgerEntry = Database['public']['Tables']['account_ledger_entries']['Row']
-export type QurbanRegistration = Database['public']['Tables']['qurban_registrations']['Row']
-export type QurbanParticipant = Database['public']['Tables']['qurban_participants']['Row']
-export type QurbanEvent = Database['public']['Tables']['qurban_events']['Row']
-export type QurbanAnimal = Database['public']['Tables']['qurban_animals']['Row']
-export type QurbanShare = Database['public']['Tables']['qurban_shares']['Row']
-
 export const Constants = {
   public: {
     Enums: {
@@ -1785,3 +1814,17 @@ export const Constants = {
   },
 } as const
 
+// ---- Convenience type aliases ----
+export type User = Tables<'users'>
+export type UserRole = Enums<'user_role'>
+export type UserInvitation = Tables<'user_invitations'>
+export type InvitationStatus = 'pending' | 'used' | 'expired' | 'revoked'
+export type Account = Tables<'accounts'>
+export type AccountChannel = Enums<'account_channel'>
+export type AccountLedgerEntry = Tables<'account_ledger_entries'>
+export type AccountLedgerEntryType = Enums<'account_ledger_entry_type'>
+export type HakAmilConfig = Tables<'hak_amil_configs'>
+export type HakAmilKategori = Enums<'hak_amil_kategori'>
+export type HakAmilBasisMode = Enums<'hak_amil_basis_mode'>
+export type QurbanRegistration = Tables<'qurban_registrations'>
+export type QurbanParticipant = Tables<'qurban_participants'>
