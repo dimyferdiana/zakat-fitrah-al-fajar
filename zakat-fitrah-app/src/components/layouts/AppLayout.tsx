@@ -14,6 +14,10 @@ import {
   Landmark,
   Beef,
   ChevronsUpDown,
+  BarChart3,
+  CalendarDays,
+  List,
+  Truck,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import type { UserRole } from '@/types/database.types'
@@ -167,9 +171,33 @@ const qurbanNavSections: NavSection[] = [
     title: 'Qurban',
     items: [
       {
-        label: 'Data Qurban',
+        label: 'Dashboard Qurban',
+        path: '/qurban/dashboard',
+        icon: BarChart3,
+        roles: ['admin', 'petugas'],
+      },
+      {
+        label: 'Manajemen Event',
+        path: '/qurban/events',
+        icon: CalendarDays,
+        roles: ['admin'],
+      },
+      {
+        label: 'Data Hewan',
         path: '/qurban',
         icon: Beef,
+        roles: ['admin', 'petugas'],
+      },
+      {
+        label: 'Daftar Peserta',
+        path: '/qurban/peserta',
+        icon: List,
+        roles: ['admin', 'petugas'],
+      },
+      {
+        label: 'Distribusi Qurban',
+        path: '/qurban/distribusi',
+        icon: Truck,
         roles: ['admin', 'petugas'],
       },
     ],
