@@ -31,6 +31,11 @@ const SedekahReceipt = lazy(() => import('@/pages/SedekahReceipt'));
 const SuratPengantar = lazy(() => import('@/pages/SuratPengantar'));
 const AccountsManagement = lazy(() => import('@/pages/AccountsManagement'));
 const Qurban = lazy(() => import('@/pages/Qurban'));
+const QurbanDashboard = lazy(() => import('@/pages/QurbanDashboard').then(m => ({ default: m.QurbanDashboard })));
+const QurbanEvents = lazy(() => import('@/pages/QurbanEvents').then(m => ({ default: m.QurbanEvents })));
+const QurbanPeserta = lazy(() => import('@/pages/QurbanPeserta').then(m => ({ default: m.QurbanPeserta })));
+const QurbanDistribusi = lazy(() => import('@/pages/QurbanDistribusi').then(m => ({ default: m.QurbanDistribusi })));
+const QurbanScan = lazy(() => import('@/pages/QurbanScan').then(m => ({ default: m.QurbanScan })));
 const DataMasterWarga = lazy(() => import('@/pages/DataMasterWarga').then(m => ({ default: m.DataMasterWarga })));
 const DataMasterMustahik = lazy(() => import('@/pages/DataMasterMustahik').then(m => ({ default: m.DataMasterMustahik })));
 const DataMasterPengguna = lazy(() => import('@/pages/DataMasterPengguna').then(m => ({ default: m.DataMasterPengguna })));
@@ -199,6 +204,56 @@ function App() {
                   <ProtectedRoute allowedRoles={['admin', 'petugas']}>
                     <AppLayout>
                       <Qurban />
+                    </AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/qurban/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'petugas']}>
+                    <AppLayout>
+                      <QurbanDashboard />
+                    </AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/qurban/events"
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'petugas']}>
+                    <AppLayout>
+                      <QurbanEvents />
+                    </AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/qurban/peserta"
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'petugas']}>
+                    <AppLayout>
+                      <QurbanPeserta />
+                    </AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/qurban/distribusi"
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'petugas']}>
+                    <AppLayout>
+                      <QurbanDistribusi />
+                    </AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/qurban/scan"
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'petugas']}>
+                    <AppLayout>
+                      <QurbanScan />
                     </AppLayout>
                   </ProtectedRoute>
                 }

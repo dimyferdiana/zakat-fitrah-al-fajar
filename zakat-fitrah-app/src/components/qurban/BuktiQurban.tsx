@@ -5,7 +5,7 @@ import { id as idLocale } from 'date-fns/locale'
 import jsPDF from 'jspdf'
 import { BRANDING } from '@/lib/branding'
 import { ORG_SERVICE } from '@/lib/constants'
-import type { QurbanRegistrationWithParticipants } from '@/types/qurban'
+import type { QurbanRegistrationWithParticipants, QurbanEvent, QurbanAnimal, QurbanShareWithMuzakki } from '@/types/qurban'
 
 // ─── Layout constants (A4 portrait: 210×297mm) ───────────────────────────────
 const SCALE_FACTOR = 210 / 800
@@ -39,6 +39,7 @@ function getJenisLabel(jenis: string): string {
 function getSumberHewanLabel(sumber: string): string {
   if (sumber === 'beli') return 'Beli dari Al-Fajar'
   if (sumber === 'titipan') return 'Titipan (Bawa Sendiri)'
+  if (sumber === 'al_fajar') return 'Al Fajar'
   return sumber
 }
 
@@ -248,6 +249,176 @@ export function downloadQurbanReceipt(data: QurbanRegistrationWithParticipants):
 
 export function printQurbanReceipt(data: QurbanRegistrationWithParticipants): void {
   const pdf = generateQurbanReceiptPDF(data)
+  const pdfUrl = pdf.output('datauristring')
+  const printWindow = window.open(pdfUrl)
+  if (printWindow) {
+    printWindow.onload = () => {
+      printWindow.print()
+    }
+  }
+}
+
+// ─── Per-slot receipt (new animal-centric model) ─────────────────────────────
+
+export interface QurbanShareReceiptData {
+  event: QurbanEvent
+  animal: QurbanAnimal
+  share: QurbanShareWithMuzakki
+}
+
+export function generateQurbanShareReceiptPDF(data: QurbanShareReceiptData): jsPDF {
+  const { event, animal, share } = data
+
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  })
+
+  const pageWidth = pdf.internal.pageSize.getWidth()   // 210mm
+  const pageHeight = pdf.internal.pageSize.getHeight() // 297mm
+
+  // White background
+  pdf.setFillColor(255, 255, 255)
+  pdf.rect(0, 0, pageWidth, pageHeight, 'F')
+
+  let y = MARGIN
+  const leftX = MARGIN
+  const valueX = MARGIN + LABEL_WIDTH
+
+  // ── HEADER ──────────────────────────────────────────────────────────────────
+  const headerGap = 5
+  const textGroupWidth = 90
+  const totalHeaderWidth = LOGO_SIZE + headerGap + textGroupWidth
+  const headerStartX = (pageWidth - totalHeaderWidth) / 2
+
+  try {
+    pdf.addImage(BRANDING.LOGO_PATH, 'PNG', headerStartX, y, LOGO_SIZE, LOGO_SIZE)
+  } catch {
+    console.warn('Could not embed logo image')
+  }
+
+  const headerTextX = headerStartX + LOGO_SIZE + HEADER_GAP
+  const headerTextGap = 4 * SCALE_FACTOR
+
+  pdf.setFontSize(14)
+  pdf.setFont('Helvetica', 'bold')
+  const orgNameY = y + LOGO_SIZE / 2 - 2
+  pdf.text(BRANDING.ORGANIZATION_FULL, headerTextX, orgNameY)
+
+  pdf.setFontSize(10)
+  pdf.setFont('Helvetica', 'normal')
+  const addressY = orgNameY + 4 + headerTextGap
+  pdf.text(BRANDING.ADDRESS, headerTextX, addressY)
+  pdf.text('Email : permataalfajar@gmail.com', headerTextX, addressY + 3 + headerTextGap)
+  pdf.text(ORG_SERVICE, headerTextX, addressY + 6 + headerTextGap * 2)
+
+  y += LOGO_SIZE + SECTION_GAP
+
+  // Divider
+  pdf.setLineWidth(DIVIDER_HEIGHT)
+  pdf.line(leftX, y, pageWidth - MARGIN, y)
+  y += SECTION_GAP
+
+  // ── TITLE ───────────────────────────────────────────────────────────────────
+  pdf.setFontSize(14)
+  pdf.setFont('Helvetica', 'bold')
+  pdf.text('BUKTI PESERTA QURBAN', pageWidth / 2, y, { align: 'center' })
+  y += SECTION_GAP + 10 * SCALE_FACTOR
+
+  // ── BODY DETAILS ────────────────────────────────────────────────────────────
+  pdf.setFontSize(10)
+
+  const row = (label: string, value: string) => {
+    pdf.setFont('Helvetica', 'normal')
+    pdf.text(label, leftX, y)
+    pdf.setFont('Helvetica', 'bold')
+    const maxW = pageWidth - MARGIN - valueX - 5
+    const lines = pdf.splitTextToSize(': ' + value, maxW)
+    pdf.text(lines, valueX, y)
+    y += ROW_GAP + lines.length * LINE_HEIGHT
+  }
+
+  row('Event', event.nama)
+  row('Kode Hewan', animal.nomor)
+  row('Jenis Hewan', getJenisLabel(animal.jenis))
+  row('Sumber Hewan', getSumberHewanLabel(animal.sumber_hewan))
+  row('Peserta ke-', String(share.urutan))
+  row('Nama Peserta', share.muzakki.nama_kk)
+  row('Nominal', formatCurrencyPdf(share.nominal))
+
+  // Status Pembayaran — colored text
+  pdf.setFont('Helvetica', 'normal')
+  pdf.text('Status Pembayaran', leftX, y)
+
+  if (share.status_pembayaran === 'lunas') {
+    pdf.setFont('Helvetica', 'bold')
+    pdf.setTextColor(21, 128, 61) // green-700
+    pdf.text(': LUNAS', valueX, y)
+    pdf.setTextColor(0, 0, 0)
+  } else {
+    pdf.setFont('Helvetica', 'bold')
+    pdf.setTextColor(0, 0, 0)
+    pdf.text(': BELUM BAYAR', valueX, y)
+  }
+  y += ROW_GAP + LINE_HEIGHT
+
+  // Tanggal cetak
+  let tanggalCetak: string
+  try {
+    tanggalCetak = format(new Date(), 'dd MMMM yyyy', { locale: idLocale })
+  } catch {
+    tanggalCetak = new Date().toLocaleDateString('id-ID')
+  }
+  row('Tanggal Cetak', tanggalCetak)
+
+  y += SECTION_GAP
+
+  // ── FOOTER / SIGNATURE ──────────────────────────────────────────────────────
+  const stampW = 39.7
+  const stampH = 15.9
+  const signX = pageWidth - MARGIN - stampW / 2
+
+  pdf.setFont('Helvetica', 'normal')
+  pdf.setFontSize(10)
+  pdf.setTextColor(0, 0, 0)
+  pdf.text(BRANDING.ORGANIZATION_FULL, signX, y, { align: 'center' })
+  y += 3
+
+  try {
+    pdf.addImage('/stamp-signature.png', 'PNG', signX - stampW / 2, y, stampW, stampH)
+  } catch {
+    console.warn('Could not embed stamp-signature image')
+  }
+  y += stampH + 1
+
+  pdf.setFont('Helvetica', 'bold')
+  pdf.text(KETUA_NAME, signX, y, { align: 'center' })
+  y += 0.5
+
+  pdf.setLineWidth(0.26)
+  pdf.line(signX - 18.5, y, signX + 18.5, y)
+  y += 3.5
+
+  pdf.setFont('Helvetica', 'normal')
+  pdf.text('Ketua', signX, y, { align: 'center' })
+
+  if (y > pageHeight - MARGIN) {
+    console.warn('BuktiQurban (share): content may have overflowed the A4 page')
+  }
+
+  return pdf
+}
+
+export function downloadQurbanShareReceipt(data: QurbanShareReceiptData): void {
+  const pdf = generateQurbanShareReceiptPDF(data)
+  const { animal, share } = data
+  const nameSlug = share.muzakki.nama_kk.replace(/\s+/g, '-')
+  pdf.save(`Bukti-Qurban-${animal.nomor}-Peserta-${share.urutan}-${nameSlug}.pdf`)
+}
+
+export function printQurbanShareReceipt(data: QurbanShareReceiptData): void {
+  const pdf = generateQurbanShareReceiptPDF(data)
   const pdfUrl = pdf.output('datauristring')
   const printWindow = window.open(pdfUrl)
   if (printWindow) {
