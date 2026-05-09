@@ -112,12 +112,12 @@ Update the file after completing each sub-task, not just after completing an ent
 
 ---
 
-- [ ] 7.0 Final verification
-  - [ ] 7.1 Run `npm run build` from `zakat-fitrah-app/` and confirm a clean build with zero errors.
-  - [ ] 7.2 On a 375px-wide viewport, verify that no Qurban list page requires horizontal scrolling to reach action buttons.
-  - [ ] 7.3 Assign a coupon to a non-mustahik warga and confirm it succeeds.
-  - [ ] 7.4 Assign a second coupon to the same person and confirm the warning dialog appears before proceeding.
-  - [ ] 7.5 Use the "Tambah Peserta" button on `/qurban/peserta` to add a new participant and confirm the list refreshes.
-  - [ ] 7.6 Create a Titipan animal and confirm only `biaya_perawatan` is shown. Create an Al Fajar animal and confirm only `jumlah_hewan` is shown.
-  - [ ] 7.7 Open the dashboard and confirm Sapi card is on the left, Domba card on the right, with independent totals.
-  - [ ] 7.8 Open Data Hewan page and confirm no event add/edit/delete actions are present.
+- [X] 7.0 Final verification
+  - [X] 7.1 Run `npm run build` from `zakat-fitrah-app/` and confirm a clean build with zero errors.
+  - [X] 7.2 On a 375px-wide viewport, verify that no Qurban list page requires horizontal scrolling to reach action buttons.
+  - [X] 7.3 Assign a coupon to a non-mustahik warga and confirm it succeeds.
+  - [X] 7.4 Assign a second coupon to the same person and confirm the warning dialog appears before proceeding.
+  - [X] 7.5 Use the "Tambah Peserta" button on `/qurban/peserta` to add a new participant and confirm the list refreshes.
+  - [X] 7.6 Create a Titipan animal and confirm only `biaya_perawatan` is shown. Create an Al Fajar animal and confirm only `jumlah_hewan` is shown.
+  - [X] 7.7 Open the dashboard and confirm Sapi card is on the left, Domba card on the right, with independent totals.
+  - [X] 7.8 Open Data Hewan page and confirm no event add/edit/delete actions are present.
