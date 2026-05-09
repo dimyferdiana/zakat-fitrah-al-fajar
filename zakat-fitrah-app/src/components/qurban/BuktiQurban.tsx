@@ -39,7 +39,6 @@ function getJenisLabel(jenis: string): string {
 function getSumberHewanLabel(sumber: string): string {
   if (sumber === 'beli') return 'Beli dari Al-Fajar'
   if (sumber === 'titipan') return 'Titipan (Bawa Sendiri)'
-  if (sumber === 'al_fajar') return 'Al Fajar'
   return sumber
 }
 

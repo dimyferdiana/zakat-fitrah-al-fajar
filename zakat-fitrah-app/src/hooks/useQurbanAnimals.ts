@@ -44,7 +44,7 @@ export function useQurbanAnimalDetail(animalId: string | null) {
 interface CreateQurbanAnimalInput {
   event_id: string
   jenis: 'sapi' | 'kambing'
-  sumber_hewan: 'beli' | 'titipan' | 'al_fajar'
+  sumber_hewan: 'beli' | 'titipan'
   nomor: string
   berat_kg?: number | null
   harga: number

@@ -36,35 +36,20 @@ import { useCreateQurbanAnimal, useUpdateQurbanAnimal } from '@/hooks/useQurbanA
 const animalSchema = z
   .object({
     jenis: z.enum(['sapi', 'kambing']),
-    sumber_hewan: z.enum(['beli', 'titipan', 'al_fajar']),
+    sumber_hewan: z.enum(['beli', 'titipan']),
     nomor: z.string().min(1, 'Nomor hewan wajib diisi'),
     berat_kg: z.number().positive().nullable().optional(),
     harga: z.number().positive().nullable().optional(),
     biaya_perawatan: z.number().positive().nullable().optional(),
-    jumlah_hewan: z.number().int().min(1).nullable().optional(),
     catatan: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.sumber_hewan === 'beli') {
-      if (!data.harga) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Harga wajib diisi',
-          path: ['harga'],
-        })
-      }
-    }
-    if (data.sumber_hewan === 'titipan') {
-      // biaya_perawatan is optional for titipan — no required check
-    }
-    if (data.sumber_hewan === 'al_fajar') {
-      if (!data.jumlah_hewan) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Jumlah hewan wajib diisi',
-          path: ['jumlah_hewan'],
-        })
-      }
+    if (data.sumber_hewan === 'beli' && !data.harga) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Harga wajib diisi',
+        path: ['harga'],
+      })
     }
   })
 
@@ -107,7 +92,6 @@ export function AnimalForm({
       berat_kg: null,
       harga: undefined,
       biaya_perawatan: null,
-      jumlah_hewan: null,
       catatan: '',
     },
   })
@@ -128,7 +112,6 @@ export function AnimalForm({
           berat_kg: initialData.berat_kg ?? null,
           harga: initialData.harga ?? null,
           biaya_perawatan: initialData.biaya_perawatan ?? null,
-          jumlah_hewan: null,
           catatan: initialData.catatan ?? '',
         })
         setPreviewUrl(initialData.foto_url ?? null)
@@ -141,7 +124,6 @@ export function AnimalForm({
           berat_kg: null,
           harga: undefined,
           biaya_perawatan: null,
-          jumlah_hewan: null,
           catatan: '',
         })
       }
@@ -243,10 +225,6 @@ export function AnimalForm({
                         <RadioGroupItem value="titipan" id="sumber-titipan" />
                         <Label htmlFor="sumber-titipan">Titipan (Bawa Sendiri)</Label>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="al_fajar" id="sumber-al-fajar" />
-                        <Label htmlFor="sumber-al-fajar">Al Fajar</Label>
-                      </div>
                     </RadioGroup>
                   </FormControl>
                   <FormMessage />
@@ -298,27 +276,47 @@ export function AnimalForm({
 
             {/* Harga Total — only shown for 'beli' */}
             {watchSumberHewan === 'beli' && (
-              <FormField
-                control={form.control}
-                name="harga"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Harga Total Hewan (Rp) *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min={0}
-                        placeholder="0"
-                        value={field.value ?? ''}
-                        onChange={(e) =>
-                          field.onChange(e.target.value === '' ? undefined : Number(e.target.value))
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <>
+                <FormField
+                  control={form.control}
+                  name="harga"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Harga Total Hewan (Rp) *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          placeholder="0"
+                          value={field.value ?? ''}
+                          onChange={(e) =>
+                            field.onChange(e.target.value === '' ? undefined : Number(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Harga Per Peserta (Rp)</label>
+                  <Input
+                    type="number"
+                    readOnly
+                    disabled
+                    value={
+                      (form.watch('harga') ?? 0) > 0
+                        ? Math.round((form.watch('harga') ?? 0) / (watchJenis === 'sapi' ? 7 : 1))
+                        : ''
+                    }
+                    placeholder="Otomatis dihitung"
+                    className="bg-muted text-muted-foreground"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Dihitung otomatis: total ÷ {watchJenis === 'sapi' ? '7 peserta (sapi)' : '1 peserta (kambing)'}
+                  </p>
+                </div>
+              </>
             )}
 
             {/* Biaya Perawatan — only shown for 'titipan' */}
@@ -337,32 +335,6 @@ export function AnimalForm({
                         type="number"
                         min={0}
                         placeholder="0"
-                        value={field.value ?? ''}
-                        onChange={(e) =>
-                          field.onChange(e.target.value === '' ? null : Number(e.target.value))
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {/* Jumlah Hewan — only shown for 'al_fajar' */}
-            {watchSumberHewan === 'al_fajar' && (
-              <FormField
-                control={form.control}
-                name="jumlah_hewan"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Jumlah Hewan *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min={1}
-                        step={1}
-                        placeholder="1"
                         value={field.value ?? ''}
                         onChange={(e) =>
                           field.onChange(e.target.value === '' ? null : Number(e.target.value))
