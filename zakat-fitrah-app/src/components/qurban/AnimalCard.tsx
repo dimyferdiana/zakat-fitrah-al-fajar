@@ -86,7 +86,7 @@ export function AnimalCard({
               {animal.jenis === 'sapi' ? 'Sapi' : 'Kambing'}
             </Badge>
             <Badge variant={animal.sumber_hewan === 'titipan' ? 'default' : 'outline'} className="text-xs">
-              {animal.sumber_hewan === 'beli' ? 'Beli' : 'Titipan'}
+              {animal.sumber_hewan === 'beli' ? 'Beli' : animal.sumber_hewan === 'titipan' ? 'Titipan' : 'Al Fajar'}
             </Badge>
           </div>
 
