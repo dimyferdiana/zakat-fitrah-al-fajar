@@ -173,6 +173,13 @@ export interface QurbanDashboardStats {
   couponsIssued: number
   couponsRedeemed: number
   perEvent: QurbanEventStats[]
+  // Per-animal-type breakdowns
+  pesertaSapi: number
+  pesertaDomba: number
+  nominalSapi: number
+  nominalDomba: number
+  sisaSlotSapi: number
+  sisaSlotDomba: number
 }
 
 export interface QurbanEventStats {

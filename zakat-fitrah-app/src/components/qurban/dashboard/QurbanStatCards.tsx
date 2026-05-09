@@ -1,5 +1,6 @@
 import { Beef, Users, Wallet } from 'lucide-react'
 import { StatCard } from '@/components/dashboard/StatCard'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { QurbanDashboardStats } from '@/types/qurban'
 
 interface QurbanStatCardsProps {
@@ -40,31 +41,93 @@ function GoatIcon({ className }: { className?: string }) {
 
 export function QurbanStatCards({ stats }: QurbanStatCardsProps) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <StatCard
-        title="Total Sapi"
-        value={stats.totalSapi}
-        description="ekor sapi"
-        icon={Beef}
-      />
-      <StatCard
-        title="Total Kambing"
-        value={stats.totalKambing}
-        description="ekor kambing"
-        icon={GoatIcon as any}
-      />
-      <StatCard
-        title="Total Peserta"
-        value={stats.totalPeserta}
-        description="peserta terdaftar"
-        icon={Users}
-      />
-      <StatCard
-        title="Total Nominal"
-        value={formatCurrency(stats.totalNominal)}
-        description="nominal terkumpul"
-        icon={Wallet}
-      />
+    <div className="space-y-4">
+      {/* Top row: animals + participants */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <StatCard
+          title="Total Sapi"
+          value={stats.totalSapi}
+          description="ekor sapi"
+          icon={Beef}
+        />
+        <StatCard
+          title="Total Kambing"
+          value={stats.totalKambing}
+          description="ekor kambing"
+          icon={GoatIcon as any}
+        />
+        <StatCard
+          title="Total Peserta"
+          value={stats.totalPeserta}
+          description="peserta terdaftar"
+          icon={Users}
+        />
+      </div>
+
+      {/* Bottom row: Sapi card (left) + Domba card (right) */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Sapi card — LEFT */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Rekap Sapi</CardTitle>
+            <Beef className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="space-y-1">
+            <div className="text-2xl font-bold">{formatCurrency(stats.nominalSapi)}</div>
+            <p className="text-xs text-muted-foreground">nominal sapi terkumpul</p>
+            <div className="mt-2 space-y-0.5 text-xs text-muted-foreground">
+              <div className="flex justify-between">
+                <span>Total Sapi</span>
+                <span className="font-medium text-foreground">{stats.totalSapi} ekor</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Peserta</span>
+                <span className="font-medium text-foreground">{stats.pesertaSapi} orang</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Sisa Slot</span>
+                <span className="font-medium text-foreground">{stats.sisaSlotSapi}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Domba card — RIGHT */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Rekap Domba</CardTitle>
+            <GoatIcon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="space-y-1">
+            <div className="text-2xl font-bold">{formatCurrency(stats.nominalDomba)}</div>
+            <p className="text-xs text-muted-foreground">nominal domba terkumpul</p>
+            <div className="mt-2 space-y-0.5 text-xs text-muted-foreground">
+              <div className="flex justify-between">
+                <span>Total Domba</span>
+                <span className="font-medium text-foreground">{stats.totalKambing} ekor</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Peserta</span>
+                <span className="font-medium text-foreground">{stats.pesertaDomba} orang</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Sisa Slot</span>
+                <span className="font-medium text-foreground">{stats.sisaSlotDomba}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Combined nominal summary */}
+      <div className="grid grid-cols-1">
+        <StatCard
+          title="Total Nominal"
+          value={formatCurrency(stats.totalNominal)}
+          description="total nominal terkumpul (sapi + domba)"
+          icon={Wallet}
+        />
+      </div>
     </div>
   )
 }
