@@ -48,7 +48,7 @@ export interface QurbanAnimal {
   id: string
   event_id: string
   jenis: 'sapi' | 'kambing'
-  sumber_hewan: 'beli' | 'titipan'
+  sumber_hewan: 'beli' | 'titipan' | 'al_fajar'
   nomor: string
   berat_kg: number | null
   harga: number
@@ -173,6 +173,13 @@ export interface QurbanDashboardStats {
   couponsIssued: number
   couponsRedeemed: number
   perEvent: QurbanEventStats[]
+  // Per-animal-type breakdowns
+  pesertaSapi: number
+  pesertaDomba: number
+  nominalSapi: number
+  nominalDomba: number
+  sisaSlotSapi: number
+  sisaSlotDomba: number
 }
 
 export interface QurbanEventStats {

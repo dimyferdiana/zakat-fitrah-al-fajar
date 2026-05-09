@@ -127,7 +127,7 @@ export function AnimalDetailDialog({
                   {animal.jenis === 'sapi' ? 'Sapi' : 'Kambing'}
                 </Badge>
                 <Badge variant="secondary">
-                  {animal.sumber_hewan === 'beli' ? 'Beli' : 'Titipan'}
+                  {animal.sumber_hewan === 'beli' ? 'Beli' : animal.sumber_hewan === 'titipan' ? 'Titipan' : 'Al Fajar'}
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground">

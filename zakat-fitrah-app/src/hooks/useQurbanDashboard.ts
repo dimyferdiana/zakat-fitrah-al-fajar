@@ -16,7 +16,7 @@ export function useQurbanDashboardStats(eventId?: string | null) {
       // 2. Shares (peserta + nominal)
       let sharesQ = supabase
         .from('qurban_shares')
-        .select('id, nominal, status_pembayaran, qurban_animals!inner(event_id)')
+        .select('id, nominal, status_pembayaran, qurban_animals!inner(event_id, jenis)')
       if (eventId) sharesQ = sharesQ.eq('qurban_animals.event_id', eventId)
       const { data: shares } = await sharesQ
       const shareList = (shares || []) as any[]
@@ -24,6 +24,16 @@ export function useQurbanDashboardStats(eventId?: string | null) {
       const totalNominal = shareList.reduce((s, r) => s + (r.nominal ?? 0), 0)
       const lunasShares = shareList.filter(r => r.status_pembayaran === 'lunas')
       const belumShares = shareList.filter(r => r.status_pembayaran === 'belum_bayar')
+
+      // Per-animal-type share breakdowns
+      const sapiShares = shareList.filter(r => r.qurban_animals?.jenis === 'sapi')
+      const kambingShares = shareList.filter(r => r.qurban_animals?.jenis === 'kambing')
+      const pesertaSapi = sapiShares.length
+      const pesertaDomba = kambingShares.length
+      const nominalSapi = sapiShares.reduce((s: number, r: any) => s + (r.nominal ?? 0), 0)
+      const nominalDomba = kambingShares.reduce((s: number, r: any) => s + (r.nominal ?? 0), 0)
+      const sisaSlotSapi = totalSapi * 7 - pesertaSapi
+      const sisaSlotDomba = totalKambing * 1 - pesertaDomba
 
       // 3. Coupons
       let couponsQ = supabase.from('qurban_coupons').select('status, event_id')
@@ -65,6 +75,12 @@ export function useQurbanDashboardStats(eventId?: string | null) {
         couponsIssued: couponList.length,
         couponsRedeemed: couponList.filter(c => c.status === 'redeemed').length,
         perEvent,
+        pesertaSapi,
+        pesertaDomba,
+        nominalSapi,
+        nominalDomba,
+        sisaSlotSapi,
+        sisaSlotDomba,
       }
     },
   })

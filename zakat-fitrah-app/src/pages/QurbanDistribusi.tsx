@@ -323,7 +323,7 @@ export function QurbanDistribusi() {
             <p className="text-sm text-muted-foreground">Kelola distribusi kupon qurban untuk mustahik</p>
           </div>
           {selectedEventId && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
               <Button
                 variant="outline"
                 size="sm"

@@ -76,7 +76,7 @@ function useQurbanEventCounts() {
 
 export function QurbanEvents() {
   const { hasRole } = useAuth()
-  const isAdmin = hasRole(['admin'])
+  const isAdmin = hasRole(['admin', 'petugas'])
 
   const { data: events, isLoading } = useQurbanEventList()
   const { data: counts } = useQurbanEventCounts()

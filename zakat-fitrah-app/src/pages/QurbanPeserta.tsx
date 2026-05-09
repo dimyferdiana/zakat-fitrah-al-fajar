@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Users, MoreVertical, ChevronLeft, ChevronRight, FileText, Trash2, CreditCard, Ticket } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Users, MoreVertical, ChevronLeft, ChevronRight, FileText, Trash2, CreditCard, Ticket, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { addDays } from 'date-fns'
 
@@ -49,6 +50,7 @@ import { useQurbanEventList } from '@/hooks/useQurbanEvents'
 import { useQurbanShareListFlat, useUpdateSharePayment, useRemoveQurbanShare } from '@/hooks/useQurbanShares'
 import { useGenerateMuzakkiCoupon } from '@/hooks/useQurbanCoupons'
 import { downloadQurbanShareReceipt } from '@/components/qurban/BuktiQurban'
+import { AddPesertaDialog } from '@/components/qurban/AddPesertaDialog'
 import type { QurbanShareFlat } from '@/types/qurban'
 import type { QurbanAnimal, QurbanEvent } from '@/types/qurban'
 
@@ -103,8 +105,9 @@ async function fetchAnimalAndEvent(animalId: string): Promise<{ animal: QurbanAn
 
 export function QurbanPeserta() {
   const { hasRole } = useAuth()
-  const isAdmin = hasRole(['admin'])
+  const isAdmin = hasRole(['admin', 'petugas'])
   const canWrite = hasRole(['admin', 'petugas'])
+  const queryClient = useQueryClient()
 
   const { data: events } = useQurbanEventList()
 
@@ -120,6 +123,7 @@ export function QurbanPeserta() {
   const [shareToDelete, setShareToDelete] = useState<QurbanShareFlat | null>(null)
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false)
   const [shareToTogglePayment, setShareToTogglePayment] = useState<QurbanShareFlat | null>(null)
+  const [showAddPeserta, setShowAddPeserta] = useState(false)
 
   // Debounce search
   useEffect(() => {
@@ -265,6 +269,16 @@ export function QurbanPeserta() {
               onChange={(e) => setSearchInput(e.target.value)}
               className="w-full md:w-[240px]"
             />
+
+            {canWrite && (
+              <Button
+                onClick={() => setShowAddPeserta(true)}
+                className="w-full md:w-auto md:ml-auto"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Tambah Peserta
+              </Button>
+            )}
           </div>
 
           {isLoading && <LoadingSpinner text="Memuat peserta..." />}
@@ -502,6 +516,16 @@ export function QurbanPeserta() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add Peserta Dialog */}
+      <AddPesertaDialog
+        open={showAddPeserta}
+        onOpenChange={setShowAddPeserta}
+        eventId={selectedEventId !== 'all' ? selectedEventId : undefined}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['qurban-shares-flat'] })
+        }}
+      />
     </div>
   )
 }
