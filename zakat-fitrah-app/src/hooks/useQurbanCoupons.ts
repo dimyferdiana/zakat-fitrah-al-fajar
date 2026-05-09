@@ -132,20 +132,10 @@ export function useGenerateMustahikCoupons() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      // Find mustahik who already have a coupon for this event to skip them
-      const { data: existing } = await supabase
-        .from('qurban_coupons')
-        .select('recipient_id')
-        .eq('event_id', eventId)
-        .eq('recipient_type', 'mustahik')
-        .in('recipient_id', mustahikIds)
+      if (mustahikIds.length === 0) return []
 
-      const existingIds = new Set((existing || []).map((r) => r.recipient_id))
-      const newIds = mustahikIds.filter((id) => !existingIds.has(id))
-
-      if (newIds.length === 0) return []
-
-      const rows = newIds.map((mustahikId) => ({
+      // All selected IDs receive a coupon — duplicates are allowed (unique index was dropped)
+      const rows = mustahikIds.map((mustahikId) => ({
         event_id: eventId,
         recipient_type: 'mustahik' as const,
         recipient_id: mustahikId,
