@@ -14,6 +14,9 @@ import {
   Landmark,
   Beef,
   ChevronsUpDown,
+  Heart,
+  UserCog,
+  Settings2,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import type { UserRole } from '@/types/database.types'
@@ -176,6 +179,36 @@ const qurbanNavSections: NavSection[] = [
   },
 ]
 
+const dataMasterNavSections: NavSection[] = [
+  {
+    title: 'Data Master',
+    items: [
+      {
+        label: 'Warga',
+        path: '/data-master/warga',
+        icon: Users,
+      },
+      {
+        label: 'Mustahik',
+        path: '/data-master/mustahik',
+        icon: Heart,
+      },
+      {
+        label: 'Pengguna',
+        path: '/data-master/pengguna',
+        icon: UserCog,
+        roles: ['admin'],
+      },
+      {
+        label: 'Pengaturan UPZ',
+        path: '/data-master/upz-settings',
+        icon: Settings2,
+        roles: ['admin'],
+      },
+    ],
+  },
+]
+
 export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
@@ -187,7 +220,10 @@ export function AppLayout({ children }: AppLayoutProps) {
     navigate('/login')
   }
 
-  const allNavSections = activeApp === 'zakat' ? zakatNavSections : qurbanNavSections
+  const allNavSections =
+    activeApp === 'zakat' ? zakatNavSections :
+    activeApp === 'qurban' ? qurbanNavSections :
+    dataMasterNavSections
 
   const filteredNavSections = allNavSections
     .map((section) => ({

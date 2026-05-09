@@ -31,6 +31,10 @@ const SedekahReceipt = lazy(() => import('@/pages/SedekahReceipt'));
 const SuratPengantar = lazy(() => import('@/pages/SuratPengantar'));
 const AccountsManagement = lazy(() => import('@/pages/AccountsManagement'));
 const Qurban = lazy(() => import('@/pages/Qurban'));
+const DataMasterWarga = lazy(() => import('@/pages/DataMasterWarga').then(m => ({ default: m.DataMasterWarga })));
+const DataMasterMustahik = lazy(() => import('@/pages/DataMasterMustahik').then(m => ({ default: m.DataMasterMustahik })));
+const DataMasterPengguna = lazy(() => import('@/pages/DataMasterPengguna').then(m => ({ default: m.DataMasterPengguna })));
+const DataMasterUPZSettings = lazy(() => import('@/pages/DataMasterUPZSettings').then(m => ({ default: m.DataMasterUPZSettings })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -199,6 +203,47 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/data-master/warga"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <DataMasterWarga />
+                    </AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/data-master/mustahik"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout>
+                      <DataMasterMustahik />
+                    </AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/data-master/pengguna"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AppLayout>
+                      <DataMasterPengguna />
+                    </AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/data-master/upz-settings"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AppLayout>
+                      <DataMasterUPZSettings />
+                    </AppLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/data-master" element={<Navigate to="/data-master/warga" replace />} />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </Suspense>

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronsUpDown, Check, Wheat, Beef } from 'lucide-react'
+import { ChevronsUpDown, Check, Wheat, Beef, Database } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +17,7 @@ import {
 import { useAppStore } from '@/store/appStore'
 import { BRANDING } from '@/lib/branding'
 
-type AppMode = 'zakat' | 'qurban'
+type AppMode = 'zakat' | 'qurban' | 'data-master'
 
 interface AppConfig {
   mode: AppMode
@@ -41,6 +41,13 @@ const apps: AppConfig[] = [
     description: 'Manajemen Qurban',
     icon: Beef,
     defaultPath: '/qurban',
+  },
+  {
+    mode: 'data-master',
+    name: 'Data Master',
+    description: 'Manajemen Data Induk',
+    icon: Database,
+    defaultPath: '/data-master/warga',
   },
 ]
 
