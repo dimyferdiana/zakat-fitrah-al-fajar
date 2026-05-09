@@ -882,3 +882,71 @@ export function usePembayaranDetail(id: string | null) {
     enabled: !!id,
   });
 }
+
+export interface MuzakkiZakatHistory {
+  id: string;
+  tanggal_bayar: string;
+  jenis_zakat: 'beras' | 'uang';
+  jumlah_jiwa: number;
+  jumlah_beras_kg: number | null;
+  jumlah_uang_rp: number | null;
+}
+
+export interface MuzakkiQurbanHistory {
+  id: string;
+  event_nama: string;
+  animal_nomor: string;
+  animal_jenis: string;
+  status_pembayaran: string;
+  nominal: number;
+}
+
+export interface MuzakkiHistory {
+  zakat: MuzakkiZakatHistory[];
+  qurban: MuzakkiQurbanHistory[];
+}
+
+export function useMuzakkiHistory(muzakkiId: string | null) {
+  return useQuery({
+    queryKey: ['muzakki-history', muzakkiId],
+    queryFn: async (): Promise<MuzakkiHistory> => {
+      if (!muzakkiId) return { zakat: [], qurban: [] };
+
+      const [zakatResult, qurbanResult] = await Promise.all([
+        supabase
+          .from('pembayaran_zakat')
+          .select('id, tanggal_bayar, jenis_zakat, jumlah_jiwa, jumlah_beras_kg, jumlah_uang_rp')
+          .eq('muzakki_id', muzakkiId)
+          .order('tanggal_bayar', { ascending: false }),
+        supabase
+          .from('qurban_shares')
+          .select('id, status_pembayaran, nominal, qurban_animals(nomor, jenis, qurban_events(nama))')
+          .eq('muzakki_id', muzakkiId)
+          .order('created_at', { ascending: false }),
+      ]);
+
+      if (zakatResult.error) throw zakatResult.error;
+
+      const zakat: MuzakkiZakatHistory[] = (zakatResult.data || []).map((r: any) => ({
+        id: r.id,
+        tanggal_bayar: r.tanggal_bayar,
+        jenis_zakat: r.jenis_zakat,
+        jumlah_jiwa: r.jumlah_jiwa,
+        jumlah_beras_kg: r.jumlah_beras_kg,
+        jumlah_uang_rp: r.jumlah_uang_rp,
+      }));
+
+      const qurban: MuzakkiQurbanHistory[] = (qurbanResult.data || []).map((r: any) => ({
+        id: r.id,
+        event_nama: r.qurban_animals?.qurban_events?.nama ?? '-',
+        animal_nomor: r.qurban_animals?.nomor ?? '-',
+        animal_jenis: r.qurban_animals?.jenis ?? '-',
+        status_pembayaran: r.status_pembayaran,
+        nominal: r.nominal ?? 0,
+      }));
+
+      return { zakat, qurban };
+    },
+    enabled: !!muzakkiId,
+  });
+}
