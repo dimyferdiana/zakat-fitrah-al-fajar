@@ -230,7 +230,13 @@ export function AddPesertaDialog({
                     ) : (
                       <Select
                         value={field.value}
-                        onValueChange={field.onChange}
+                        onValueChange={(val) => {
+                          field.onChange(val)
+                          const slot = availableSlots.find((s) => s.id === val)
+                          if (slot && slot.harga_per_peserta > 0) {
+                            form.setValue('nominal', slot.harga_per_peserta, { shouldValidate: true })
+                          }
+                        }}
                         disabled={isSlotsLoading || noSlotsAvailable}
                       >
                         <SelectTrigger>
