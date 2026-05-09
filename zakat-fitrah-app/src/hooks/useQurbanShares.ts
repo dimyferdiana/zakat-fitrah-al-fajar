@@ -192,6 +192,51 @@ export function useMuzakkiSearch(query: string) {
   })
 }
 
+// ---- Available animal slots (for AddPesertaDialog) ----
+
+export interface AvailableAnimalSlot {
+  id: string
+  nomor: string
+  jenis: 'sapi' | 'kambing'
+  event_id: string
+  sisa_slot: number
+}
+
+export function useAvailableAnimalSlots(eventId?: string) {
+  return useQuery({
+    queryKey: ['qurban_available_slots', eventId],
+    queryFn: async (): Promise<AvailableAnimalSlot[]> => {
+      let query = supabase
+        .from('qurban_animals')
+        .select('id, nomor, jenis, event_id, qurban_shares(count)')
+
+      if (eventId) {
+        query = query.eq('event_id', eventId)
+      }
+
+      const { data, error } = await query
+
+      if (error) throw error
+
+      const slots: AvailableAnimalSlot[] = (data || [])
+        .map((animal: any) => {
+          const maxSlots = getMaxSlots(animal.jenis as 'sapi' | 'kambing')
+          const assignedCount = animal.qurban_shares?.[0]?.count ?? 0
+          return {
+            id: animal.id,
+            nomor: animal.nomor,
+            jenis: animal.jenis as 'sapi' | 'kambing',
+            event_id: animal.event_id,
+            sisa_slot: maxSlots - assignedCount,
+          }
+        })
+        .filter((slot) => slot.sisa_slot > 0)
+
+      return slots
+    },
+  })
+}
+
 // ---- Flat list for Daftar Peserta page ----
 export function useQurbanShareListFlat(params: QurbanShareListParams) {
   const { eventId, status, search, page = 1, pageSize = 20 } = params
