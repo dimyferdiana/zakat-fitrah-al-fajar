@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Pencil, Trash2, CalendarDays } from 'lucide-react'
+import { Plus, CalendarDays } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,12 +19,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { QurbanEventDialog } from '@/components/qurban/QurbanEventDialog'
 import { AnimalForm } from '@/components/qurban/AnimalForm'
 import { AnimalGrid } from '@/components/qurban/AnimalGrid'
 import { AnimalDetailDialog } from '@/components/qurban/AnimalDetailDialog'
-import type { QurbanEvent, QurbanAnimal } from '@/types/qurban'
-import { useQurbanEventList, useDeleteQurbanEvent } from '@/hooks/useQurbanEvents'
+import type { QurbanAnimal } from '@/types/qurban'
+import { useQurbanEventList } from '@/hooks/useQurbanEvents'
 import { useQurbanAnimalList, useDeleteQurbanAnimal } from '@/hooks/useQurbanAnimals'
 import { useAuth } from '@/lib/auth'
 
@@ -34,13 +33,8 @@ export default function Qurban() {
 
   // --- Events ---
   const { data: events = [], isLoading: eventsLoading } = useQurbanEventList()
-  const deleteEventMutation = useDeleteQurbanEvent()
 
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
-  const [eventDialogOpen, setEventDialogOpen] = useState(false)
-  const [editingEvent, setEditingEvent] = useState<QurbanEvent | null>(null)
-  const [deleteEventOpen, setDeleteEventOpen] = useState(false)
-  const [deletingEvent, setDeletingEvent] = useState<QurbanEvent | null>(null)
 
   // Resolve selected event: use first event if selectedEventId is null/unset
   const selectedEvent =
@@ -60,42 +54,6 @@ export default function Qurban() {
   // --- Selected animal (for detail dialog) ---
   const [selectedAnimal, setSelectedAnimal] = useState<QurbanAnimal | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
-
-  // --- Event handlers ---
-  const handleCreateEvent = () => {
-    setEditingEvent(null)
-    setEventDialogOpen(true)
-  }
-
-  const handleEditEvent = () => {
-    if (!selectedEvent) return
-    setEditingEvent(selectedEvent)
-    setEventDialogOpen(true)
-  }
-
-  const handleDeleteEventClick = () => {
-    if (!selectedEvent) return
-    setDeletingEvent(selectedEvent)
-    setDeleteEventOpen(true)
-  }
-
-  const handleDeleteEventConfirm = async () => {
-    if (!deletingEvent) return
-    try {
-      await deleteEventMutation.mutateAsync(deletingEvent.id)
-      setSelectedEventId(null)
-      toast.success('Event berhasil dihapus')
-    } catch (err) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : 'Gagal menghapus event. Pastikan tidak ada hewan yang terdaftar.'
-      )
-    } finally {
-      setDeleteEventOpen(false)
-      setDeletingEvent(null)
-    }
-  }
 
   // --- Animal handlers ---
   const handleAddAnimal = () => {
@@ -171,14 +129,8 @@ export default function Qurban() {
           <CalendarDays className="h-16 w-16 text-muted-foreground mb-4" />
           <h2 className="text-lg font-semibold mb-2">Belum Ada Event Qurban</h2>
           <p className="text-muted-foreground mb-6 max-w-sm">
-            Buat event qurban terlebih dahulu sebelum menambahkan hewan dan peserta.
+            Tambahkan event qurban terlebih dahulu melalui halaman Event sebelum menambahkan hewan dan peserta.
           </p>
-          {canWrite && (
-            <Button onClick={handleCreateEvent}>
-              <Plus className="mr-2 h-4 w-4" />
-              Buat Event Pertama
-            </Button>
-          )}
         </div>
       ) : (
         <>
@@ -201,36 +153,6 @@ export default function Qurban() {
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Event actions */}
-            {canWrite && selectedEvent && (
-              <>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleEditEvent}
-                  title="Edit event"
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleDeleteEventClick}
-                  title="Hapus event"
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </>
-            )}
-
-            {canWrite && (
-              <Button variant="outline" onClick={handleCreateEvent}>
-                <Plus className="mr-2 h-4 w-4" />
-                Buat Event
-              </Button>
-            )}
 
             {/* Add animal button — right side */}
             {canWrite && selectedEvent && (
@@ -267,13 +189,6 @@ export default function Qurban() {
 
       {/* --- Dialogs --- */}
 
-      {/* Event create/edit dialog */}
-      <QurbanEventDialog
-        open={eventDialogOpen}
-        onOpenChange={setEventDialogOpen}
-        initialData={editingEvent}
-      />
-
       {/* Animal create/edit form */}
       {selectedEvent && (
         <AnimalForm
@@ -284,28 +199,6 @@ export default function Qurban() {
           existingAnimals={existingAnimals}
         />
       )}
-
-      {/* Delete event confirmation */}
-      <AlertDialog open={deleteEventOpen} onOpenChange={setDeleteEventOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Event?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Event <strong>{deletingEvent?.nama}</strong> akan dihapus permanen. Pastikan
-              tidak ada hewan yang terdaftar pada event ini.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteEventConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Hapus
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Delete animal confirmation */}
       <AlertDialog open={deleteAnimalOpen} onOpenChange={setDeleteAnimalOpen}>
