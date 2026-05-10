@@ -108,6 +108,7 @@ export function DataMasterWarga() {
                 <TableRow>
                   <TableHead className="w-12">No.</TableHead>
                   <TableHead>Nama KK</TableHead>
+                  <TableHead className="hidden lg:table-cell">NIK</TableHead>
                   <TableHead className="hidden sm:table-cell">Alamat</TableHead>
                   <TableHead className="hidden md:table-cell">No. Telp</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
@@ -116,7 +117,7 @@ export function DataMasterWarga() {
               <TableBody>
                 {!data?.data.length ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       {debouncedSearch ? 'Tidak ada hasil yang cocok.' : 'Belum ada data warga.'}
                     </TableCell>
                   </TableRow>
@@ -127,6 +128,7 @@ export function DataMasterWarga() {
                         {(page - 1) * PAGE_SIZE + idx + 1}
                       </TableCell>
                       <TableCell className="font-medium">{warga.nama_kk}</TableCell>
+                      <TableCell className="hidden lg:table-cell text-sm text-muted-foreground font-mono">{warga.nik ?? '-'}</TableCell>
                       <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{warga.alamat}</TableCell>
                       <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{warga.no_telp ?? '-'}</TableCell>
                       <TableCell>
