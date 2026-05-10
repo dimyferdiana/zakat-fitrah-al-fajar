@@ -61,13 +61,20 @@ export interface MuzakkiMaster {
   nama_kk: string;
   alamat: string;
   no_telp: string | null;
+  nik: string | null;
+  rt: string | null;
+  rw: string | null;
+  jenis_kelamin: 'laki-laki' | 'perempuan' | null;
+  tanggal_lahir: string | null;
+  keterangan: string | null;
+  user_id: string | null;
 }
 
 interface MuzakkiListParams {
   search?: string;
   page?: number;
   pageSize?: number;
-  sortBy?: keyof MuzakkiMaster;
+  sortBy?: 'nama_kk' | 'alamat' | 'no_telp' | 'nik' | 'created_at';
   sortOrder?: 'asc' | 'desc';
 }
 
@@ -75,6 +82,12 @@ interface CreateMuzakkiInput {
   nama_kk: string;
   alamat: string;
   no_telp?: string;
+  nik?: string;
+  rt?: string;
+  rw?: string;
+  jenis_kelamin?: 'laki-laki' | 'perempuan';
+  tanggal_lahir?: string;
+  keterangan?: string;
 }
 
 interface UpdateMuzakkiInput extends CreateMuzakkiInput {
@@ -86,6 +99,12 @@ export async function createMuzakkiRecord(input: CreateMuzakkiInput): Promise<Mu
     nama_kk: input.nama_kk,
     alamat: input.alamat,
     no_telp: input.no_telp || null,
+    nik: input.nik || null,
+    rt: input.rt || null,
+    rw: input.rw || null,
+    jenis_kelamin: input.jenis_kelamin || null,
+    tanggal_lahir: input.tanggal_lahir || null,
+    keterangan: input.keterangan || null,
   }).select().single();
 
   if (error) throw error;
@@ -97,6 +116,12 @@ export async function updateMuzakkiRecord(input: UpdateMuzakkiInput): Promise<Mu
     nama_kk: input.nama_kk,
     alamat: input.alamat,
     no_telp: input.no_telp || null,
+    nik: input.nik || null,
+    rt: input.rt || null,
+    rw: input.rw || null,
+    jenis_kelamin: input.jenis_kelamin || null,
+    tanggal_lahir: input.tanggal_lahir || null,
+    keterangan: input.keterangan || null,
     updated_at: new Date().toISOString(),
   }).eq('id', input.id).select().single();
 
@@ -146,8 +171,8 @@ export function useMuzakkiList(params: MuzakkiListParams) {
         const sortBy = params.sortBy || 'nama_kk';
         const sortOrder = params.sortOrder || 'asc';
         items = [...items].sort((a, b) => {
-          const left = String(a[sortBy] ?? '');
-          const right = String(b[sortBy] ?? '');
+          const left = String((a as unknown as Record<string, unknown>)[sortBy] ?? '');
+          const right = String((b as unknown as Record<string, unknown>)[sortBy] ?? '');
           return sortOrder === 'asc' ? left.localeCompare(right) : right.localeCompare(left);
         });
 
@@ -158,12 +183,12 @@ export function useMuzakkiList(params: MuzakkiListParams) {
         const to = from + pageSize;
 
         return {
-          data: items.slice(from, to),
+          data: items.slice(from, to) as unknown as MuzakkiMaster[],
           count,
         };
       }
 
-      let query = supabase.from('muzakki').select('id, nama_kk, alamat, no_telp', { count: 'exact' });
+      let query = (supabase as any).from('muzakki').select('id, nama_kk, alamat, no_telp, nik, rt, rw, jenis_kelamin, tanggal_lahir, keterangan, user_id', { count: 'exact' });
 
       if (params.search) {
         query = query.or(
@@ -185,7 +210,7 @@ export function useMuzakkiList(params: MuzakkiListParams) {
       if (error) throw error;
 
       return {
-        data: (data || []) as MuzakkiMaster[],
+        data: (data || []) as unknown as MuzakkiMaster[],
         count: count || 0,
       };
     },

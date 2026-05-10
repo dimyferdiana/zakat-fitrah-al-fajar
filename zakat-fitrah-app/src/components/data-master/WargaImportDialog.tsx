@@ -18,6 +18,12 @@ interface ParsedRow {
   nama_kk: string
   alamat: string
   no_telp?: string
+  nik?: string
+  rt?: string
+  rw?: string
+  jenis_kelamin?: string
+  tanggal_lahir?: string
+  keterangan?: string
   error?: string
 }
 
@@ -30,10 +36,20 @@ function validateRow(raw: Record<string, string>): ParsedRow {
   const nama_kk = (raw['nama_kk'] || raw['Nama KK'] || raw['nama'] || '').trim()
   const alamat = (raw['alamat'] || raw['Alamat'] || '').trim()
   const no_telp = (raw['no_telp'] || raw['No Telp'] || raw['no_hp'] || '').trim() || undefined
+  const nik = (raw['nik'] || raw['NIK'] || '').trim() || undefined
+  const rt = (raw['rt'] || raw['RT'] || '').trim() || undefined
+  const rw = (raw['rw'] || raw['RW'] || '').trim() || undefined
+  const jenis_kelamin = (raw['jenis_kelamin'] || raw['Jenis Kelamin'] || '').trim().toLowerCase() || undefined
+  const tanggal_lahir = (raw['tanggal_lahir'] || raw['Tanggal Lahir'] || '').trim() || undefined
+  const keterangan = (raw['keterangan'] || raw['Keterangan'] || '').trim() || undefined
 
-  if (!nama_kk) return { nama_kk, alamat, no_telp, error: 'Nama KK wajib diisi' }
-  if (!alamat) return { nama_kk, alamat, no_telp, error: 'Alamat wajib diisi' }
-  return { nama_kk, alamat, no_telp }
+  if (!nama_kk) return { nama_kk, alamat, no_telp, nik, rt, rw, jenis_kelamin, tanggal_lahir, keterangan, error: 'Nama KK wajib diisi' }
+  if (!alamat) return { nama_kk, alamat, no_telp, nik, rt, rw, jenis_kelamin, tanggal_lahir, keterangan, error: 'Alamat wajib diisi' }
+  if (nik && !/^\d{16}$/.test(nik)) return { nama_kk, alamat, no_telp, nik, rt, rw, jenis_kelamin, tanggal_lahir, keterangan, error: 'NIK harus 16 digit' }
+  if (jenis_kelamin && !['laki-laki', 'perempuan', 'l', 'p'].includes(jenis_kelamin)) {
+    return { nama_kk, alamat, no_telp, nik, rt, rw, jenis_kelamin, tanggal_lahir, keterangan, error: 'Jenis kelamin tidak valid' }
+  }
+  return { nama_kk, alamat, no_telp, nik, rt, rw, jenis_kelamin, tanggal_lahir, keterangan }
 }
 
 export function WargaImportDialog({ open, onOpenChange }: WargaImportDialogProps) {
@@ -76,12 +92,26 @@ export function WargaImportDialog({ open, onOpenChange }: WargaImportDialogProps
     }
   }
 
+  const normalizeJenisKelamin = (v?: string): 'laki-laki' | 'perempuan' | null => {
+    if (!v) return null
+    if (v === 'l') return 'laki-laki'
+    if (v === 'p') return 'perempuan'
+    if (v === 'laki-laki' || v === 'perempuan') return v
+    return null
+  }
+
   const handleImport = async () => {
     setIsImporting(true)
     const toInsert = validRows.map((r) => ({
       nama_kk: r.nama_kk,
       alamat: r.alamat,
       no_telp: r.no_telp || null,
+      nik: r.nik || null,
+      rt: r.rt || null,
+      rw: r.rw || null,
+      jenis_kelamin: normalizeJenisKelamin(r.jenis_kelamin),
+      tanggal_lahir: r.tanggal_lahir || null,
+      keterangan: r.keterangan || null,
     }))
 
     const { error } = await supabase.from('muzakki').insert(toInsert as any)
@@ -115,7 +145,8 @@ export function WargaImportDialog({ open, onOpenChange }: WargaImportDialogProps
         {step === 'upload' && (
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
-              Upload file CSV atau Excel dengan kolom: <code className="bg-muted px-1 rounded">nama_kk</code>, <code className="bg-muted px-1 rounded">alamat</code>, <code className="bg-muted px-1 rounded">no_telp</code> (opsional)
+              Upload file CSV atau Excel dengan kolom: <code className="bg-muted px-1 rounded">nama_kk</code>, <code className="bg-muted px-1 rounded">alamat</code> (wajib);
+              opsional: <code className="bg-muted px-1 rounded">nik</code>, <code className="bg-muted px-1 rounded">no_telp</code>, <code className="bg-muted px-1 rounded">rt</code>, <code className="bg-muted px-1 rounded">rw</code>, <code className="bg-muted px-1 rounded">jenis_kelamin</code>, <code className="bg-muted px-1 rounded">tanggal_lahir</code>, <code className="bg-muted px-1 rounded">keterangan</code>
             </p>
             <div
               className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:bg-muted/40 transition-colors"

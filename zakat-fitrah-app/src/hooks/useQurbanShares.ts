@@ -200,6 +200,7 @@ export interface AvailableAnimalSlot {
   jenis: 'sapi' | 'kambing'
   event_id: string
   sisa_slot: number
+  harga_per_peserta: number
 }
 
 export function useAvailableAnimalSlots(eventId?: string) {
@@ -208,7 +209,7 @@ export function useAvailableAnimalSlots(eventId?: string) {
     queryFn: async (): Promise<AvailableAnimalSlot[]> => {
       let query = supabase
         .from('qurban_animals')
-        .select('id, nomor, jenis, event_id, qurban_shares(count)')
+        .select('id, nomor, jenis, event_id, harga, qurban_shares(count)')
 
       if (eventId) {
         query = query.eq('event_id', eventId)
@@ -222,12 +223,15 @@ export function useAvailableAnimalSlots(eventId?: string) {
         .map((animal: any) => {
           const maxSlots = getMaxSlots(animal.jenis as 'sapi' | 'kambing')
           const assignedCount = animal.qurban_shares?.[0]?.count ?? 0
+          const harga = animal.harga ?? 0
+          const divisor = animal.jenis === 'sapi' ? 7 : 1
           return {
             id: animal.id,
             nomor: animal.nomor,
             jenis: animal.jenis as 'sapi' | 'kambing',
             event_id: animal.event_id,
             sisa_slot: maxSlots - assignedCount,
+            harga_per_peserta: divisor > 0 ? Math.round(harga / divisor) : 0,
           }
         })
         .filter((slot) => slot.sisa_slot > 0)
