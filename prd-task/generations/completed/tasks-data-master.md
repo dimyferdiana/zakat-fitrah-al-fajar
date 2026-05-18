@@ -42,14 +42,14 @@ Update the file after completing each sub-task, not just after completing an ent
 
 ## Tasks
 
-- [ ] 0.0 Create feature branch
-  - [ ] 0.1 Create and checkout a new branch: `git checkout -b feature/data-master`
+- [x] 0.0 Create feature branch
+  - [x] 0.1 Create and checkout a new branch: `git checkout -b feature/data-master`
 
 ---
 
 - [ ] 1.0 Add Data Master to app switcher, sidebar, and router
-  - [ ] 1.1 Open `src/store/appStore.ts`. Change `type AppMode = 'zakat' | 'qurban'` to `type AppMode = 'zakat' | 'qurban' | 'data-master'`. This is the only change needed in this file.
-  - [ ] 1.2 Open `src/components/layouts/AppSwitcher.tsx`. Add `Database` to the lucide-react import. Add a third entry to the `apps` array:
+  - [x] 1.1 Open `src/store/appStore.ts`. Change `type AppMode = 'zakat' | 'qurban'` to `type AppMode = 'zakat' | 'qurban' | 'data-master'`. This is the only change needed in this file.
+  - [x] 1.2 Open `src/components/layouts/AppSwitcher.tsx`. Add `Database` to the lucide-react import. Add a third entry to the `apps` array:
     ```ts
     {
       mode: 'data-master',
@@ -59,7 +59,7 @@ Update the file after completing each sub-task, not just after completing an ent
       defaultPath: '/data-master/warga',
     }
     ```
-  - [ ] 1.3 Open `src/components/layouts/AppLayout.tsx`. After the `qurbanNavSections` array (around line 205), add a new `dataMasterNavSections` array with these 4 items (follow the exact same `NavSection` / `NavItem` structure used by `zakatNavSections`):
+  - [x] 1.3 Open `src/components/layouts/AppLayout.tsx`. After the `qurbanNavSections` array (around line 205), add a new `dataMasterNavSections` array with these 4 items (follow the exact same `NavSection` / `NavItem` structure used by `zakatNavSections`):
     - Section title: `"Data Master"`, items:
       - Warga: path `/data-master/warga`, icon `Users`
       - Mustahik: path `/data-master/mustahik`, icon `Heart`
@@ -77,12 +77,12 @@ Update the file after completing each sub-task, not just after completing an ent
       activeApp === 'qurban' ? qurbanNavSections :
       dataMasterNavSections
     ```
-  - [ ] 1.4 Create 4 stub page files (minimal placeholder — just enough to export a component so the build passes):
+  - [x] 1.4 Create 4 stub page files (minimal placeholder — just enough to export a component so the build passes):
     - `src/pages/DataMasterWarga.tsx` → `export function DataMasterWarga() { return <div>Warga</div> }`
     - `src/pages/DataMasterMustahik.tsx` → `export function DataMasterMustahik() { return <div>Mustahik</div> }`
     - `src/pages/DataMasterPengguna.tsx` → `export function DataMasterPengguna() { return <div>Pengguna</div> }`
     - `src/pages/DataMasterUPZSettings.tsx` → `export function DataMasterUPZSettings() { return <div>UPZ Settings</div> }`
-  - [ ] 1.5 Open `src/App.tsx`. Add 4 lazy imports at the top (follow the same pattern as existing lazy imports):
+  - [x] 1.5 Open `src/App.tsx`. Add 4 lazy imports at the top (follow the same pattern as existing lazy imports):
     ```ts
     const DataMasterWarga = lazy(() => import('@/pages/DataMasterWarga').then(m => ({ default: m.DataMasterWarga })))
     const DataMasterMustahik = lazy(() => import('@/pages/DataMasterMustahik').then(m => ({ default: m.DataMasterMustahik })))
@@ -103,8 +103,8 @@ Update the file after completing each sub-task, not just after completing an ent
 ---
 
 - [ ] 2.0 DB migrations (org_settings and upz_units tables)
-  - [ ] 2.1 Read `src/lib/branding.ts` to get the current hardcoded organization values (ORGANIZATION_FULL, ADDRESS, etc.) — these will be used as seed data in the migration.
-  - [ ] 2.2 Create `zakat-fitrah-app/supabase/migrations/039_data_master_tables.sql` with the following content:
+  - [x] 2.1 Read `src/lib/branding.ts` to get the current hardcoded organization values (ORGANIZATION_FULL, ADDRESS, etc.) — these will be used as seed data in the migration.
+  - [x] 2.2 Create `zakat-fitrah-app/supabase/migrations/039_data_master_tables.sql` with the following content:
 
     ```sql
     BEGIN;
@@ -164,38 +164,38 @@ Update the file after completing each sub-task, not just after completing an ent
 ---
 
 - [ ] 3.0 Build Warga (Muzakki) management page
-  - [ ] 3.1 Read `src/hooks/useMuzakki.ts` in full to understand the existing query/mutation hooks, types (`MuzakkiMaster`, `CreateMuzakkiInput`, `UpdateMuzakkiInput`), and how pagination/search are already implemented.
-  - [ ] 3.2 Read `src/pages/Muzakki.tsx` to understand the existing page — you will build on top of the same hooks but create a richer standalone page at `/data-master/warga`.
-  - [ ] 3.3 Add a `useMuzakkiHistory(muzakkiId: string | null)` hook to `src/hooks/useMuzakki.ts`. It should run two parallel queries when `muzakkiId` is non-null:
+  - [x] 3.1 Read `src/hooks/useMuzakki.ts` in full to understand the existing query/mutation hooks, types (`MuzakkiMaster`, `CreateMuzakkiInput`, `UpdateMuzakkiInput`), and how pagination/search are already implemented.
+  - [x] 3.2 Read `src/pages/Muzakki.tsx` to understand the existing page — you will build on top of the same hooks but create a richer standalone page at `/data-master/warga`.
+  - [x] 3.3 Add a `useMuzakkiHistory(muzakkiId: string | null)` hook to `src/hooks/useMuzakki.ts`. It should run two parallel queries when `muzakkiId` is non-null:
     - Query 1: zakat records — select from `pembayaran_zakat` (or whichever table stores zakat payments) where `muzakki_id = muzakkiId`, join `tahun_zakat`. Return year, jenis_zakat, jumlah.
     - Query 2: qurban records — select from `qurban_shares` joined with `qurban_animals` and `qurban_events` where the share's `muzakki_id = muzakkiId`. Return event name, animal nomor, jenis, status_pembayaran.
-  - [ ] 3.4 Replace the stub `src/pages/DataMasterWarga.tsx` with the full implementation:
+  - [x] 3.4 Replace the stub `src/pages/DataMasterWarga.tsx` with the full implementation:
     - Page header: "Warga" title + "Tambah Warga" button + "Import CSV/Excel" button (admin only)
     - Search input (debounced) + pagination controls (reuse the pagination pattern from QurbanPeserta or existing Muzakki page)
     - Table columns: No., Nama KK, No. Telp, Alamat, Actions (Edit icon button, Delete icon button, History icon button)
     - Use `useMuzakkiList` from `useMuzakki.ts` for data fetching (check if such a hook exists — if only individual queries exist, add a paginated list query)
     - Clicking the history icon opens `WargaHistorySheet` for that warga
     - Delete button shows `AlertDialog`; if the delete fails with a foreign key constraint error, display: *"Data warga tidak dapat dihapus karena memiliki riwayat transaksi."*
-  - [ ] 3.5 Create `src/components/data-master/WargaForm.tsx` — a `Dialog` form for adding and editing a warga. Fields: Nama KK (required), No. Telp, Alamat (required), RT, RW, Keterangan. Use React Hook Form + Zod. Submit calls `useCreateMuzakki` or `useUpdateMuzakki` from `useMuzakki.ts`.
+  - [x] 3.5 Create `src/components/data-master/WargaForm.tsx` — a `Dialog` form for adding and editing a warga. Fields: Nama KK (required), No. Telp, Alamat (required), RT, RW, Keterangan. Use React Hook Form + Zod. Submit calls `useCreateMuzakki` or `useUpdateMuzakki` from `useMuzakki.ts`.
     - Note: Check if `rt`, `rw`, `keterangan` columns exist on the `muzakki` table. If they don't, only include the columns that exist (nama_kk, alamat, no_telp). Add a code comment noting the missing columns.
-  - [ ] 3.6 Create `src/components/data-master/WargaHistorySheet.tsx` — a `Sheet` (from `@/components/ui/sheet`) that receives a `muzakkiId` prop and calls `useMuzakkiHistory`. Display:
+  - [x] 3.6 Create `src/components/data-master/WargaHistorySheet.tsx` — a `Sheet` (from `@/components/ui/sheet`) that receives a `muzakkiId` prop and calls `useMuzakkiHistory`. Display:
     - Warga name as the sheet title
     - **Riwayat Zakat** section: a small table showing year, type (Beras/Uang), and amount. Show "Belum ada riwayat zakat" if empty.
     - **Riwayat Qurban** section: a small table showing event name, animal nomor, jenis (Sapi/Kambing), status pembayaran. Show "Belum ada riwayat qurban" if empty.
-  - [ ] 3.7 Check `package.json` for `papaparse` and `xlsx`. If missing, run `npm install papaparse xlsx` and `npm install -D @types/papaparse` from `zakat-fitrah-app/`.
-  - [ ] 3.8 Create `src/components/data-master/WargaImportDialog.tsx` — a `Dialog` for CSV/Excel import:
+  - [x] 3.7 Check `package.json` for `papaparse` and `xlsx`. If missing, run `npm install papaparse xlsx` and `npm install -D @types/papaparse` from `zakat-fitrah-app/`.
+  - [x] 3.8 Create `src/components/data-master/WargaImportDialog.tsx` — a `Dialog` for CSV/Excel import:
     - Step 1 (Upload): File picker for `.csv` and `.xlsx`. On file selection, parse with `papaparse` (CSV) or `xlsx` (Excel). Expected columns: `nama_kk`, `no_telp`, `alamat`, `rt`, `rw`, `keterangan` (make `nama_kk` and `alamat` required).
     - Step 2 (Preview): Show a table of parsed rows. Highlight rows with validation errors in red. Show row count: "X baris valid, Y baris gagal."
     - Step 3 (Confirm): "Import X Baris" button that batch-inserts valid rows using the Supabase client directly (or a new `useBulkCreateMuzakki` mutation). Show final success/failure summary.
-  - [ ] 3.9 Wire the "Import CSV/Excel" button in `DataMasterWarga.tsx` to open `WargaImportDialog`. On import success, invalidate the muzakki list query.
+  - [x] 3.9 Wire the "Import CSV/Excel" button in `DataMasterWarga.tsx` to open `WargaImportDialog`. On import success, invalidate the muzakki list query.
   - [ ] 3.10 Run `npm run build` and fix any TypeScript errors.
 
 ---
 
 - [ ] 4.0 Build Mustahik management page
-  - [ ] 4.1 Read `src/hooks/useMustahik.ts` in full to understand available hooks and types (especially the Mustahik type shape, CRUD mutations, and any category/kategori data).
-  - [ ] 4.2 Read `src/pages/Mustahik.tsx` to understand the existing implementation — the new Data Master page is an enhanced standalone version.
-  - [ ] 4.3 Replace the stub `src/pages/DataMasterMustahik.tsx` with the full implementation:
+  - [x] 4.1 Read `src/hooks/useMustahik.ts` in full to understand available hooks and types (especially the Mustahik type shape, CRUD mutations, and any category/kategori data).
+  - [x] 4.2 Read `src/pages/Mustahik.tsx` to understand the existing implementation — the new Data Master page is an enhanced standalone version.
+  - [x] 4.3 Replace the stub `src/pages/DataMasterMustahik.tsx` with the full implementation:
     - Page header: "Mustahik" title + "Tambah Mustahik" button
     - Search input + pagination
     - Table columns: No., Nama, Alamat, Kategori, Jumlah Anggota, No. Telp, Status (Aktif/Nonaktif badge), Actions (Edit, Delete/Nonaktifkan)
@@ -207,8 +207,8 @@ Update the file after completing each sub-task, not just after completing an ent
 ---
 
 - [ ] 5.0 Build Pengguna (User) management page
-  - [ ] 5.1 Read `src/hooks/useUsers.ts` and `src/hooks/useInvitations.ts` in full. Also read `src/pages/AccountsManagement.tsx` to understand what user management already exists — reuse as much as possible.
-  - [ ] 5.2 Replace the stub `src/pages/DataMasterPengguna.tsx` with the full implementation:
+  - [x] 5.1 Read `src/hooks/useUsers.ts` and `src/hooks/useInvitations.ts` in full. Also read `src/pages/AccountsManagement.tsx` to understand what user management already exists — reuse as much as possible.
+  - [x] 5.2 Replace the stub `src/pages/DataMasterPengguna.tsx` with the full implementation:
     - Page header: "Pengguna" title + "Undang Pengguna" button
     - Table columns: Nama, Email, Role (badge: Admin/Petugas/Viewer), Status (Aktif/Nonaktif badge), Terakhir Login, Actions
     - Use `useUsers` (or equivalent) to fetch the user list. If `last_sign_in_at` is not returned by the existing hook, update it to include this field from the auth users join.
@@ -221,14 +221,14 @@ Update the file after completing each sub-task, not just after completing an ent
 ---
 
 - [ ] 6.0 Build Pengaturan UPZ page
-  - [ ] 6.1 Create `src/hooks/useOrgSettings.ts` with the following hooks (follow the existing hook pattern with React Query):
+  - [x] 6.1 Create `src/hooks/useOrgSettings.ts` with the following hooks (follow the existing hook pattern with React Query):
     - `useOrgSettings()` — SELECT from `org_settings` where `id = 'org'`. Returns the single row.
     - `useUpdateOrgSettings()` — UPSERT mutation for `org_settings`. Invalidates `['org_settings']` on success.
     - `useUPZUnitList()` — SELECT all from `upz_units` ordered by `created_at`.
     - `useCreateUPZUnit()` — INSERT mutation. Invalidates `['upz_units']`.
     - `useUpdateUPZUnit()` — UPDATE mutation. Invalidates `['upz_units']`.
     - `useDeleteUPZUnit()` — DELETE mutation with confirmation. Invalidates `['upz_units']`.
-  - [ ] 6.2 Replace the stub `src/pages/DataMasterUPZSettings.tsx` with the full implementation. The page has two sections inside a single scrollable layout:
+  - [x] 6.2 Replace the stub `src/pages/DataMasterUPZSettings.tsx` with the full implementation. The page has two sections inside a single scrollable layout:
 
     **Section 1 — Informasi Organisasi:**
     - A `Card` containing a React Hook Form + Zod form with fields: Nama Lembaga (required), Alamat (required), No. Telp / WhatsApp, Email, Logo (image upload using the same pattern as `PhotoUpload.tsx` in the qurban module — upload to Supabase Storage bucket `org-assets`, store URL in `logo_url`).

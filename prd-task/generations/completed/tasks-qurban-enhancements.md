@@ -40,8 +40,8 @@ Update the file after completing each sub-task, not just after completing an ent
 
 ## Tasks
 
-- [ ] 0.0 Create feature branch
-  - [ ] 0.1 Create and checkout a new branch: `git checkout -b feature/qurban-enhancements`
+- [X] 0.0 Create feature branch
+  - [X] 0.1 Create and checkout a new branch: `git checkout -b feature/qurban-enhancements`
 
 ---
 
@@ -65,22 +65,22 @@ Update the file after completing each sub-task, not just after completing an ent
 
 ---
 
-- [ ] 3.0 Add "Tambah Peserta" form with slot picker on `/qurban/peserta`
-  - [ ] 3.1 In `src/hooks/useQurbanShares.ts`, add a new query hook `useAvailableAnimalSlots(eventId?)` that fetches `qurban_animals` joined with the count of assigned shares, filtered to animals where `assigned_count < max_slots`. Return each animal's `id`, `nomor`, `jenis`, and remaining slot count. If no `eventId` is provided, fetch across all active events.
-  - [ ] 3.2 Create `src/components/qurban/AddPesertaDialog.tsx`. Build a modal dialog using `Dialog` from `@/components/ui/dialog` with a form (React Hook Form + Zod) containing:
+- [X] 3.0 Add "Tambah Peserta" form with slot picker on `/qurban/peserta`
+  - [X] 3.1 In `src/hooks/useQurbanShares.ts`, add a new query hook `useAvailableAnimalSlots(eventId?)` that fetches `qurban_animals` joined with the count of assigned shares, filtered to animals where `assigned_count < max_slots`. Return each animal's `id`, `nomor`, `jenis`, and remaining slot count. If no `eventId` is provided, fetch across all active events.
+  - [X] 3.2 Create `src/components/qurban/AddPesertaDialog.tsx`. Build a modal dialog using `Dialog` from `@/components/ui/dialog` with a form (React Hook Form + Zod) containing:
     - A searchable select/combobox for **Muzakki** (search warga by name).
     - A **Slot** dropdown (using `Select` from `@/components/ui/select`) populated by `useAvailableAnimalSlots`. Each option displays: `{nomor_hewan} — {jenis} ({sisa_slot} slot tersisa)`.
     - A **Status Pembayaran** toggle: `belum_bayar` (default) or `lunas`.
-  - [ ] 3.3 In `AddPesertaDialog.tsx`, handle the empty-slots state: if `useAvailableAnimalSlots` returns an empty array, disable the submit button and show the message *"Tidak ada slot tersedia"* inside the dialog.
-  - [ ] 3.4 Wire the form submit to call the existing `useAssignQurbanShare` mutation (from `useQurbanShares.ts`). On success, call `onSuccess()` callback to close the dialog and invalidate the shares list query so the table refreshes.
-  - [ ] 3.5 In `src/pages/QurbanPeserta.tsx`, import `AddPesertaDialog`. Add a **"Tambah Peserta"** button near the top of the page (next to filters). The button opens `AddPesertaDialog` by setting a boolean `open` state to `true`.
+  - [X] 3.3 In `AddPesertaDialog.tsx`, handle the empty-slots state: if `useAvailableAnimalSlots` returns an empty array, disable the submit button and show the message *"Tidak ada slot tersedia"* inside the dialog.
+  - [X] 3.4 Wire the form submit to call the existing `useAssignQurbanShare` mutation (from `useQurbanShares.ts`). On success, call `onSuccess()` callback to close the dialog and invalidate the shares list query so the table refreshes.
+  - [X] 3.5 In `src/pages/QurbanPeserta.tsx`, import `AddPesertaDialog`. Add a **"Tambah Peserta"** button near the top of the page (next to filters). The button opens `AddPesertaDialog` by setting a boolean `open` state to `true`.
   - [ ] 3.6 Manual check: open `/qurban/peserta`, click "Tambah Peserta", select a muzakki and a slot, submit — confirm the new row appears in the list without a page reload.
 
 ---
 
 - [X] 4.0 Simplify Titipan and Al Fajar contribution forms
   - [X] 4.1 In `supabase/migrations/038_qurban_enhancements.sql` (the file created in task 1.2), add an `ALTER TYPE` statement (or equivalent check constraint update) to add `'al_fajar'` as a valid value for the `sumber_hewan` column in `qurban_animals`. Example: `ALTER TABLE qurban_animals ADD CONSTRAINT chk_sumber_hewan CHECK (sumber_hewan IN ('beli', 'titipan', 'al_fajar'));` — adjust based on whether the column uses a PostgreSQL `ENUM` type or a `CHECK` constraint.
-  - [ ] 4.2 Apply the updated migration to Supabase.
+  - [X] 4.2 Apply the updated migration to Supabase.
   - [X] 4.3 In `src/types/qurban.ts`, update the `sumber_hewan` field type on `QurbanAnimal` from `'beli' | 'titipan'` to `'beli' | 'titipan' | 'al_fajar'`.
   - [X] 4.4 Open `src/components/qurban/AnimalForm.tsx`. Add `al_fajar` as a third option in the `sumber_hewan` `<Select>` field with the label *"Al Fajar"*.
   - [X] 4.5 In `AnimalForm.tsx`, add conditional rendering based on the watched `sumber_hewan` value:
