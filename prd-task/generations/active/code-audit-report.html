@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zakat Fitrah Al-Fajar — Code Audit Report 2026</title>
+<!--
+  AUDIT REPORT VERSION BLOCK
+  Generated: 2026-05-22
+  Source files: 206 (32 pages, 31 hooks, 14 lib, 113 components, 4 types, 1 store)
+  Migrations: 40 (001-040) | Edge Functions: 1 (invitation-manager)
+  Built bundle: dist/assets/ (npm run build, 2026-05-22)
+  Timestamps:
+    src/pages: 2026-05-10 09:28 | src/hooks: 2026-05-10 09:29
+    src/lib: 2026-05-18 14:12 | src/components: 2026-05-09 20:25
+    supabase/migrations: 2026-05-10 09:27 | supabase/functions: 2026-04-29 20:22
+-->
+<style>
+:root{--cr:#dc2626;--ch:#ea580c;--cm:#ca8a04;--cl:#2563eb;--ci:#6b7280;--sw:260px;--ff:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ff);font-size:14px;background:#f9fafb;color:#111827;line-height:1.5}
+#layout{display:flex;min-height:100vh}
+#sidebar{width:var(--sw);min-width:var(--sw);background:#1e293b;color:#cbd5e1;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100}
+#sidebar h1{font-size:12px;font-weight:700;padding:14px 16px;color:#f1f5f9;border-bottom:1px solid #334155;text-transform:uppercase;letter-spacing:.06em;line-height:1.4}
+#sidebar nav a{display:block;padding:6px 16px;font-size:12px;color:#94a3b8;text-decoration:none;border-left:3px solid transparent;transition:all .15s}
+#sidebar nav a:hover{color:#f1f5f9;background:#334155}
+#sidebar nav a.active{color:#f1f5f9;border-left-color:#3b82f6;background:#1e40af22}
+.nav-group{padding:10px 16px 3px;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.08em;margin-top:6px}
+.nav-sub a{padding-left:28px!important;font-size:11px!important}
+#content{margin-left:var(--sw);padding:0 28px 60px}
+#toolbar{position:sticky;top:0;background:#f9fafb;border-bottom:1px solid #e5e7eb;padding:10px 0;margin-bottom:28px;z-index:50;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#search-input{flex:1;min-width:180px;max-width:300px;padding:7px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;background:white}
+#search-input:focus{outline:2px solid #3b82f6;border-color:#3b82f6}
+.fbtn{padding:5px 13px;border-radius:20px;border:2px solid #d1d5db;font-size:12px;font-weight:600;cursor:pointer;background:#f9fafb;color:#374151;transition:all .15s}
+.fbtn:hover{background:#e5e7eb}
+.fbtn.on{background:#374151;color:#fff;border-color:#374151}
+.fbtn[data-f="Critical"]{border-color:var(--cr)}.fbtn[data-f="Critical"].on{background:var(--cr);color:#fff;border-color:var(--cr)}
+.fbtn[data-f="High"]{border-color:var(--ch)}.fbtn[data-f="High"].on{background:var(--ch);color:#fff;border-color:var(--ch)}
+.fbtn[data-f="Medium"]{border-color:var(--cm)}.fbtn[data-f="Medium"].on{background:var(--cm);color:#fff;border-color:var(--cm)}
+.fbtn[data-f="Low"]{border-color:var(--cl)}.fbtn[data-f="Low"].on{background:var(--cl);color:#fff;border-color:var(--cl)}
+#fcount{font-size:12px;color:#6b7280;margin-left:auto;white-space:nowrap}
+section{margin-bottom:52px;padding-top:24px}
+h2{font-size:20px;font-weight:700;color:#111827;border-bottom:2px solid #e5e7eb;padding-bottom:10px;margin-bottom:20px}
+h3{font-size:15px;font-weight:600;color:#374151;margin:24px 0 12px;padding-top:8px}
+h4{font-size:13px;font-weight:600;color:#1e293b;margin:16px 0 8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
+.bCritical{background:#fee2e2;color:var(--cr)}
+.bHigh{background:#ffedd5;color:var(--ch)}
+.bMedium{background:#fef9c3;color:#854d0e}
+.bLow{background:#dbeafe;color:var(--cl)}
+.bInfo{background:#f3f4f6;color:var(--ci)}
+.bOk{background:#dcfce7;color:#15803d}
+.card{border:1px solid #e5e7eb;border-radius:8px;margin-bottom:10px;overflow:hidden;background:#fff}
+.card[data-hidden="true"]{display:none}
+.card summary{padding:11px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;list-style:none;user-select:none}
+.card summary::-webkit-details-marker{display:none}
+.card summary:hover{background:#f9fafb}
+.card summary::after{content:'▸';margin-left:auto;color:#9ca3af;font-size:11px;flex-shrink:0}
+.card[open] summary::after{content:'▾'}
+.ctitle{font-weight:600;font-size:13px;flex:1;min-width:0}
+.cfile{font-size:11px;color:#6b7280;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.cbody{padding:16px;border-top:1px solid #f3f4f6}
+.cbody p{margin-bottom:10px;line-height:1.6;font-size:13px}
+.cbody strong{color:#111827}
+pre{background:#1e293b;color:#e2e8f0;padding:12px 16px;border-radius:6px;overflow-x:auto;font-size:12px;line-height:1.7;margin:10px 0;white-space:pre}
+code{font-family:'SF Mono','Fira Code',monospace;font-size:12px}
+.dr{display:block;background:#3f1212;color:#fca5a5}
+.da{display:block;background:#0f2f0f;color:#86efac}
+.tfields{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid #f3f4f6}
+.tfields label{font-size:11px;color:#6b7280;font-weight:500;display:flex;align-items:center;gap:4px}
+.tfields input[type=text]{padding:4px 8px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;width:130px}
+.tfields select{padding:4px 8px;border:1px solid #d1d5db;border-radius:4px;font-size:12px;background:#fff}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:14px;margin-bottom:24px}
+.scard{background:#fff;border-radius:10px;padding:18px;text-align:center;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.snum{font-size:40px;font-weight:800;line-height:1}
+.slbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;margin-top:6px}
+.sc-Critical .snum{color:var(--cr)}.sc-High .snum{color:var(--ch)}.sc-Medium .snum{color:var(--cm)}.sc-Low .snum{color:var(--cl)}
+.risk-banner{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:8px;font-weight:700;font-size:15px;margin-bottom:20px;background:#ffedd5;color:#9a3412;border:2px solid var(--ch)}
+.rcard{background:#fff;border:1px solid #e5e7eb;border-left:4px solid;border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:12px}
+.rcard.High{border-left-color:var(--ch)}.rcard.Medium{border-left-color:var(--cm)}.rcard.Low{border-left-color:var(--cl)}
+.rcard h4{margin-bottom:6px}.rcard p{color:#4b5563;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px}
+th{background:#f3f4f6;text-align:left;padding:8px 10px;font-weight:600;font-size:12px;color:#374151;border-bottom:2px solid #e5e7eb;cursor:pointer;user-select:none;white-space:nowrap}
+th:hover{background:#e5e7eb}
+td{padding:7px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top}
+tr:hover td{background:#fafafa}
+td code{background:#f3f4f6;padding:1px 4px;border-radius:3px;font-size:11px}
+.flow{background:#1e293b;color:#e2e8f0;padding:20px;border-radius:8px;font-family:'SF Mono',monospace;font-size:12px;line-height:1.9;overflow-x:auto;white-space:pre}
+mark{background:#fef08a;border-radius:2px;padding:0 1px}
+#pb-wrap{background:#e5e7eb;border-radius:4px;height:8px;margin:8px 0}
+#pb{background:#16a34a;height:8px;border-radius:4px;transition:width .3s;width:0%}
+#pt{font-size:13px;color:#374151;margin-bottom:4px}
+.btn{padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:#2563eb;color:#fff}
+.btn:hover{background:#1d4ed8}
+.verdict{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:8px;font-size:18px;font-weight:800;margin-bottom:20px;background:#fef9c3;color:#854d0e;border:2px solid var(--cm)}
+.bn{padding:20px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:14px}
+.bn h4{margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.bn p{font-size:13px;color:#4b5563;line-height:1.6}
+.road{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:24px}
+.road-col{padding:16px;border-right:1px solid #e5e7eb}
+.road-col:last-child{border-right:none}
+.road-col h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.road-col ul{list-style:none;font-size:12px;color:#374151}
+.road-col li{padding:4px 0;border-bottom:1px solid #f3f4f6}
+.road-col li:last-child{border-bottom:none}
+.road-col li::before{content:'→ ';color:#6b7280}
+.road-col.rc0{background:#fef2f2}.road-col.rc1{background:#fffbeb}.road-col.rc2{background:#f0fdf4}
+.rc0 h4{color:var(--cr)}.rc1 h4{color:#92400e}.rc2 h4{color:#15803d}
+tr.tracker-row td input,.tracker-row select{width:100%;padding:3px 6px;border:1px solid #e5e7eb;border-radius:3px;font-size:11px;font-family:var(--ff)}
+.st-Open{color:var(--cr);font-weight:600}.st-In-Progress{color:var(--cm);font-weight:600}.st-Resolved{color:#16a34a;font-weight:600}
+.rls-yes{color:#16a34a;font-weight:600}.rls-no{color:var(--cr);font-weight:700}
+@media print{#sidebar,#toolbar{display:none}#content{margin-left:0}}
+</style>
+</head>
+<body>
+<div id="layout">
+<aside id="sidebar">
+<h1>⚡ Al-Fajar Code Audit<br><span style="color:#64748b;font-weight:400">Report — 2026-05-22</span></h1>
+<nav>
+<div class="nav-group">Overview</div>
+<a href="#exec-summary">Executive Summary</a>
+<div class="nav-group">Documentation</div>
+<a href="#architecture">Architecture</a>
+<div class="nav-sub">
+<a href="#arch-routes">Route Map</a>
+<a href="#arch-pages">Pages Reference</a>
+<a href="#arch-hooks">Hooks Reference</a>
+<a href="#arch-lib">Lib Modules</a>
+<a href="#arch-flow">Data Flow</a>
+</div>
+<div class="nav-group">Security</div>
+<a href="#security">Security Analysis</a>
+<div class="nav-sub">
+<a href="#sec-cred">Credentials</a>
+<a href="#sec-val">Input Validation</a>
+<a href="#sec-url">URL Params</a>
+<a href="#sec-deb">Debounce</a>
+<a href="#sec-auth">Auth Bypass</a>
+<a href="#sec-xss">XSS Surface</a>
+<a href="#sec-mass">Mass Assignment</a>
+<a href="#sec-rls">RLS Coverage</a>
+<a href="#sec-edge">Edge Functions</a>
+</div>
+<div class="nav-group">Code Quality</div>
+<a href="#quality">Code Quality</a>
+<div class="nav-sub">
+<a href="#q-dup">Duplication</a>
+<a href="#q-dead">Dead Code</a>
+<a href="#q-err">Error Handling</a>
+<a href="#q-magic">Magic Values</a>
+<a href="#q-types">Type Safety</a>
+<a href="#q-edge">Edge Fn Quality</a>
+</div>
+<div class="nav-group">Database</div>
+<a href="#database">Database</a>
+<div class="nav-sub">
+<a href="#db-timeline">Schema Timeline</a>
+<a href="#db-idx">Missing Indexes</a>
+<a href="#db-rls">RLS Matrix</a>
+<a href="#db-integrity">Data Integrity</a>
+</div>
+<div class="nav-group">Scalability</div>
+<a href="#scalability">Scalability</a>
+<div class="nav-group">Action</div>
+<a href="#tracker">Remediation Tracker</a>
+</nav>
+</aside>
+<main id="content">
+<div id="toolbar">
+<input type="text" id="search-input" placeholder="🔍 Search findings, files, keywords…">
+<button class="fbtn on" data-f="All">All</button>
+<button class="fbtn" data-f="Critical">Critical</button>
+<button class="fbtn" data-f="High">High</button>
+<button class="fbtn" data-f="Medium">Medium</button>
+<button class="fbtn" data-f="Low">Low</button>
+<span id="fcount"></span>
+</div>
+
+<section id="exec-summary">
+<h2>Executive Summary</h2>
+<div class="sgrid">
+  <div class="scard sc-Critical"><div class="snum">0</div><div class="slbl">Critical</div></div>
+  <div class="scard sc-High"><div class="snum">2</div><div class="slbl">High</div></div>
+  <div class="scard sc-Medium"><div class="snum">12</div><div class="slbl">Medium</div></div>
+  <div class="scard sc-Low"><div class="snum">24</div><div class="slbl">Low</div></div>
+  <div class="scard"><div class="snum" style="font-size:28px">38</div><div class="slbl">Total Findings</div></div>
+</div>
+<div class="risk-banner">⚠ Medium-High Risk — 2 High priority issues require immediate action</div>
+
+<h3>What Could Go Wrong?</h3>
+<p style="color:#4b5563;font-size:13px;margin-bottom:16px">Plain-language explanation of risks for each High and Medium finding, written for non-technical readers.</p>
+
+<div class="rcard High">
+  <h4><span class="badge bHigh">High</span> Qurban participant data may be inaccessible</h4>
+  <p>The database table that stores the names and details of Qurban participants has a security rule enabled that blocks all access — but the app forgot to specify who is actually allowed in. This means the data for Qurban participants could be silently empty for all users, or worse, completely unprotected. If left unresolved, staff cannot see participant lists and reports will be missing data.</p>
+</div>
+<div class="rcard High">
+  <h4><span class="badge bHigh">High</span> Dashboard will slow down significantly as data grows</h4>
+  <p>Every time someone opens the dashboard, the app downloads the entire transaction history (every zakat payment ever recorded) just to count totals. This works fine today with a few hundred records, but as years of data accumulate, the dashboard will become progressively slower — potentially taking tens of seconds to load — and could crash for users with slow connections.</p>
+</div>
+<div class="rcard Medium">
+  <h4><span class="badge bMedium">Medium</span> Search boxes send too many database requests</h4>
+  <p>Three search boxes in the app (Warga data, Mustahik data, and Qurban participant search) fire a database request on every single character the user types, instead of waiting for them to pause. This means searching "Ahmad" triggers 5 separate database calls. Under normal usage this is wasteful; under heavy concurrent use, it could overload the server.</p>
+</div>
+<div class="rcard Medium">
+  <h4><span class="badge bMedium">Medium</span> Financial records cannot be recovered once deleted</h4>
+  <p>When a zakat payment or distribution record is deleted, it is permanently removed from the database with no recovery option and no record of who deleted it or when. For a financial system managing charitable funds, this is a compliance risk — there is no audit trail for deletions.</p>
+</div>
+<div class="rcard Medium">
+  <h4><span class="badge bMedium">Medium</span> External websites can probe the invitation system</h4>
+  <p>The system that manages user invitations (sending and validating invitation links) is currently configured to accept requests from any website on the internet. While the invitation validation itself is secure, the open access policy is broader than necessary and could enable automated probing of the invitation token system.</p>
+</div>
+<div class="rcard Medium">
+  <h4><span class="badge bMedium">Medium</span> CSV import bypasses data type checking</h4>
+  <p>When staff upload a CSV file to bulk-import citizen (Warga) records, the app skips the normal type-checking step that ensures the data matches the expected format. This means malformed or unexpected values could be inserted directly into the database without validation.</p>
+</div>
+<div class="rcard Medium">
+  <h4><span class="badge bMedium">Medium</span> Hak Amil calculation uses two different methods simultaneously</h4>
+  <p>The system calculates the mosque's Hak Amil share (administrator fee) using two separate, independent methods that may produce different totals. This could lead to discrepancies in financial reports depending on which view a user is looking at, creating confusion for auditors or board members reviewing the financial statements.</p>
+</div>
+<div class="rcard Medium">
+  <h4><span class="badge bMedium">Medium</span> Distribution stock check reads from the wrong source</h4>
+  <p>When checking how much rice or money is available to distribute to recipients, the system reads from an older, legacy table rather than the current transaction records. This means the available stock figure shown to staff may not accurately reflect the true balance, potentially allowing over-distribution.</p>
+</div>
+</section>
+
+<section id="architecture">
+<h2>Architecture Documentation</h2>
+<h3 id="arch-routes">2.1 Route Map</h3>
+<table>
+<thead><tr><th>Path</th><th>Component</th><th>Guard</th><th>Allowed Roles</th></tr></thead>
+<tbody>
+<tr><td><code>/login</code></td><td>Login</td><td>none</td><td>—</td></tr>
+<tr><td><code>/register</code></td><td>Register</td><td>none</td><td>—</td></tr>
+<tr><td><code>/email-confirmation</code></td><td>EmailConfirmation</td><td>none</td><td>—</td></tr>
+<tr><td><code>/forgot-password</code></td><td>ForgotPassword</td><td>none</td><td>—</td></tr>
+<tr><td><code>/reset-password</code></td><td>ResetPassword</td><td>none</td><td>—</td></tr>
+<tr><td><code>/</code></td><td>redirect → /dashboard</td><td>—</td><td>—</td></tr>
+<tr><td><code>/dashboard</code></td><td>Dashboard</td><td>ProtectedRoute</td><td>all</td></tr>
+<tr><td><code>/muzakki</code></td><td>Muzakki</td><td>ProtectedRoute</td><td>admin, petugas</td></tr>
+<tr><td><code>/penerimaan-uang</code></td><td>PemasukanUang</td><td>ProtectedRoute</td><td>admin, petugas</td></tr>
+<tr><td><code>/penerimaan-beras</code></td><td>PemasukanBeras</td><td>ProtectedRoute</td><td>admin, petugas</td></tr>
+<tr><td><code>/pemasukan</code></td><td>redirect → /penerimaan-uang</td><td>—</td><td>—</td></tr>
+<tr><td><code>/pemasukan-beras</code></td><td>redirect → /penerimaan-beras</td><td>—</td><td>—</td></tr>
+<tr><td><code>/mustahik</code></td><td>Mustahik</td><td>ProtectedRoute</td><td>admin, petugas</td></tr>
+<tr><td><code>/distribusi</code></td><td>Distribusi</td><td>ProtectedRoute</td><td>admin, petugas</td></tr>
+<tr><td><code>/laporan</code></td><td>Laporan</td><td>ProtectedRoute</td><td>all</td></tr>
+<tr><td><code>/settings</code></td><td>Settings</td><td>ProtectedRoute</td><td>admin</td></tr>
+<tr><td><code>/dashboard-settings</code></td><td>DashboardSettings</td><td>ProtectedRoute</td><td>admin</td></tr>
+<tr><td><code>/sedekah-receipt</code></td><td>SedekahReceiptPage</td><td>ProtectedRoute</td><td>admin, petugas</td></tr>
+<tr><td><code>/surat-pengantar</code></td><td>SuratPengantarPage</td><td>ProtectedRoute</td><td>admin</td></tr>
+<tr><td><code>/accounts</code></td><td>AccountsManagement</td><td>ProtectedRoute</td><td>admin, petugas</td></tr>
+<tr><td><code>/qurban</code></td><td>Qurban</td><td>ProtectedRoute</td><td>admin, petugas</td></tr>
+<tr><td><code>/qurban/dashboard</code></td><td>QurbanDashboard</td><td>ProtectedRoute</td><td>admin, petugas</td></tr>
+<tr><td><code>/qurban/events</code></td><td>QurbanEvents</td><td>ProtectedRoute</td><td>admin, petugas</td></tr>
+<tr><td><code>/qurban/peserta</code></td><td>QurbanPeserta</td><td>ProtectedRoute</td><td>admin, petugas</td></tr>
+<tr><td><code>/qurban/distribusi</code></td><td>QurbanDistribusi</td><td>ProtectedRoute</td><td>admin, petugas</td></tr>
+<tr><td><code>/qurban/scan</code></td><td>QurbanScan</td><td>ProtectedRoute</td><td>admin, petugas</td></tr>
+<tr><td><code>/data-master</code></td><td>redirect → /data-master/warga</td><td>—</td><td>—</td></tr>
+<tr><td><code>/data-master/warga</code></td><td>DataMasterWarga</td><td>ProtectedRoute</td><td>all</td></tr>
+<tr><td><code>/data-master/mustahik</code></td><td>DataMasterMustahik</td><td>ProtectedRoute</td><td>all</td></tr>
+<tr><td><code>/data-master/pengguna</code></td><td>DataMasterPengguna</td><td>ProtectedRoute</td><td>admin</td></tr>
+<tr><td><code>/data-master/upz-settings</code></td><td>DataMasterUPZSettings</td><td>ProtectedRoute</td><td>admin</td></tr>
+</tbody>
+</table>
+<p style="font-size:12px;color:#6b7280;margin-top:-12px;margin-bottom:20px">All page components except the 5 auth pages are lazy-loaded via <code>React.lazy</code>. QueryClient global: <code>retry: 1</code>, <code>refetchOnWindowFocus: false</code>.</p>
+<h3 id="arch-pages">2.2 Pages Reference</h3>
+<table>
+<thead><tr><th>File</th><th>Route</th><th>Key Hooks</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>Dashboard.tsx</code></td><td>/dashboard</td><td>useDashboardStats, useTahunZakatList, useMonthlyPemasukan, useDashboardConfigs, useDashboardWidgets</td><td>Configurable dashboard with year selector, stat widgets, and monthly trend charts driven by dashboard_configs/dashboard_widgets tables.</td></tr>
+<tr><td><code>Login.tsx</code></td><td>/login</td><td>useAuth, useForm (Zod)</td><td>Email/password login form; shows offline mock credentials banner when VITE_OFFLINE_MODE=true.</td></tr>
+<tr><td><code>Register.tsx</code></td><td>/register</td><td>useSearchParams, useForm (Zod)</td><td>Token-based invitation registration; validates token via Edge Function then registers via registerUserWithInvitation.</td></tr>
+<tr><td><code>EmailConfirmation.tsx</code></td><td>/email-confirmation</td><td>useSearchParams, useNavigate</td><td>Confirms email using Supabase auth.verifyOtp() with token_hash URL param.</td></tr>
+<tr><td><code>ForgotPassword.tsx</code></td><td>/forgot-password</td><td>useForm (Zod)</td><td>Sends password reset email via supabase.auth.resetPasswordForEmail().</td></tr>
+<tr><td><code>ResetPassword.tsx</code></td><td>/reset-password</td><td>useSearchParams, useForm (Zod)</td><td>Two-step: verify OTP token then set new password via supabase.auth.updateUser().</td></tr>
+<tr><td><code>Muzakki.tsx</code></td><td>/muzakki</td><td>useMuzakkiList, useCreateMuzakki, useUpdateMuzakki, useDeleteMuzakki, useMuzakkiTransactionHistory, useTahunZakatList, useTransactionTags</td><td>Full muzakki (payer) CRUD with 500ms debounced search, pagination, transaction history dialog, and print dialog.</td></tr>
+<tr><td><code>PemasukanUang.tsx</code></td><td>/penerimaan-uang</td><td>useTahunZakatList, usePemasukanUangList, useCreatePemasukanUang, useUpdatePemasukanUang, useDeletePemasukanUang, useAccountsList, useTransactionTags</td><td>Cash income management with year/category/account/tag filters, pagination, bulk CSV import mode, and receipt printing.</td></tr>
+<tr><td><code>PemasukanBeras.tsx</code></td><td>/penerimaan-beras</td><td>useTahunZakatList, usePemasukanBerasList, useCreatePemasukanBeras, useUpdatePemasukanBeras, useDeletePemasukanBeras, useTransactionTags</td><td>Rice income management; same pattern as PemasukanUang.</td></tr>
+<tr><td><code>Mustahik.tsx</code></td><td>/mustahik</td><td>useMustahikList, useKategoriMustahik, useCreateMustahik, useUpdateMustahik, useToggleMustahikActive, useBulkToggleMustahik, usePreviousYearMustahik, useImportMustahik, useDeleteMustahik, useMustahikHistory, useTahunZakatList</td><td>Full mustahik (recipient) CRUD with search, category filter, bulk activate/deactivate, import from previous year, and distribution history.</td></tr>
+<tr><td><code>Distribusi.tsx</code></td><td>/distribusi</td><td>useTahunZakatList, useDistribusiList, useStokCheck, useCreateDistribusi, useUpdateDistribusiStatus, useDeleteDistribusi</td><td>Zakat distribution management with rice/money stock summary and stock-check guard against over-distribution.</td></tr>
+<tr><td><code>Laporan.tsx</code></td><td>/laporan</td><td>useTahunZakatList</td><td>Report page with tabs for Pemasukan, Distribusi, Mustahik, Hak Amil, and Year Comparison; responsive tabs/select.</td></tr>
+<tr><td><code>Settings.tsx</code></td><td>/settings</td><td>useAuth, useHakAmilConfig, useTahunZakatList, useUsersList, useAllTransactionTags, useAddTransactionTag, useDeactivateTransactionTag (+ more)</td><td>Multi-tab admin settings: Hak Amil config, Tahun Zakat management, User management, Transaction Tags.</td></tr>
+<tr><td><code>DashboardSettings.tsx</code></td><td>/dashboard-settings</td><td>useDashboardConfigs</td><td>Admin page to create/manage named dashboard configurations.</td></tr>
+<tr><td><code>SedekahReceipt.tsx</code></td><td>/sedekah-receipt</td><td>useSedekahReceiptsList, useDeleteSedekahReceipt</td><td>Lists sedekah/donation receipts from bukti_sedekah table with PDF download support.</td></tr>
+<tr><td><code>SuratPengantar.tsx</code></td><td>/surat-pengantar</td><td>none</td><td>Static page generating a formal introduction letter PDF; no Supabase calls.</td></tr>
+<tr><td><code>AccountsManagement.tsx</code></td><td>/accounts</td><td>useAccountsList, useAccountLedger, useCreateAccount, useUpdateAccount, useDeleteAccount, useCreateManualLedgerEntry</td><td>Account (kas/bank) CRUD and ledger entry viewer with manual reconciliation entry support.</td></tr>
+<tr><td><code>Qurban.tsx</code></td><td>/qurban</td><td>useQurbanEventList, useQurbanAnimalList, useDeleteQurbanAnimal, useAuth</td><td>Qurban animal grid per selected event; add/edit/delete via QurbanAnimalForm dialog.</td></tr>
+<tr><td><code>QurbanDashboard.tsx</code></td><td>/qurban/dashboard</td><td>useQurbanDashboardStats, useQurbanEventList</td><td>Qurban dashboard with stat cards (animals, participants, payment status) and payment trend bar chart.</td></tr>
+<tr><td><code>QurbanEvents.tsx</code></td><td>/qurban/events</td><td>useQurbanEventList, useDeleteQurbanEvent, useAuth</td><td>Event management table for Qurban campaigns with inline count queries.</td></tr>
+<tr><td><code>QurbanPeserta.tsx</code></td><td>/qurban/peserta</td><td>useQurbanShareListFlat, useUpdateSharePayment, useRemoveQurbanShare, useGenerateMuzakkiCoupon, useQurbanEventList</td><td>Participant list with payment status toggle, coupon generation, and 300ms debounced search.</td></tr>
+<tr><td><code>QurbanDistribusi.tsx</code></td><td>/qurban/distribusi</td><td>useQurbanEventList, useKategoriMustahik, useMustahikList, useQurbanCouponsByEvent, useRedeemCouponManually, useCancelCoupon, useUpdateCouponExpiry</td><td>Qurban coupon distribution: assign to mustahik, manually redeem, cancel, and extend expiry.</td></tr>
+<tr><td><code>QurbanScan.tsx</code></td><td>/qurban/scan</td><td>useSearchParams, useQurbanEventList, useCouponByToken, useRedeemCouponByToken, useQurbanCouponsByEvent</td><td>Mobile-optimized QR scan page using html5-qrcode; validates and redeems coupon tokens on camera scan.</td></tr>
+<tr><td><code>DataMasterWarga.tsx</code></td><td>/data-master/warga</td><td>useMuzakkiList, useDeleteMuzakki, useAuth</td><td>Citizen registry CRUD with 300ms debounced search, 20-per-page pagination, history sheet, and CSV/Excel import.</td></tr>
+<tr><td><code>DataMasterMustahik.tsx</code></td><td>/data-master/mustahik</td><td>useMustahikList, useKategoriMustahik, useCreateMustahik, useUpdateMustahik, useToggleMustahikActive, useDeleteMustahik</td><td>Mustahik data-master view with inline Zod form; simpler version of the full /mustahik page.</td></tr>
+<tr><td><code>DataMasterPengguna.tsx</code></td><td>/data-master/pengguna</td><td>useUsersList, useUpdateUser, useInvitationsList, useCreateInvitation, useRevokeInvitation, useAuth</td><td>Two-tab page: active users list (edit/toggle) and invitation management (create/revoke).</td></tr>
+<tr><td><code>DataMasterUPZSettings.tsx</code></td><td>/data-master/upz-settings</td><td>useOrgSettings, useUpdateOrgSettings, useUPZUnitList, useDeleteUPZUnit</td><td>Org info form (org_settings) and UPZ unit table (upz_units).</td></tr>
+</tbody>
+</table>
+<h3 id="arch-hooks">2.3 Hooks Reference</h3>
+<table>
+<thead><tr><th>Hook File</th><th>Tables Queried</th><th>Fetches / Mutates</th><th>Side Effects</th></tr></thead>
+<tbody>
+<tr><td><code>useDashboard.ts</code></td><td>tahun_zakat, pembayaran_zakat, mustahik, distribusi_zakat, pemasukan_uang, pemasukan_beras, rekonsiliasi, hak_amil, hak_amil_configs</td><td>useDashboardStats, useTahunZakatList, useMonthlyPemasukan / none</td><td>30s refetchInterval on useDashboardStats</td></tr>
+<tr><td><code>useDashboardConfig.ts</code></td><td>dashboard_configs, dashboard_widgets</td><td>useDashboardConfigs, useDashboardWidgets / useCreateDashboard, useUpdateDashboard, useDeleteDashboard, useCreateWidget, useUpdateWidget, useDeleteWidget, useReorderWidgets</td><td>Toast on mutations; invalidates dashboard-configs, dashboard-widgets</td></tr>
+<tr><td><code>usePemasukanUang.ts</code></td><td>pemasukan_uang, account_ledger_entries, hak_amil_snapshots, accounts, hak_amil_configs</td><td>usePemasukanUangList / useCreatePemasukanUang, useUpdatePemasukanUang, useDeletePemasukanUang</td><td>Toast; writes ledger entry + hak amil snapshot per mutation; invalidates pemasukan-uang, dashboard-stats, monthly-pemasukan, hak-amil summaries</td></tr>
+<tr><td><code>usePemasukanBeras.ts</code></td><td>pemasukan_beras, account_ledger_entries, hak_amil_snapshots, accounts, tahun_zakat, hak_amil_configs</td><td>usePemasukanBerasList / useCreatePemasukanBeras, useUpdatePemasukanBeras, useDeletePemasukanBeras</td><td>Same pattern as usePemasukanUang</td></tr>
+<tr><td><code>useMuzakki.ts</code></td><td>muzakki, pembayaran_zakat, pemasukan_uang, pemasukan_beras, qurban_shares</td><td>useMuzakkiList, useMuzakkiTransactionHistory, usePembayaranList (N+1), usePembayaranDetail / useCreateMuzakki, useUpdateMuzakki, useDeleteMuzakki, useCreatePembayaran, useUpdatePembayaran, useDeletePembayaran</td><td>Toast; invalidates muzakki-list, pembayaran-list</td></tr>
+<tr><td><code>useMustahik.ts</code></td><td>mustahik, kategori_mustahik, distribusi_zakat, tahun_zakat</td><td>useMustahikList, useMustahikDetail, useKategoriMustahik, useMustahikHistory, usePreviousYearMustahik / useCreateMustahik, useUpdateMustahik, useToggleMustahikActive, useBulkToggleMustahik, useImportMustahik, useDeleteMustahik</td><td>Toast; invalidates mustahik-list, mustahik-detail</td></tr>
+<tr><td><code>useAccountsLedger.ts</code></td><td>accounts, account_ledger_entries</td><td>useAccountsList, useAccountLedger / useCreateAccount, useUpdateAccount, useDeleteAccount (checks existing), useCreateManualLedgerEntry</td><td>Toast; invalidates accounts-list, account-ledger; offline errors on mutations</td></tr>
+<tr><td><code>useBulkPembayaran.ts</code></td><td>pemasukan_uang, pemasukan_beras, bulk_submission_logs, hak_amil_snapshots</td><td>submitBulk() plain async / inserts per muzakki x category</td><td>Non-blocking hak amil snapshots; partial saves on error; logs to bulk_submission_logs</td></tr>
+<tr><td><code>useDistribusi.ts</code></td><td>distribusi_zakat, mustahik, tahun_zakat, pembayaran_zakat, transaction_tags</td><td>useDistribusiList, useDistribusiDetail, useStokCheck / useCreateDistribusi, useUpdateDistribusiStatus, useDeleteDistribusi</td><td>Toast; invalidates distribusi-list, stok-check, dashboard-stats; offline uses offlineStore</td></tr>
+<tr><td><code>useDonor.ts</code></td><td>muzakki</td><td>useSearchDonor, useDonor / useUpsertDonor</td><td>Invalidates search-donor, donor; no success toast</td></tr>
+<tr><td><code>useHakAmil.ts</code></td><td>hak_amil_configs, tahun_zakat, pembayaran_zakat, pemasukan_uang, pemasukan_beras</td><td>useHakAmilConfig, useHakAmilMonthlySummary, useHakAmilYearlySummary, useHakAmilDateRangeSummary, useHakAmilMonthlyTrend / useCreateHakAmilConfig, useUpdateHakAmilConfig</td><td>Toast on config mutations; summaries computed in-memory; offline uses offlineStore</td></tr>
+<tr><td><code>useInvitations.ts</code></td><td>user_invitations</td><td>useInvitationsList, validateInvitationToken (Edge Fn) / useCreateInvitation (Edge Fn), useRevokeInvitation, useReInvite; registerUserWithInvitation (Edge Fn)</td><td>Toast; invalidates invitations</td></tr>
+<tr><td><code>useNilaiZakat.ts</code></td><td>tahun_zakat, pembayaran_zakat, distribusi_zakat</td><td>useTahunZakatList, useCheckTahunHasTransactions / useCreateTahunZakat, useUpdateTahunZakat, useToggleTahunZakatActive</td><td>Toast; deactivates other years before activating; invalidates tahun-zakat-list, dashboard-stats</td></tr>
+<tr><td><code>useOrgSettings.ts</code></td><td>org_settings, upz_units</td><td>useOrgSettings, useUPZUnitList / useUpdateOrgSettings (upsert), useCreateUPZUnit, useUpdateUPZUnit, useDeleteUPZUnit</td><td>Toast; invalidates org_settings, upz_units</td></tr>
+<tr><td><code>useProfile.ts</code></td><td>users</td><td>none / useUpdateProfile (nama_lengkap, address, phone)</td><td>Toast; invalidates user query key</td></tr>
+<tr><td><code>use-mobile.ts</code></td><td>none</td><td>useIsMobile() via window.matchMedia (768px) / none</td><td>None</td></tr>
+<tr><td><code>useQurban.ts</code></td><td>qurban_registrations, qurban_participants</td><td>useQurbanList, useQurbanDetail / useCreateQurban (atomic), useUpdateQurban (delete-then-reinsert), useDeleteQurban</td><td>Toast; invalidates qurban; older schema separate from qurban_events/animals/shares</td></tr>
+<tr><td><code>useQurbanAnimals.ts</code></td><td>qurban_animals, qurban_shares; Storage: qurban-photos</td><td>useQurbanAnimalList, useQurbanAnimalDetail / useCreateQurbanAnimal, useUpdateQurbanAnimal, useDeleteQurbanAnimal</td><td>Toast; photo upload/delete via Supabase Storage; invalidates qurban-animals</td></tr>
+<tr><td><code>useQurbanCoupons.ts</code></td><td>qurban_coupons, qurban_events, qurban_shares, qurban_animals</td><td>useQurbanCouponsByEvent, useCouponByToken / useGenerateMuzakkiCoupon, useGenerateMustahikCoupons, useRedeemCouponByToken (no error toast), useRedeemCouponManually, useCancelCoupon, useUpdateCouponExpiry</td><td>Toast on most mutations; invalidates qurban-coupons</td></tr>
+<tr><td><code>useQurbanDashboard.ts</code></td><td>qurban_animals, qurban_shares, qurban_coupons, qurban_events</td><td>useQurbanDashboardStats (4 parallel queries) / none</td><td>None</td></tr>
+<tr><td><code>useQurbanEvents.ts</code></td><td>qurban_events, qurban_animals</td><td>useQurbanEventList / useCreateQurbanEvent, useUpdateQurbanEvent, useDeleteQurbanEvent (checks animals first)</td><td>Toast; invalidates qurban-events</td></tr>
+<tr><td><code>useQurbanShares.ts</code></td><td>qurban_shares, qurban_animals, qurban_events, muzakki, qurban_coupons</td><td>useQurbanShareList, useQurbanShareListFlat (multi-join), useMuzakkiSearch, useAvailableAnimalSlots / useAssignQurbanShare (slot checks), useUpdateSharePayment (optimistic), useRemoveQurbanShare</td><td>Toast; optimistic rollback on error; invalidates qurban-shares</td></tr>
+<tr><td><code>useRekonsiliasi.ts</code></td><td>rekonsiliasi, tahun_zakat, accounts, account_ledger_entries, users</td><td>useRekonsiliasiList, useRekonsiliasiSummary / useCreateRekonsiliasi (admin-only, atomic), useDeleteRekonsiliasi (admin-only, deletes ledger entry first)</td><td>Toast; invalidates rekonsiliasi-list, rekonsiliasi-summary, dashboard-stats</td></tr>
+<tr><td><code>useSedekahReceipts.ts</code></td><td>bukti_sedekah</td><td>useSedekahReceiptsList (top 100) / useUpdateSedekahReceipt, useDeleteSedekahReceipt</td><td>Invalidates bukti-sedekah-list; no toast</td></tr>
+<tr><td><code>useTransactionTags.ts</code></td><td>transaction_tags</td><td>useTransactionTags (active), useAllTransactionTags / useAddTransactionTag (max 50 chars), useDeactivateTransactionTag (soft delete)</td><td>Toast; invalidates transaction_tags; offline uses offlineStore</td></tr>
+<tr><td><code>useUsers.ts</code></td><td>users</td><td>useUsersList / useCreateUser (throws — placeholder), useUpdateUser, useToggleUserActive (guards last admin)</td><td>Toast; invalidates users-list</td></tr>
+</tbody>
+</table>
+<h3 id="arch-lib">2.4 Lib Modules</h3>
+<table>
+<thead><tr><th>Module</th><th>Purpose</th><th>Key Exports</th></tr></thead>
+<tbody>
+<tr><td><code>supabase.ts</code></td><td>Creates and exports the typed Supabase client</td><td><code>supabase</code> (typed SupabaseClient&lt;Database&gt;); autoRefreshToken, persistSession, detectSessionInUrl: true</td></tr>
+<tr><td><code>auth.tsx</code></td><td>React Auth context with session management</td><td><code>AuthProvider</code>, <code>useAuth()</code> → { user, session, loading, login, logout, hasRole }; 8-hour session timeout; offline mock via VITE_OFFLINE_MODE</td></tr>
+<tr><td><code>offlineStore.ts</code></td><td>In-memory seed data store for offline/demo mode</td><td><code>offlineStore</code> singleton; seeds: tahun_zakat, muzakki, pembayaran, mustahik, distribusi, hak_amil_configs, transaction_tags; full CRUD methods</td></tr>
+<tr><td><code>mockAuth.ts</code></td><td>Mock authentication for offline mode</td><td><code>mockAuthService</code> (.signInWithPassword, .getSession, .signOut); 3 mock users; session in localStorage key mock_auth_session_v2</td></tr>
+<tr><td><code>hakAmilSnapshot.ts</code></td><td>Creates/upserts hak_amil_snapshots records</td><td><code>mapKategoriToHakAmil</code>, <code>createHakAmilSnapshot</code>, <code>upsertHakAmilSnapshot</code>, <code>fetchBasisModeForTahun</code>; failures non-blocking</td></tr>
+<tr><td><code>aggregationRules.ts</code></td><td>Maps widget rule IDs to DashboardStats fields</td><td><code>AGGREGATION_RULES</code>, <code>AGGREGATION_RULE_MAP</code>; 19 rules covering all stat dimensions</td></tr>
+<tr><td><code>dashboardDefaults.ts</code></td><td>Default dashboard config and widgets</td><td><code>DEFAULT_DASHBOARD_CONFIG</code>, <code>DEFAULT_DASHBOARD_WIDGETS</code> (27 widgets), <code>createDefaultDashboard()</code></td></tr>
+<tr><td><code>dashboardTemplates.ts</code></td><td>Dashboard template definitions for create wizard</td><td><code>DASHBOARD_TEMPLATE_OPTIONS</code>, <code>getTemplateWidgets(templateId)</code>; templates: scratch, full, monitoring, hak_amil_focus</td></tr>
+<tr><td><code>couponExport.ts</code></td><td>Exports coupon HTML element to PNG image</td><td><code>exportCouponImage(element)</code>, <code>shareCouponImage(element, filename)</code>; html2canvas scale=2; falls back to download if Web Share API unavailable</td></tr>
+<tr><td><code>thermalCouponPrint.ts</code></td><td>Generates 58mm thermal printer HTML for coupon</td><td><code>printThermalCoupon(data: ThermalCouponData)</code>; opens new print window with embedded QR SVG via XMLSerializer</td></tr>
+<tr><td><code>terbilang.ts</code></td><td>Converts numbers to Indonesian written-out words</td><td><code>numberToTerbilang(num)</code>, <code>formatRupiah(amount)</code>, <code>getTerbilangText(amount)</code></td></tr>
+<tr><td><code>branding.ts</code></td><td>Centralized branding constants</td><td><code>BRANDING</code> object (ORGANIZATION_FULL, SHORT, MOSQUE_NAME, APP_TITLE, LOGO_PATH, etc.), <code>getBrandingValue(key)</code></td></tr>
+<tr><td><code>constants.ts</code></td><td>Simple app-wide string constants</td><td><code>APP_NAME</code>, <code>ORG_NAME</code>, <code>ORG_SERVICE</code> (with WhatsApp number)</td></tr>
+<tr><td><code>utils.ts</code></td><td>General utility functions</td><td><code>cn(...inputs)</code> (Tailwind class merge via clsx + tailwind-merge), <code>isUuid(value)</code> (UUID v1–v5 regex)</td></tr>
+</tbody>
+</table>
+<h3 id="arch-module-map">2.5 Module Map</h3>
+<table>
+<thead><tr><th>Page</th><th>Hooks Used</th><th>Tables Touched</th></tr></thead>
+<tbody>
+<tr><td>Dashboard</td><td>useDashboardStats, useTahunZakatList, useMonthlyPemasukan, useDashboardConfigs, useDashboardWidgets</td><td>tahun_zakat, pembayaran_zakat, mustahik, distribusi_zakat, pemasukan_uang, pemasukan_beras, rekonsiliasi, hak_amil, hak_amil_configs, dashboard_configs, dashboard_widgets</td></tr>
+<tr><td>Login</td><td>useAuth</td><td>users</td></tr>
+<tr><td>Register</td><td>(useInvitations helpers)</td><td>user_invitations (via Edge Fn)</td></tr>
+<tr><td>Muzakki</td><td>useMuzakkiList, useCreateMuzakki, useUpdateMuzakki, useDeleteMuzakki, useMuzakkiTransactionHistory, useTahunZakatList, useTransactionTags</td><td>muzakki, pembayaran_zakat, pemasukan_uang, pemasukan_beras, qurban_shares, tahun_zakat, transaction_tags</td></tr>
+<tr><td>PemasukanUang</td><td>usePemasukanUangList, useCreatePemasukanUang, useUpdatePemasukanUang, useDeletePemasukanUang, useAccountsList, useTahunZakatList, useTransactionTags</td><td>pemasukan_uang, account_ledger_entries, hak_amil_snapshots, accounts, tahun_zakat, transaction_tags</td></tr>
+<tr><td>PemasukanBeras</td><td>usePemasukanBerasList, useCreatePemasukanBeras, useUpdatePemasukanBeras, useDeletePemasukanBeras, useTahunZakatList, useTransactionTags</td><td>pemasukan_beras, account_ledger_entries, hak_amil_snapshots, accounts, tahun_zakat, transaction_tags</td></tr>
+<tr><td>Mustahik</td><td>useMustahikList, useKategoriMustahik, useCreateMustahik, useUpdateMustahik, useToggleMustahikActive, useBulkToggleMustahik, usePreviousYearMustahik, useImportMustahik, useDeleteMustahik, useMustahikHistory, useTahunZakatList</td><td>mustahik, kategori_mustahik, distribusi_zakat, tahun_zakat</td></tr>
+<tr><td>Distribusi</td><td>useDistribusiList, useStokCheck, useCreateDistribusi, useUpdateDistribusiStatus, useDeleteDistribusi, useTahunZakatList</td><td>distribusi_zakat, mustahik, tahun_zakat, pembayaran_zakat, transaction_tags</td></tr>
+<tr><td>Laporan</td><td>useTahunZakatList</td><td>tahun_zakat (child components add more)</td></tr>
+<tr><td>Settings</td><td>useAuth, useHakAmilConfig, useTahunZakatList, useUsersList, useAllTransactionTags, useAddTransactionTag, useDeactivateTransactionTag (+ more)</td><td>hak_amil, hak_amil_configs, tahun_zakat, users, transaction_tags</td></tr>
+<tr><td>AccountsManagement</td><td>useAccountsList, useAccountLedger, useCreateAccount, useUpdateAccount, useDeleteAccount, useCreateManualLedgerEntry</td><td>accounts, account_ledger_entries</td></tr>
+<tr><td>Qurban</td><td>useQurbanEventList, useQurbanAnimalList, useDeleteQurbanAnimal, useAuth</td><td>qurban_events, qurban_animals, qurban_shares</td></tr>
+<tr><td>QurbanDashboard</td><td>useQurbanDashboardStats, useQurbanEventList</td><td>qurban_animals, qurban_shares, qurban_coupons, qurban_events</td></tr>
+<tr><td>QurbanEvents</td><td>useQurbanEventList, useDeleteQurbanEvent</td><td>qurban_events, qurban_animals</td></tr>
+<tr><td>QurbanPeserta</td><td>useQurbanShareListFlat, useUpdateSharePayment, useRemoveQurbanShare, useGenerateMuzakkiCoupon, useQurbanEventList</td><td>qurban_shares, qurban_animals, qurban_events, muzakki, qurban_coupons</td></tr>
+<tr><td>QurbanDistribusi</td><td>useQurbanEventList, useKategoriMustahik, useMustahikList, useQurbanCouponsByEvent, useRedeemCouponManually, useCancelCoupon, useUpdateCouponExpiry</td><td>qurban_events, qurban_coupons, qurban_shares, qurban_animals, mustahik, kategori_mustahik</td></tr>
+<tr><td>QurbanScan</td><td>useQurbanEventList, useCouponByToken, useRedeemCouponByToken, useQurbanCouponsByEvent</td><td>qurban_events, qurban_coupons, qurban_shares, qurban_animals</td></tr>
+<tr><td>SedekahReceipt</td><td>useSedekahReceiptsList, useDeleteSedekahReceipt</td><td>bukti_sedekah</td></tr>
+<tr><td>DataMasterWarga</td><td>useMuzakkiList, useDeleteMuzakki, useAuth</td><td>muzakki</td></tr>
+<tr><td>DataMasterMustahik</td><td>useMustahikList, useKategoriMustahik, useCreateMustahik, useUpdateMustahik, useToggleMustahikActive, useDeleteMustahik</td><td>mustahik, kategori_mustahik</td></tr>
+<tr><td>DataMasterPengguna</td><td>useUsersList, useUpdateUser, useInvitationsList, useCreateInvitation, useRevokeInvitation, useAuth</td><td>users, user_invitations</td></tr>
+<tr><td>DataMasterUPZSettings</td><td>useOrgSettings, useUpdateOrgSettings, useUPZUnitList, useDeleteUPZUnit</td><td>org_settings, upz_units</td></tr>
+<tr><td>DashboardSettings</td><td>useDashboardConfigs</td><td>dashboard_configs</td></tr>
+</tbody>
+</table>
+<h3 id="arch-flow">2.6 Data Flow — Zakat Payment Lifecycle</h3>
+<div class="flow">+-------------------------------------------------------------------------+
+|                        ZAKAT PAYMENT LIFECYCLE                          |
++-------------------------------------------------------------------------+
+
+COLLECTION (Penerimaan)
+=======================
+
+  Petugas/Admin
+       |
+       +--- Legacy path (Muzakki page) ---------------------------------+
+       |    usePembayaranList / useCreatePembayaran                     |
+       |    v                                                            |
+       |    INSERT pembayaran_zakat                                     |
+       |    (jenis_zakat: uang|beras, jumlah_uang_rp|beras_kg)        |
+       |                                                                |
+       +--- New path (PemasukanUang / PemasukanBeras pages) ----------+|
+            useCreatePemasukanUang / useCreatePemasukanBeras          ||
+            v                                                          ||
+            INSERT pemasukan_uang / pemasukan_beras                   ||
+            +--&gt; createPemasukanUangLedgerEntry                       ||
+            |    INSERT account_ledger_entries (running_balance)       ||
+            +--&gt; createHakAmilSnapshot (lib/hakAmilSnapshot.ts)       ||
+                 INSERT/UPDATE hak_amil_snapshots (non-blocking)      ||
+  +--------------------------------------------------------------------+|
+  |  Bulk path: useBulkPembayaran.submitBulk(rows, meta)               |
+  |  v for each muzakki x category:                                    |
+  |    INSERT pemasukan_uang / pemasukan_beras                         |
+  |    createHakAmilSnapshot (non-blocking)                            |
+  |  INSERT bulk_submission_logs                                       |
+  +--------------------------------------------------------------------+
+
+HAK AMIL CALCULATION
+====================
+  Source A: hak_amil_snapshots (snapshot per transaction)
+            ^ written by createHakAmilSnapshot / useBulkPembayaran
+  Source B: Live in useHakAmilYearlySummary
+            (queries all pemasukan tables + hak_amil_configs)
+  Formula:
+    gross = SUM(pemasukan_uang) + (beras_kg x nilai_uang_rp / nilai_beras_kg)
+    neto  = gross - rekonsiliasi
+    nominal_hak_amil = neto x persen_hak_amil / 100
+
+DISTRIBUTION (Distribusi)
+=========================
+  useCreateDistribusi
+  +-- Check no duplicate (mustahik x tahun in distribusi_zakat)
+  +-- Stock check (reads from legacy pembayaran_zakat, not pemasukan_*)
+  +-- INSERT distribusi_zakat (status: pending)
+       +-- useUpdateDistribusiStatus --&gt; UPDATE status to selesai
+            invalidates: distribusi-list, stok-check, dashboard-stats
+
+DASHBOARD AGGREGATION
+=====================
+  useDashboardStats queries: muzakki, mustahik, pemasukan_uang,
+    pemasukan_beras, pembayaran_zakat, distribusi_zakat,
+    rekonsiliasi, hak_amil, hak_amil_configs
+    --&gt; DashboardStats --&gt; rendered by configurable widgets
+
+QUERY CACHE INVALIDATION TREE
+==============================
+  pemasukan insert/update/delete
+    --&gt; pemasukan-uang/beras --&gt; dashboard-stats
+    --&gt; monthly-pemasukan --&gt; hak-amil-monthly/yearly-summary
+  distribusi insert/update/delete
+    --&gt; distribusi-list --&gt; stok-check --&gt; dashboard-stats
+  rekonsiliasi insert/delete
+    --&gt; rekonsiliasi-list --&gt; rekonsiliasi-summary --&gt; dashboard-stats
+  tahun_zakat insert/update
+    --&gt; tahun-zakat-list --&gt; dashboard-stats</div>
+</section>
+
+<section id="security">
+<h2>Security Analysis</h2>
+
+<h3 id="sec-cred">Credential &amp; API Key Exposure</h3>
+
+<details class="card" data-sev="Low">
+  <summary>
+    <span class="badge bLow">Low</span>
+    <span class="badge bInfo">Credentials</span>
+    <span class="ctitle">SEC-09 — Mock credentials bundled into production build (offline mode)</span>
+    <span class="cfile">src/lib/mockAuth.ts · src/pages/Login.tsx:104-106</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> When <code>VITE_OFFLINE_MODE=true</code>, the Login page renders mock credentials (email + plaintext password) directly in the UI. The <code>MOCK_CREDENTIALS</code> object is exported from <code>src/lib/mockAuth.ts</code> and passwords are derived via <code>getDemoPassword(role) = `${role}123`</code> (e.g., <code>admin123</code>). The import is unconditional — these credentials are bundled into every production build regardless of the runtime flag.</p>
+    <p><strong>Risk:</strong> Low — Demo credentials for offline mode. An attacker who reverse-engineers the bundle finds trivially guessable passwords (<code>admin123</code>). Risk escalates if anyone reuses them for real accounts.</p>
+    <p><strong>Fix:</strong> Gate the mock credentials behind a build-time <code>VITE_OFFLINE_MODE</code> check using Vite's define/conditional compilation, or move credentials to env vars injected only in non-production builds.</p>
+    <div class="tfields">
+      <label>Effort: <strong>1h</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<details class="card" data-sev="Info">
+  <summary>
+    <span class="badge bOk">OK</span>
+    <span class="badge bInfo">Credentials</span>
+    <span class="ctitle">Informational — Supabase project URL in bundle is expected; no JWT or service_role key found</span>
+    <span class="cfile">dist/assets/index-CifjZBZO.js · src/lib/supabase.ts:4-5</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> The built bundle contains <code>zuykdhqdklsskgrtwejg.supabase.co</code> — the Supabase project URL from <code>VITE_SUPABASE_URL</code>. Vite intentionally inlines all <code>VITE_*</code> environment variables at build time. The URL is the project's public hostname and is not a secret.</p>
+    <p><strong>No JWT or service_role key found in the bundle.</strong> Grep for <code>eyJ[A-Za-z0-9_-]{50,}</code> returned no results. <code>SUPABASE_SERVICE_ROLE_KEY</code> is only accessed server-side inside the Edge Function via <code>Deno.env.get()</code> and never reaches the client bundle.</p>
+    <div class="tfields">
+      <label>Effort: <strong>—</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<h3 id="sec-val">Input Validation Gaps</h3>
+
+<details class="card" data-sev="Low">
+  <summary>
+    <span class="badge bLow">Low</span>
+    <span class="badge bInfo">Validation</span>
+    <span class="ctitle">SEC-10 — Multiple Zod schemas missing .max() — allows arbitrarily large strings to DB</span>
+    <span class="cfile">MuzakkiForm.tsx:25 · WargaForm.tsx:20 · MustahikForm.tsx:34 · QurbanEventDialog.tsx:26</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> Several Zod schemas accept unbounded text input. A user could submit a 100,000-character string that passes client-side validation and is stored directly in the database. Affected fields across six files: <code>alamat</code>, <code>no_telp</code>, <code>nama_kk</code>, <code>rt</code>, <code>rw</code>, <code>keterangan</code>, <code>nama</code>, <code>catatan</code>, <code>nama_lengkap</code>, <code>email</code>.</p>
+    <p><strong>Example gap and fix (MuzakkiForm.tsx):</strong></p>
+    <pre><code><span class="dr">- alamat: z.string().min(5, ...),   // no .max(), no .trim()</span>
+<span class="dr">- no_telp: z.string().optional(),   // no .max(), no .trim()</span>
+<span class="da">+ alamat: z.string().min(5, ...).max(500).trim(),</span>
+<span class="da">+ no_telp: z.string().max(20).trim().optional(),</span></code></pre>
+    <p><strong>Risk:</strong> Low — RLS prevents unauthorized inserts; Supabase column types may truncate silently. Explicit <code>.max()</code> provides defense in depth and clear UX error messages.</p>
+    <div class="tfields">
+      <label>Effort: <strong>2h</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<details class="card" data-sev="Low">
+  <summary>
+    <span class="badge bLow">Low</span>
+    <span class="badge bInfo">Validation</span>
+    <span class="ctitle">SEC-11 — Multiple Zod schemas missing .trim() — leading/trailing whitespace stored in DB</span>
+    <span class="cfile">MuzakkiForm.tsx · WargaForm.tsx · MustahikForm.tsx · UserForm.tsx</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> The same schemas that lack <code>.max()</code> also lack <code>.trim()</code>. Whitespace entered by users is stored verbatim, causing duplicate-detection failures ("Ahmad " and "Ahmad" are distinct records) and UI display issues.</p>
+    <pre><code><span class="dr">- nama_kk: z.string().min(1, ...),</span>
+<span class="da">+ nama_kk: z.string().min(1, ...).trim(),</span></code></pre>
+    <p><strong>Risk:</strong> Low — Data quality issue, not a security vulnerability.</p>
+    <div class="tfields">
+      <label>Effort: <strong>1h</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<details class="card" data-sev="Low">
+  <summary>
+    <span class="badge bLow">Low</span>
+    <span class="badge bInfo">Validation</span>
+    <span class="ctitle">SEC-12 — Login password field missing .max(72) — bcrypt long-password DoS vector</span>
+    <span class="cfile">src/pages/Login.tsx:31-34</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> The login schema has no upper bound on the password field. bcrypt computation time scales with input length, enabling a long-password DoS where bcrypt processing time is maximized with a crafted request.</p>
+    <pre><code><span class="dr">- password: z.string().min(6, ...),   // no .max() — allows arbitrarily long bcrypt-DoS payload</span>
+<span class="da">+ password: z.string().min(6, ...).max(72),   // bcrypt truncates at 72 bytes anyway</span></code></pre>
+    <p><strong>Risk:</strong> Low — Supabase Auth likely applies its own input limits. Adding <code>.max(72)</code> aligns with bcrypt's 72-byte truncation and is a zero-cost client-side mitigation.</p>
+    <div class="tfields">
+      <label>Effort: <strong>15min</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<h3 id="sec-url">URL Parameter Injection</h3>
+
+<details class="card" data-sev="Low">
+  <summary>
+    <span class="badge bLow">Low</span>
+    <span class="badge bInfo">URL Params</span>
+    <span class="ctitle">SEC-13 — URL params used in queries without UUID format validation (mitigated by PostgREST)</span>
+    <span class="cfile">Register.tsx:33 · Dashboard.tsx:33 · QurbanScan.tsx:240</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> Three pages read values from the URL query string and pass them into Supabase queries without client-side format validation:</p>
+    <ul style="font-size:13px;margin:8px 0 10px 20px;line-height:1.8">
+      <li><strong>Register.tsx:33-35</strong> — <code>token</code> passed to Edge Function. The function SHA-256-hashes it before any DB lookup, so no SQL injection path exists.</li>
+      <li><strong>Dashboard.tsx:33-38</strong> — <code>?d=</code> used as dashboard ID in <code>.eq('dashboard_id', id)</code>. PostgREST rejects non-UUID strings at the DB level.</li>
+      <li><strong>QurbanScan.tsx:240-241</strong> — <code>?eventId=</code> passed to <code>useRedeemCouponByToken</code>. Same PostgREST UUID-type mitigation applies.</li>
+    </ul>
+    <p><strong>Risk:</strong> Low — No injection path identified. Recommend a client-side <code>isUuid()</code> guard for defensive clarity:</p>
+    <pre><code><span class="da">+ import { validate as isUuid } from 'uuid'</span>
+<span class="da">+ const urlDashboardId = searchParams.get('d') ?? undefined</span>
+<span class="da">+ const safeDashboardId = urlDashboardId &amp;&amp; isUuid(urlDashboardId) ? urlDashboardId : undefined</span></code></pre>
+    <div class="tfields">
+      <label>Effort: <strong>30min</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<h3 id="sec-deb">Missing Debounce</h3>
+
+<details class="card" data-sev="Medium">
+  <summary>
+    <span class="badge bMedium">Medium</span>
+    <span class="badge bInfo">Debounce</span>
+    <span class="ctitle">SEC-03 — DataMasterWarga: leaky debounce — every keystroke fires a Supabase query</span>
+    <span class="cfile">src/pages/DataMasterWarga.tsx:44-50</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> The <code>handleSearchChange</code> callback creates a <code>setTimeout</code> but returns the cleanup as the function's return value, which the <code>onChange</code> caller discards. Every keystroke starts a new 300ms timer that always fires — the debounce is completely ineffective.</p>
+    <p><strong>Risk:</strong> Medium — Rapid typing fires N parallel Supabase queries (one per character after 300ms). Under concurrent use, this can saturate DB connections.</p>
+    <pre><code><span class="dr">- const handleSearchChange = useCallback((val: string) =&gt; {</span>
+<span class="dr">-   setSearch(val)</span>
+<span class="dr">-   setPage(1)</span>
+<span class="dr">-   const timer = setTimeout(() =&gt; setDebouncedSearch(val), 300)</span>
+<span class="dr">-   return () =&gt; clearTimeout(timer)  // caller ignores this return value</span>
+<span class="dr">- }, [])</span>
+<span class="da">+ const debounceTimerRef = useRef&lt;ReturnType&lt;typeof setTimeout&gt; | null&gt;(null)</span>
+<span class="da">+ const handleSearchChange = useCallback((val: string) =&gt; {</span>
+<span class="da">+   setSearch(val)</span>
+<span class="da">+   setPage(1)</span>
+<span class="da">+   if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)</span>
+<span class="da">+   debounceTimerRef.current = setTimeout(() =&gt; setDebouncedSearch(val), 300)</span>
+<span class="da">+ }, [])</span></code></pre>
+    <div class="tfields">
+      <label>Effort: <strong>1h</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<details class="card" data-sev="Medium">
+  <summary>
+    <span class="badge bMedium">Medium</span>
+    <span class="badge bInfo">Debounce</span>
+    <span class="ctitle">SEC-04 — DataMasterMustahik: same leaky debounce pattern as DataMasterWarga</span>
+    <span class="cfile">src/pages/DataMasterMustahik.tsx:81-85</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> Identical broken debounce pattern. <code>handleSearchChange</code> at lines 82-85 returns a cleanup function from inside <code>useCallback</code> — the cleanup is discarded by the <code>onChange</code> caller. Every keystroke fires a separate Supabase query to the <code>mustahik</code> table.</p>
+    <p><strong>Risk:</strong> Medium — Same as SEC-03. Apply the same <code>useRef</code>-based timer fix.</p>
+    <pre><code><span class="dr">- const handleSearchChange = useCallback((val: string) =&gt; {</span>
+<span class="dr">-   setSearch(val); setPage(1)</span>
+<span class="dr">-   const timer = setTimeout(() =&gt; setDebouncedSearch(val), 300)</span>
+<span class="dr">-   return () =&gt; clearTimeout(timer)  // ignored by onChange caller</span>
+<span class="dr">- }, [])</span>
+<span class="da">+ const debounceTimerRef = useRef&lt;ReturnType&lt;typeof setTimeout&gt; | null&gt;(null)</span>
+<span class="da">+ const handleSearchChange = useCallback((val: string) =&gt; {</span>
+<span class="da">+   setSearch(val); setPage(1)</span>
+<span class="da">+   if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)</span>
+<span class="da">+   debounceTimerRef.current = setTimeout(() =&gt; setDebouncedSearch(val), 300)</span>
+<span class="da">+ }, [])</span></code></pre>
+    <div class="tfields">
+      <label>Effort: <strong>1h</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<details class="card" data-sev="Medium">
+  <summary>
+    <span class="badge bMedium">Medium</span>
+    <span class="badge bInfo">Debounce</span>
+    <span class="ctitle">SEC-05 — AddPesertaDialog: no debounce on muzakki search — every keystroke fires a query</span>
+    <span class="cfile">src/components/qurban/AddPesertaDialog.tsx:67-69</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> <code>searchQuery</code> state is updated on every <code>onChange</code> event. <code>useMuzakkiSearch</code> is a live TanStack Query dependency — any state change fires an immediate Supabase query once <code>searchQuery.length &gt;= 2</code>. No debounce is applied.</p>
+    <p><strong>Risk:</strong> Medium — Typing a 10-character name fires 8 separate queries to the <code>muzakki</code> table. Multiplied across concurrent Qurban registrations, this inflates DB load substantially.</p>
+    <pre><code><span class="dr">- const [searchQuery, setSearchQuery] = useState('')</span>
+<span class="dr">- const { data: searchResults = [], isLoading: isSearching } = useMuzakkiSearch(</span>
+<span class="dr">-   searchQuery.length &gt;= 2 ? searchQuery : ''</span>
+<span class="dr">- )</span>
+<span class="da">+ const [searchQuery, setSearchQuery] = useState('')</span>
+<span class="da">+ const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')</span>
+<span class="da">+ useEffect(() =&gt; {</span>
+<span class="da">+   const timer = setTimeout(() =&gt; setDebouncedSearchQuery(searchQuery), 300)</span>
+<span class="da">+   return () =&gt; clearTimeout(timer)</span>
+<span class="da">+ }, [searchQuery])</span>
+<span class="da">+ const { data: searchResults = [], isLoading: isSearching } = useMuzakkiSearch(</span>
+<span class="da">+   debouncedSearchQuery.length &gt;= 2 ? debouncedSearchQuery : ''</span>
+<span class="da">+ )</span></code></pre>
+    <div class="tfields">
+      <label>Effort: <strong>30min</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<h3 id="sec-auth">Authentication Bypass</h3>
+
+<details class="card" data-sev="Low">
+  <summary>
+    <span class="badge bLow">Low</span>
+    <span class="badge bInfo">Auth</span>
+    <span class="ctitle">SEC-14 — /data-master routes have no allowedRoles restriction — any authenticated user can access</span>
+    <span class="cfile">src/App.tsx:262-280</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> <code>/data-master/warga</code> and <code>/data-master/mustahik</code> are wrapped in <code>&lt;ProtectedRoute&gt;</code> but without an <code>allowedRoles</code> prop. Any authenticated user — regardless of role — can navigate to these pages. The "Import" button uses a client-side <code>hasRole(['admin'])</code> check (DataMasterWarga.tsx:77) to hide itself for non-admin users but this does not prevent direct API calls.</p>
+    <p><strong>Risk:</strong> Low — Write operations rely on RLS policies enforced server-side, so unauthorized writes are blocked. The exposure is read access to citizen data for any logged-in user.</p>
+    <pre><code><span class="dr">- &lt;Route path="/data-master/warga" element={&lt;ProtectedRoute&gt;...&lt;/ProtectedRoute&gt;} /&gt;</span>
+<span class="da">+ &lt;Route path="/data-master/warga" element={&lt;ProtectedRoute allowedRoles={['admin','petugas']}&gt;...&lt;/ProtectedRoute&gt;} /&gt;</span></code></pre>
+    <div class="tfields">
+      <label>Effort: <strong>15min</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<details class="card" data-sev="Info">
+  <summary>
+    <span class="badge bOk">OK</span>
+    <span class="badge bInfo">Auth</span>
+    <span class="ctitle">Clean finding — all sensitive routes wrapped in ProtectedRoute; no auth bypass found</span>
+    <span class="cfile">src/App.tsx · src/components/auth/ProtectedRoute.tsx</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Finding:</strong> All routes other than <code>/login</code>, <code>/register</code>, <code>/email-confirmation</code>, <code>/forgot-password</code>, and <code>/reset-password</code> are wrapped in <code>&lt;ProtectedRoute&gt;</code>. The <code>ProtectedRoute</code> component correctly: (1) shows a spinner while <code>loading</code> is true to prevent flash-of-protected-content, (2) redirects to <code>/login</code> if <code>user</code> is null, (3) redirects to <code>/login</code> if <code>user.is_active</code> is false, and (4) shows an "Access Denied" screen if <code>allowedRoles</code> is specified and the user's role is not in the list. No authentication bypass was found.</p>
+    <div class="tfields">
+      <label>Effort: <strong>—</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<h3 id="sec-xss">XSS Surface</h3>
+
+<details class="card" data-sev="Low">
+  <summary>
+    <span class="badge bLow">Low</span>
+    <span class="badge bInfo">XSS</span>
+    <span class="ctitle">SEC-15 — thermalCouponPrint.ts uses deprecated document.write (user data correctly escaped)</span>
+    <span class="cfile">src/lib/thermalCouponPrint.ts:88</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> <code>win.document.write(html)</code> writes an HTML string into a popup window for thermal printing. All user-supplied strings pass through an <code>esc()</code> function (lines 95-101) escaping <code>&amp;</code>, <code>&lt;</code>, <code>&gt;</code>, and <code>"</code>. The only un-escaped value is <code>${svgStr}</code> — serialized output of <code>new XMLSerializer().serializeToString(svgClone)</code> from a QR code element, not user input.</p>
+    <p><strong>Verdict:</strong> XSS risk is mitigated. <strong>No <code>dangerouslySetInnerHTML</code> found anywhere in the codebase. No raw <code>innerHTML</code> assignments found.</strong> The XSS attack surface is very small. <code>document.write</code> is an outdated API — recommend replacing with a Blob URL approach:</p>
+    <pre><code><span class="dr">- win.document.write(html)</span>
+<span class="da">+ const blob = new Blob([html], { type: 'text/html' })</span>
+<span class="da">+ win.location.href = URL.createObjectURL(blob)</span></code></pre>
+    <div class="tfields">
+      <label>Effort: <strong>30min</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<h3 id="sec-mass">Mass Assignment</h3>
+
+<details class="card" data-sev="Medium">
+  <summary>
+    <span class="badge bMedium">Medium</span>
+    <span class="badge bInfo">Mass Assignment</span>
+    <span class="ctitle">SEC-06 — WargaImportDialog: as any cast on bulk insert bypasses TypeScript column allowlist</span>
+    <span class="cfile">src/components/data-master/WargaImportDialog.tsx:117</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> The bulk CSV import builds a <code>toInsert</code> array from validated CSV rows, then casts it <code>as any</code> before <code>supabase.from('muzakki').insert(toInsert as any)</code>. This removes TypeScript's column allowlist — the compiler cannot flag unknown fields that may have been injected via a malicious CSV.</p>
+    <p><strong>Risk:</strong> Medium (code quality) — Supabase PostgREST ignores unknown columns and RLS restricts unauthorized inserts, so there is no direct runtime vulnerability. However, the <code>as any</code> removes compile-time safety and could allow unexpected fields to slip through if parsing logic changes.</p>
+    <pre><code><span class="dr">- const { error } = await supabase.from('muzakki').insert(toInsert as any)</span>
+<span class="da">+ const safeRows = toInsert.map(row =&gt; ({</span>
+<span class="da">+   nama_kk: row.nama_kk,</span>
+<span class="da">+   alamat: row.alamat,</span>
+<span class="da">+   no_telp: row.no_telp,</span>
+<span class="da">+   rt: row.rt,</span>
+<span class="da">+   rw: row.rw,</span>
+<span class="da">+ }))</span>
+<span class="da">+ const { error } = await supabase.from('muzakki').insert(safeRows)</span></code></pre>
+    <div class="tfields">
+      <label>Effort: <strong>1h</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<details class="card" data-sev="Low">
+  <summary>
+    <span class="badge bLow">Low</span>
+    <span class="badge bInfo">Mass Assignment</span>
+    <span class="ctitle">SEC-16 — useDashboardConfig: .update(rest) spreads form fields — no runtime column filtering</span>
+    <span class="cfile">src/hooks/useDashboardConfig.ts:201-204</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> The hook destructures <code>id</code> from input and passes <code>rest</code> directly to <code>.update(rest)</code>. If the <code>input</code> type is loose or a caller passes extra fields, those fields are sent to the update without filtering.</p>
+    <pre><code><span class="dr">- const { id, ...rest } = input</span>
+<span class="dr">- const { data, error } = await db.from('dashboard_configs').update(rest).eq('id', id)</span>
+<span class="da">+ const { id, title, is_public, layout_json } = input  // explicit destructure</span>
+<span class="da">+ const { data, error } = await db.from('dashboard_configs')</span>
+<span class="da">+   .update({ title, is_public, layout_json })</span>
+<span class="da">+   .eq('id', id)</span></code></pre>
+    <p><strong>Risk:</strong> Low — TypeScript constrains <code>input</code> to known fields; Supabase ignores unrecognized columns; RLS ensures only admins can update. Code quality issue more than a runtime vulnerability.</p>
+    <div class="tfields">
+      <label>Effort: <strong>30min</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<h3 id="sec-rls">RLS Policy Coverage</h3>
+
+<details class="card" data-sev="High" open>
+  <summary>
+    <span class="badge bHigh">High</span>
+    <span class="badge bInfo">RLS</span>
+    <span class="ctitle">SEC-01 — qurban_participants: RLS enabled but zero policies defined — table is DENY ALL</span>
+    <span class="cfile">supabase/migrations/033_create_qurban_tables.sql</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> Migration 033 calls <code>ALTER TABLE public.qurban_participants ENABLE ROW LEVEL SECURITY</code> but no <code>CREATE POLICY</code> statement appears for <code>qurban_participants</code> in any of the 40 migration files. When RLS is enabled without any permissive policy, PostgreSQL defaults to DENY ALL — no authenticated user can read or write to this table. The application silently returns empty results or insert errors for participant data.</p>
+    <p><strong>Risk:</strong> High — Participant names for Qurban registrations are silently invisible to all users. Staff cannot view or manage participant lists. If a fallback permissive policy exists at the project level, the table may instead be completely unprotected — either outcome is unacceptable.</p>
+    <p><strong>Fix — add as new migration <code>041_qurban_participants_rls.sql</code>:</strong></p>
+    <pre><code>-- RLS policies for qurban_participants
+-- Follows the same pattern as qurban_registrations in migration 033
+
+ALTER TABLE public.qurban_participants ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "qurban_participants_select_admin_petugas_viewer_active" ON public.qurban_participants;
+DROP POLICY IF EXISTS "qurban_participants_insert_admin_petugas_active" ON public.qurban_participants;
+DROP POLICY IF EXISTS "qurban_participants_update_admin_petugas_active" ON public.qurban_participants;
+DROP POLICY IF EXISTS "qurban_participants_delete_admin_petugas_active" ON public.qurban_participants;
+
+CREATE POLICY "qurban_participants_select_admin_petugas_viewer_active"
+  ON public.qurban_participants FOR SELECT
+  TO authenticated
+  USING (
+    public.get_current_user_is_active()
+    AND public.get_current_user_role() IN ('admin', 'petugas', 'viewer')
+  );
+
+CREATE POLICY "qurban_participants_insert_admin_petugas_active"
+  ON public.qurban_participants FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    public.get_current_user_is_active()
+    AND public.get_current_user_role() IN ('admin', 'petugas')
+  );
+
+CREATE POLICY "qurban_participants_update_admin_petugas_active"
+  ON public.qurban_participants FOR UPDATE
+  TO authenticated
+  USING (
+    public.get_current_user_is_active()
+    AND public.get_current_user_role() IN ('admin', 'petugas')
+  )
+  WITH CHECK (
+    public.get_current_user_is_active()
+    AND public.get_current_user_role() IN ('admin', 'petugas')
+  );
+
+CREATE POLICY "qurban_participants_delete_admin_petugas_active"
+  ON public.qurban_participants FOR DELETE
+  TO authenticated
+  USING (
+    public.get_current_user_is_active()
+    AND public.get_current_user_role() IN ('admin', 'petugas')
+  );</code></pre>
+    <div class="tfields">
+      <label>Effort: <strong>2h</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<h4>Full RLS Coverage Matrix (30 tables across 40 migrations)</h4>
+<table>
+<thead><tr><th>Table</th><th>Has Policy?</th><th>Migration(s)</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td><code>users</code></td><td class="rls-yes">&#10003; Yes</td><td>002, 015, 017, 018</td><td>Multiple policy revisions; final: SECURITY DEFINER functions</td></tr>
+<tr><td><code>tahun_zakat</code></td><td class="rls-yes">&#10003; Yes</td><td>002</td><td>Admin write + all-read</td></tr>
+<tr><td><code>kategori_mustahik</code></td><td class="rls-yes">&#10003; Yes</td><td>002</td><td>Admin write + all-read</td></tr>
+<tr><td><code>muzakki</code></td><td class="rls-yes">&#10003; Yes</td><td>002, 019</td><td>Revised in 019 with is_active check</td></tr>
+<tr><td><code>pembayaran_zakat</code></td><td class="rls-yes">&#10003; Yes</td><td>002, 019</td><td>Revised in 019</td></tr>
+<tr><td><code>mustahik</code></td><td class="rls-yes">&#10003; Yes</td><td>002, 019</td><td>Revised in 019</td></tr>
+<tr><td><code>distribusi_zakat</code></td><td class="rls-yes">&#10003; Yes</td><td>002, 019</td><td>Revised in 019</td></tr>
+<tr><td><code>audit_logs</code></td><td class="rls-yes">&#10003; Yes</td><td>002</td><td>Admin full + own-logs read</td></tr>
+<tr><td><code>pemasukan_uang</code></td><td class="rls-yes">&#10003; Yes</td><td>005, 019</td><td>Revised in 019</td></tr>
+<tr><td><code>hak_amil</code></td><td class="rls-yes">&#10003; Yes</td><td>005</td><td>Admin insert/update</td></tr>
+<tr><td><code>rekonsiliasi</code></td><td class="rls-yes">&#10003; Yes</td><td>005, 019</td><td>Revised in 019</td></tr>
+<tr><td><code>bukti_sedekah</code></td><td class="rls-yes">&#10003; Yes</td><td>008</td><td>Admin + petugas CRUD</td></tr>
+<tr><td><code>pemasukan_beras</code></td><td class="rls-yes">&#10003; Yes</td><td>012</td><td>Uses older <code>get_user_role()</code> (not SECURITY DEFINER version)</td></tr>
+<tr><td><code>user_invitations</code></td><td class="rls-yes">&#10003; Yes</td><td>014, 015, 016</td><td>Admin-only CRUD</td></tr>
+<tr><td><code>hak_amil_configs</code></td><td class="rls-yes">&#10003; Yes</td><td>024</td><td>Admin write, admin+petugas read</td></tr>
+<tr><td><code>hak_amil_snapshots</code></td><td class="rls-yes">&#10003; Yes</td><td>024</td><td>Admin write, admin+petugas read</td></tr>
+<tr><td><code>bulk_submission_logs</code></td><td class="rls-yes">&#10003; Yes</td><td>026</td><td>Admin full + petugas insert-own</td></tr>
+<tr><td><code>dashboard_configs</code></td><td class="rls-yes">&#10003; Yes</td><td>027</td><td>Admin write, public-visibility read</td></tr>
+<tr><td><code>dashboard_widgets</code></td><td class="rls-yes">&#10003; Yes</td><td>027</td><td>Follows dashboard_configs visibility</td></tr>
+<tr><td><code>accounts</code></td><td class="rls-yes">&#10003; Yes</td><td>029</td><td>Admin + bendahara write</td></tr>
+<tr><td><code>account_ledger_entries</code></td><td class="rls-yes">&#10003; Yes</td><td>029</td><td>Admin + bendahara write</td></tr>
+<tr><td><code>transaction_tags</code></td><td class="rls-yes">&#10003; Yes</td><td>032</td><td>Admin write, all-authenticated read</td></tr>
+<tr><td><code>qurban_registrations</code></td><td class="rls-yes">&#10003; Yes</td><td>033</td><td>Admin + petugas write</td></tr>
+<tr><td><code>qurban_participants</code></td><td class="rls-no">&#10007; No policies</td><td>033 (RLS enabled only)</td><td>RLS enabled but zero policies — DENY ALL. See SEC-01.</td></tr>
+<tr><td><code>qurban_events</code></td><td class="rls-yes">&#10003; Yes</td><td>035</td><td>Admin write only</td></tr>
+<tr><td><code>qurban_animals</code></td><td class="rls-yes">&#10003; Yes</td><td>035</td><td>Admin + petugas write</td></tr>
+<tr><td><code>qurban_shares</code></td><td class="rls-yes">&#10003; Yes</td><td>035</td><td>Admin + petugas write</td></tr>
+<tr><td><code>qurban_coupons</code></td><td class="rls-yes">&#10003; Yes</td><td>037</td><td>Admin + petugas write</td></tr>
+<tr><td><code>org_settings</code></td><td class="rls-yes">&#10003; Yes</td><td>039</td><td>Admin write, active-user read</td></tr>
+<tr><td><code>upz_units</code></td><td class="rls-yes">&#10003; Yes</td><td>039</td><td>Admin + petugas write</td></tr>
+</tbody>
+</table>
+
+<h3 id="sec-edge">Edge Function Security</h3>
+
+<details class="card" data-sev="Medium">
+  <summary>
+    <span class="badge bMedium">Medium</span>
+    <span class="badge bInfo">CORS</span>
+    <span class="ctitle">SEC-02 — Edge Function: Access-Control-Allow-Origin: * allows any origin to call unauthenticated endpoints</span>
+    <span class="cfile">supabase/functions/invitation-manager/index.ts:29-32</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> The CORS headers use a wildcard origin, permitting any website to call the invitation validation endpoint from a browser. While <code>createInvitation</code> requires a valid Authorization JWT, the <code>validateInvitation</code> and <code>registerUser</code> actions do not — they only need a token from the URL. A malicious website could probe token validation from any origin.</p>
+    <pre><code><span class="dr">- const corsHeaders = {</span>
+<span class="dr">-   'Access-Control-Allow-Origin': '*',</span>
+<span class="dr">-   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',</span>
+<span class="dr">- }</span>
+<span class="da">+ const allowedOrigin = Deno.env.get('FRONTEND_URL') || 'http://localhost:5173'</span>
+<span class="da">+ const corsHeaders = {</span>
+<span class="da">+   'Access-Control-Allow-Origin': allowedOrigin,</span>
+<span class="da">+   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',</span>
+<span class="da">+   'Vary': 'Origin',</span>
+<span class="da">+ }</span></code></pre>
+    <p><strong>Risk:</strong> Medium — Privileged operations require JWT. The open CORS policy is broader than necessary and enables cross-origin probing of the token validation endpoint.</p>
+    <div class="tfields">
+      <label>Effort: <strong>30min</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<details class="card" data-sev="Low">
+  <summary>
+    <span class="badge bLow">Low</span>
+    <span class="badge bInfo">Edge Fn</span>
+    <span class="ctitle">SEC-07 — Edge Function: no HTTP method check — non-POST requests fall through to body parsing</span>
+    <span class="cfile">supabase/functions/invitation-manager/index.ts:42-47</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> After the <code>OPTIONS</code> preflight handler, no check verifies the HTTP method is <code>POST</code>. A <code>GET</code>, <code>PUT</code>, or <code>DELETE</code> request falls through to <code>await req.json()</code>, which fails (no body), causing a 500 response. Not exploitable, but bad practice.</p>
+    <pre><code><span class="dr">-   if (req.method === 'OPTIONS') {</span>
+<span class="dr">-     return new Response('ok', { headers: corsHeaders })</span>
+<span class="dr">-   }</span>
+<span class="dr">-   // no method check — falls through to req.json()</span>
+<span class="da">+   if (req.method === 'OPTIONS') {</span>
+<span class="da">+     return new Response('ok', { headers: corsHeaders })</span>
+<span class="da">+   }</span>
+<span class="da">+   if (req.method !== 'POST') {</span>
+<span class="da">+     return new Response(</span>
+<span class="da">+       JSON.stringify({ error: 'Method not allowed' }),</span>
+<span class="da">+       { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }</span>
+<span class="da">+     )</span>
+<span class="da">+   }</span></code></pre>
+    <p><strong>Risk:</strong> Low — Non-POST requests return 500 instead of 405. Not exploitable but leaks implementation details via unhandled error messages.</p>
+    <div class="tfields">
+      <label>Effort: <strong>15min</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+<details class="card" data-sev="Low">
+  <summary>
+    <span class="badge bLow">Low</span>
+    <span class="badge bInfo">Config</span>
+    <span class="ctitle">SEC-08 — Edge Function: FRONTEND_URL missing in production causes invitation links to point to localhost</span>
+    <span class="cfile">supabase/functions/invitation-manager/index.ts:160</span>
+  </summary>
+  <div class="cbody">
+    <p><strong>Description:</strong> Invitation email links are built using <code>Deno.env.get('FRONTEND_URL') || 'http://localhost:5173'</code>. If <code>FRONTEND_URL</code> is not set in the Supabase Edge Function environment, all invitation links will contain <code>http://localhost:5173/register?token=...</code> — functional for local dev, non-functional in production.</p>
+    <pre><code><span class="dr">- const frontendUrl = Deno.env.get('FRONTEND_URL') || 'http://localhost:5173'</span>
+<span class="da">+ const frontendUrl = Deno.env.get('FRONTEND_URL')</span>
+<span class="da">+ if (!frontendUrl) {</span>
+<span class="da">+   console.error('FRONTEND_URL env var is not set — invitation links will be broken in production')</span>
+<span class="da">+ }</span>
+<span class="da">+ const resolvedFrontendUrl = frontendUrl ?? 'http://localhost:5173'</span></code></pre>
+    <p><strong>Risk:</strong> Low — Configuration risk, not a security vulnerability. Missing env var causes complete failure of the invitation flow in production.</p>
+    <div class="tfields">
+      <label>Effort: <strong>15min</strong></label>
+      <label>Owner: <input type="text" placeholder="Assign…" style="width:120px;padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"></label>
+      <label>Status: <select style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:12px"><option>Open</option><option>In Progress</option><option>Resolved</option></select></label>
+    </div>
+  </div>
+</details>
+
+</section>
+
+<section id="quality">
+<h2>Code Quality</h2>
+<h3 id="q-dup">Code Duplication</h3>
+
+<details class="card" data-sev="Low">
+<summary><span class="badge bLow">Low</span><span class="ctitle">QUA-01 — tahun_zakat active lookup duplicated (double DB query)</span><span class="cfile">useDashboard.ts:78,317</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> The identical pattern of querying <code>tahun_zakat</code> for the active year (<code>.eq('is_active', true).single()</code>) is copy-pasted as the first step in both <code>useDashboardStats</code> (line 78) and <code>useMonthlyPemasukan</code> (line 317) — both in the same file. Since both hooks mount simultaneously on the dashboard page, the database receives two separate requests for exactly the same row on every dashboard load.</p>
+<p><strong>Risk:</strong> Wasted database connection slot on every dashboard mount; if the active year ever changes between the two calls (race condition during year rollover), the two hooks will use different <code>tahun_zakat_id</code> values and produce inconsistent totals.</p>
+<pre><code><span class="dr">// BEFORE — duplicated in two places in useDashboard.ts</span>
+<span class="dr">const { data: activeTahun } = await supabase</span>
+<span class="dr">  .from('tahun_zakat').select('id').eq('is_active', true).single();</span>
+<span class="dr">activeTahunId = (activeTahun as { id: string } | null)?.id;</span>
+<span class="da">// AFTER — resolve once in useTahunZakatList and pass as prop/context</span>
+<span class="da">// Or share via a dedicated useActiveTahunZakat() hook with staleTime: 5min</span>
+<span class="da">const { data: activeTahun } = useActiveTahunZakat(); // single network call, shared cache</span></code></pre>
+<div class="tfields"><label>Effort: <strong>2h</strong></label></div>
+</div>
+</details>
+
+<details class="card" data-sev="Low">
+<summary><span class="badge bLow">Low</span><span class="ctitle">QUA-02 — Ledger entry lookup by source FK duplicated across pemasukan hooks</span><span class="cfile">usePemasukanUang.ts:117, usePemasukanBeras.ts:118</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> The pattern of finding an existing ledger entry by a source FK column appears verbatim in four exported functions across two files: <code>updatePemasukanUangLedgerEntry()</code>, <code>deletePemasukanUangLedgerEntry()</code> in <code>usePemasukanUang.ts</code>, and the equivalent pair in <code>usePemasukanBeras.ts</code>. Each block is ~15 lines; total duplication is ~60 lines of nearly identical logic differing only in the FK column name (<code>source_pemasukan_uang_id</code> vs <code>source_pemasukan_beras_id</code>).</p>
+<p><strong>Risk:</strong> If the ledger lookup logic needs a bug fix or a new condition, it must be updated in four separate places. A missed update in any one location will cause a silent behavioral inconsistency between uang and beras pemasukan.</p>
+<pre><code><span class="dr">// BEFORE — usePemasukanUang.ts line 117 (repeated in usePemasukanBeras.ts line 118)</span>
+<span class="dr">const { data: existingLedger, error: existingLedgerError } = await (supabase</span>
+<span class="dr">  .from('account_ledger_entries').select as any)('id')</span>
+<span class="dr">  .eq('source_pemasukan_uang_id', input.pemasukanUangId).maybeSingle();</span>
+<span class="da">// AFTER — generic helper in lib/ledger.ts</span>
+<span class="da">async function findLedgerEntry(sourceCol: string, sourceId: string) {</span>
+<span class="da">  return supabase.from('account_ledger_entries')</span>
+<span class="da">    .select('id').eq(sourceCol, sourceId).maybeSingle();</span>
+<span class="da">}</span></code></pre>
+<div class="tfields"><label>Effort: <strong>3h</strong></label></div>
+</div>
+</details>
+
+<details class="card" data-sev="Low">
+<summary><span class="badge bLow">Low</span><span class="ctitle">QUA-03 — Account name resolution (resolveXAccountId) duplicated in two hooks</span><span class="cfile">usePemasukanUang.ts:66, useRekonsiliasi.ts:37</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> Both <code>usePemasukanUang.ts</code> (lines 66–88) and <code>useRekonsiliasi.ts</code> (lines 37–58) implement a <code>resolveXAccountId()</code> function with identical structure: query the <code>accounts</code> table by name, fall back to <code>'KAS'</code> if the preferred account is not found. Only the function names and field names differ. This is approximately 40 lines of duplicated lookup logic.</p>
+<p><strong>Risk:</strong> The hardcoded bank account name <code>'BCA-SYARIAH : MPZ LAZ AL FAJAR ZAKAT'</code> appears in both copies — if the account name ever changes, it must be updated in two places. A missed update will silently fall back to KAS and misroute funds in the ledger.</p>
+<pre><code><span class="dr">// BEFORE — duplicated resolveUangAccountId in usePemasukanUang.ts and resolveRekonsiliasiAccountId in useRekonsiliasi.ts</span>
+<span class="da">// AFTER — lib/accounts.ts shared utility</span>
+<span class="da">export const DEFAULT_KAS_ACCOUNT_NAME = 'KAS';</span>
+<span class="da">export const DEFAULT_BANK_ACCOUNT_NAME = 'BCA-SYARIAH : MPZ LAZ AL FAJAR ZAKAT';</span>
+<span class="da">export async function resolveAccountId(</span>
+<span class="da">  preferredName: string,</span>
+<span class="da">  fallbackName = DEFAULT_KAS_ACCOUNT_NAME</span>
+<span class="da">): Promise&lt;string&gt; {</span>
+<span class="da">  const { data, error } = await supabase.from('accounts')</span>
+<span class="da">    .select('id, account_name')</span>
+<span class="da">    .in('account_name', [preferredName, fallbackName])</span>
+<span class="da">    .eq('is_active', true);</span>
+<span class="da">  if (error) throw error;</span>
+<span class="da">  const matched = (data || []).find(a =&gt; a.account_name === preferredName)</span>
+<span class="da">    ?? (data || []).find(a =&gt; a.account_name === fallbackName);</span>
+<span class="da">  if (!matched?.id) throw new Error(`Account not found: ${preferredName}`);</span>
+<span class="da">  return matched.id;</span>
+<span class="da">}</span></code></pre>
+<div class="tfields"><label>Effort: <strong>2h</strong></label></div>
+</div>
+</details>
+
+<details class="card" data-sev="Low">
+<summary><span class="badge bLow">Low</span><span class="ctitle">QUA-04 — React Query cache invalidation block (5 queryKeys) duplicated across 6 mutation functions</span><span class="cfile">usePemasukanUang.ts, usePemasukanBeras.ts, useMuzakki.ts</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> All three pemasukan hooks invalidate the same 5 query keys on every create/update/delete mutation. The identical 5-line <code>queryClient.invalidateQueries()</code> block is repeated 6 times across mutation functions in these files. If a new query key needs to be invalidated (e.g., a new dashboard widget), all 6 locations must be updated.</p>
+<p><strong>Risk:</strong> A forgotten invalidation after adding a new derived query key will cause stale data to persist in the cache after mutations. The distributed update requirement increases the chance of inconsistency across mutations.</p>
+<pre><code><span class="dr">// BEFORE — repeated in onSuccess of createPemasukanUang, updatePemasukanUang, deletePemasukanUang, etc.</span>
+<span class="dr">queryClient.invalidateQueries({ queryKey: ['pemasukan-uang'] });</span>
+<span class="dr">queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });</span>
+<span class="dr">queryClient.invalidateQueries({ queryKey: ['monthly-pemasukan'] });</span>
+<span class="dr">queryClient.invalidateQueries({ queryKey: ['hak-amil-monthly-summary'] });</span>
+<span class="dr">queryClient.invalidateQueries({ queryKey: ['hak-amil-yearly-summary'] });</span>
+<span class="da">// AFTER — shared invalidation helper</span>
+<span class="da">function invalidatePemasukanRelated(queryClient: QueryClient, type: 'uang' | 'beras') {</span>
+<span class="da">  const keys = [`pemasukan-${type}`, 'dashboard-stats', 'monthly-pemasukan',</span>
+<span class="da">                'hak-amil-monthly-summary', 'hak-amil-yearly-summary'];</span>
+<span class="da">  keys.forEach(k =&gt; queryClient.invalidateQueries({ queryKey: [k] }));</span>
+<span class="da">}</span></code></pre>
+<div class="tfields"><label>Effort: <strong>2h</strong></label></div>
+</div>
+</details>
+
+<details class="card" data-sev="Low">
+<summary><span class="badge bLow">Low</span><span class="ctitle">QUA-05 — Error toast pattern (Gagal menyimpan…) duplicated ~50 times across 17+ hook files</span><span class="cfile">src/hooks/*.ts (all mutation hooks)</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> The <code>toast.error(`Gagal menyimpan...: ${error.message}`)</code> / <code>toast.success('...')</code> pattern appears in the <code>onError</code>/<code>onSuccess</code> callback of every mutation across 17+ hook files including <code>usePemasukanUang.ts</code>, <code>usePemasukanBeras.ts</code>, <code>useMuzakki.ts</code>, <code>useMustahik.ts</code>, <code>useDistribusi.ts</code>, <code>useNilaiZakat.ts</code>, <code>useRekonsiliasi.ts</code>, <code>useHakAmil.ts</code>, <code>useAccountsLedger.ts</code>, <code>useDashboardConfig.ts</code>, <code>useQurban.ts</code>, <code>useOrgSettings.ts</code>, <code>useUsers.ts</code>, and <code>useInvitations.ts</code>. Approximately 50 identical boilerplate blocks.</p>
+<p><strong>Risk:</strong> Changing the error message format, adding Sentry logging, or switching from toast to a different notification system requires editing 50+ locations. High maintenance burden; inconsistency in message phrasing across hooks already exists.</p>
+<pre><code><span class="da">// AFTER — shared mutation factory</span>
+<span class="da">function withToastCallbacks&lt;T&gt;(</span>
+<span class="da">  successMsg: string,</span>
+<span class="da">  errorPrefix: string,</span>
+<span class="da">  extraInvalidations?: string[][]</span>
+<span class="da">) {</span>
+<span class="da">  return {</span>
+<span class="da">    onSuccess: () =&gt; { toast.success(successMsg); /* invalidate */ },</span>
+<span class="da">    onError: (err: Error) =&gt; toast.error(`${errorPrefix}: ${err.message}`),</span>
+<span class="da">  };</span>
+<span class="da">}</span></code></pre>
+<div class="tfields"><label>Effort: <strong>4h</strong></label></div>
+</div>
+</details>
+
+<details class="card" data-sev="Low">
+<summary><span class="badge bLow">Low</span><span class="ctitle">QUA-06 — Offline mode guard duplicated as first statement in ~15 hook queryFns</span><span class="cfile">src/hooks/*.ts</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> The pattern <code>if (OFFLINE_MODE) return offlineStore.xxx(...)</code> appears as the very first statement in every <code>queryFn</code> across approximately 15 hooks. This results in ~15 identical guard blocks scattered throughout the codebase that all check the same environment flag.</p>
+<p><strong>Risk:</strong> Low severity — offline mode is a development/testing tool, not a production code path. However, this pattern means that adding a new hook requires remembering to add the offline guard, and the offline data paths have no type checking (they cast to <code>any</code>). The pattern could be abstracted into a <code>createQueryFn(offlineFn, onlineFn)</code> factory.</p>
+<div class="tfields"><label>Effort: <strong>4h</strong></label></div>
+</div>
+</details>
+
+<h3 id="q-dead">Dead Code</h3>
+
+<details class="card" data-sev="Medium">
+<summary><span class="badge bMedium">Medium</span><span class="ctitle">QUA-07 — useDonor hook exported but never imported anywhere in the codebase</span><span class="cfile">src/hooks/useDonor.ts</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> The <code>useDonor</code> hook is defined and exported from <code>hooks/useDonor.ts</code> but has zero import references across the entire codebase. The functionality it would have provided (searching donors, fetching donor by ID) appears to have been superseded by <code>useSedekahReceipts</code>, which handles receipt creation with its own donor lookup. The file also silently swallows all errors via <code>console.error</code>, returning empty arrays rather than propagating errors to the UI.</p>
+<p><strong>Risk:</strong> Dead code increases bundle size (minor), confuses future developers about which hook to use, and the silent error handling pattern makes it potentially dangerous if the hook is ever re-adopted without fixing the error handling.</p>
+<div class="tfields"><label>Effort: <strong>0.5h</strong></label></div>
+</div>
+</details>
+
+<details class="card" data-sev="Medium">
+<summary><span class="badge bMedium">Medium</span><span class="ctitle">QUA-09 — 5 unreachable page files not wired to any route</span><span class="cfile">src/pages/SettingsPage.tsx, MuzakkiPage.tsx, MustahikPage.tsx, DistribusiPage.tsx, LaporanPage.tsx</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> Five page files exist in <code>src/pages/</code> but are not referenced in <code>src/App.tsx</code> route definitions: <code>SettingsPage.tsx</code>, <code>MuzakkiPage.tsx</code>, <code>MustahikPage.tsx</code>, <code>DistribusiPage.tsx</code>, and <code>LaporanPage.tsx</code>. These appear to be early stub pages from the initial project scaffolding, superseded by more specific feature pages. They are unreachable by any navigation path.</p>
+<p><strong>Risk:</strong> These files participate in the TypeScript compilation but are never executed. They increase the compiled bundle (Vite may still include them if exported). They create confusion for future developers who may attempt to extend the "wrong" version of a page. Safe to delete after confirming they contain no reusable logic.</p>
+<div class="tfields"><label>Effort: <strong>1h</strong></label></div>
+</div>
+</details>
+
+<details class="card" data-sev="Low">
+<summary><span class="badge bLow">Low</span><span class="ctitle">QUA-08 — Ledger entry helper functions over-exported (module-private candidates)</span><span class="cfile">usePemasukanUang.ts, usePemasukanBeras.ts, useRekonsiliasi.ts</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> The following functions are exported but only ever called within their own file: <code>createPemasukanUangLedgerEntry</code>, <code>updatePemasukanUangLedgerEntry</code>, <code>deletePemasukanUangLedgerEntry</code> (in <code>usePemasukanUang.ts</code>), the equivalent triplet in <code>usePemasukanBeras.ts</code>, and <code>createRekonsiliasiLedgerEntry</code> / <code>deleteRekonsiliasiLedgerEntry</code> in <code>useRekonsiliasi.ts</code>. Eight functions total that are exported unnecessarily.</p>
+<p><strong>Risk:</strong> Unnecessary exports widen the public API surface, making it harder to refactor internals without risk of breaking imports. Converting these to unexported module-level functions or moving them to <code>lib/</code> would signal their intended scope and allow future refactoring safely.</p>
+<div class="tfields"><label>Effort: <strong>1h</strong></label></div>
+</div>
+</details>
+
+<h3 id="q-err">Inconsistent Error Handling</h3>
+
+<details class="card" data-sev="Medium">
+<summary><span class="badge bMedium">Medium</span><span class="ctitle">QUA-10 — useDashboard and useQurbanDashboard silently discard all query errors</span><span class="cfile">src/hooks/useDashboard.ts, useQurbanDashboard.ts</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> Every Supabase call inside <code>useDashboardStats</code> destructures only <code>{ data }</code>, silently discarding the <code>error</code> field. All 10+ sub-queries (for <code>pembayaran_zakat</code>, <code>distribusi_zakat</code>, <code>pemasukan_uang</code>, <code>pemasukan_beras</code>, <code>rekonsiliasi</code>, <code>hak_amil</code>, <code>hak_amil_configs</code>) can fail silently with the dashboard showing zeros instead of an error. The same pattern applies to <code>useQurbanDashboardStats</code> where all four queries (<code>animals</code>, <code>shares</code>, <code>coupons</code>, <code>events</code>) discard errors entirely.</p>
+<p><strong>Risk:</strong> If an RLS policy violation or network error occurs, the dashboard will show all zeros with no user feedback. An administrator reviewing incorrect totals (all zeros) will have no indication that the data failed to load and may act on erroneous information. Good error handling exists in all CRUD mutations but is absent specifically on read queries in dashboard hooks.</p>
+<pre><code><span class="dr">// BEFORE — useDashboard.ts (error silently discarded)</span>
+<span class="dr">const { data: pemasukanBeras } = await supabase</span>
+<span class="dr">  .from('pembayaran_zakat').select('jumlah_beras_kg')</span>
+<span class="dr">  .eq('tahun_zakat_id', activeTahunId).eq('jenis_zakat', 'beras');</span>
+<span class="da">// AFTER — propagate to React Query error state</span>
+<span class="da">const { data: pemasukanBeras, error: berasError } = await supabase</span>
+<span class="da">  .from('pembayaran_zakat').select('jumlah_beras_kg')</span>
+<span class="da">  .eq('tahun_zakat_id', activeTahunId).eq('jenis_zakat', 'beras');</span>
+<span class="da">if (berasError) throw berasError; // React Query catches and surfaces via error state</span></code></pre>
+<p><strong>Note — hooks with GOOD error handling:</strong> All 25+ CRUD mutations in <code>usePemasukanUang.ts</code>, <code>usePemasukanBeras.ts</code>, <code>useMuzakki.ts</code>, <code>useMustahik.ts</code>, <code>useDistribusi.ts</code>, <code>useNilaiZakat.ts</code>, <code>useRekonsiliasi.ts</code>, <code>useHakAmil.ts</code>, <code>useAccountsLedger.ts</code>, <code>useQurban.ts</code>, <code>useOrgSettings.ts</code>, <code>useUsers.ts</code>, and <code>useInvitations.ts</code> correctly surface errors via <code>toast.error()</code> and/or rethrow.</p>
+<div class="tfields"><label>Effort: <strong>2h</strong></label></div>
+</div>
+</details>
+
+<h3 id="q-magic">Magic Numbers &amp; Strings</h3>
+
+<details class="card" data-sev="Low">
+<summary><span class="badge bLow">Low</span><span class="ctitle">QUA-11 — Hardcoded letter date "2026-02-25" in SuratPengantar</span><span class="cfile">src/pages/SuratPengantar.tsx</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> A literal date string is hardcoded in the <code>SuratPengantar</code> (Introduction Letter) template. This date was correct for the 2026 Ramadan season but will be wrong every subsequent year without a code change. The letter will silently display an outdated date unless a developer remembers to update it each year before Ramadan.</p>
+<p><strong>Risk:</strong> Low severity for functionality, but a compliance/credibility risk for an official mosque document. The fix is straightforward — derive the date dynamically from the active <code>tahun_zakat</code> record or use <code>new Date().toLocaleDateString('id-ID')</code>.</p>
+<div class="tfields"><label>Effort: <strong>1h</strong></label></div>
+</div>
+</details>
+
+<p style="color:#4b5563;font-size:13px;margin-bottom:16px">Additional magic values found and not yet extracted to <code>lib/constants.ts</code>:</p>
+<table>
+<thead><tr><th>Value</th><th>File</th><th>Should be constant</th></tr></thead>
+<tbody>
+<tr><td><code>2.5</code></td><td>useMuzakki.ts:562</td><td><code>DEFAULT_NILAI_BERAS_KG</code></td></tr>
+<tr><td><code>45000</code></td><td>useMuzakki.ts:562</td><td><code>DEFAULT_NILAI_UANG_RP</code></td></tr>
+<tr><td><code>12.5</code></td><td>useHakAmil.ts:425–430</td><td><code>DEFAULT_PERSEN_ZAKAT_FITRAH</code></td></tr>
+<tr><td><code>20.0</code></td><td>useHakAmil.ts:428</td><td><code>DEFAULT_PERSEN_INFAK</code></td></tr>
+<tr><td><code>30000</code></td><td>useDashboard.ts:263</td><td><code>DASHBOARD_REFRESH_INTERVAL_MS</code></td></tr>
+<tr><td><code>7</code></td><td>useQurbanDashboard.ts:35</td><td><code>MAX_SLOTS_SAPI</code></td></tr>
+<tr><td><code>100</code></td><td>useSedekahReceipts.ts:28</td><td><code>RECEIPTS_LIST_LIMIT</code></td></tr>
+<tr><td><code>20</code></td><td>Multiple hooks</td><td><code>DEFAULT_PAGE_SIZE</code></td></tr>
+<tr><td><code>'KAS'</code></td><td>3 hooks</td><td><code>DEFAULT_KAS_ACCOUNT_NAME</code></td></tr>
+<tr><td><code>'BCA-SYARIAH : MPZ LAZ AL FAJAR ZAKAT'</code></td><td>2 hooks</td><td><code>DEFAULT_BANK_ACCOUNT_NAME</code></td></tr>
+<tr><td><code>'dashboard-stats'</code></td><td>6+ hooks</td><td>Shared query key constant</td></tr>
+</tbody>
+</table>
+
+<h3 id="q-types">Type Safety Gaps</h3>
+
+<details class="card" data-sev="Medium">
+<summary><span class="badge bMedium">Medium</span><span class="ctitle">QUA-12 — (supabase.from().select as any) pattern bypasses TypeScript generics throughout hooks</span><span class="cfile">usePemasukanUang.ts:28, usePemasukanBeras.ts:28, useDashboardConfig.ts:51, useOrgSettings.ts:46</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> The pattern <code>(supabase.from('table').select as any)</code> — and variants like <code>(supabase as any)</code>, <code>(.insert as any)</code>, <code>(.update as any)</code> — appears across 16 hook files. This cast disables TypeScript's database type checking on those specific operations, meaning column name typos, wrong data types, and missing required fields will not be caught at compile time. Notable occurrences: <code>usePemasukanUang.ts</code> (5 locations), <code>usePemasukanBeras.ts</code> (4 locations), <code>useDashboardConfig.ts</code> (<code>const db = supabase as any</code> — entire client cast), <code>useOrgSettings.ts</code> (7 locations with <code>supabase as any</code>).</p>
+<p><strong>Risk:</strong> Type errors that TypeScript would catch at build time (wrong column name, missing non-nullable field) become silent runtime failures. The WargaImportDialog uses a similar pattern on bulk insert, which is flagged separately as SEC-06. Root cause: the Supabase-generated types in <code>database.types.ts</code> are not kept up-to-date with new migrations, making casts necessary as a workaround.</p>
+<pre><code><span class="dr">// BEFORE — bypasses type checking</span>
+<span class="dr">const { data, error } = await (supabase.from('pemasukan_uang').insert as any)(payload)</span>
+<span class="dr">  .select('*').single();</span>
+<span class="da">// AFTER — regenerate types with: supabase gen types typescript --linked &gt; src/types/database.types.ts</span>
+<span class="da">const { data, error } = await supabase.from('pemasukan_uang')</span>
+<span class="da">  .insert(payload).select('*').single(); // TypeScript now validates payload against schema</span></code></pre>
+<div class="tfields"><label>Effort: <strong>2h</strong></label></div>
+</div>
+</details>
+
+<details class="card" data-sev="Low">
+<summary><span class="badge bLow">Low</span><span class="ctitle">QUA-13 — useDistribusi stock check reads from legacy pembayaran_zakat table, not current pemasukan tables</span><span class="cfile">src/hooks/useDistribusi.ts</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> The available stock calculation in <code>useDistribusi.ts</code> reads from the <code>pembayaran_zakat</code> table to determine how much rice/money is available to distribute. However, the app's architecture now uses <code>pemasukan_uang</code> and <code>pemasukan_beras</code> as the canonical source of truth for incoming funds. The <code>pembayaran_zakat</code> table records individual family payment slots, not the total fund balance. This means the stock check may produce incorrect available balance figures, potentially allowing distributions to exceed the actual collected amount.</p>
+<p><strong>Risk:</strong> A staff member could create a distribution entry for more rice or money than has actually been collected, with the form incorrectly showing sufficient stock. This is a data integrity risk for a financial application managing charitable disbursements. Effort to fix is high (4h) because it requires understanding the full data model and verifying which aggregation logic is correct.</p>
+<div class="tfields"><label>Effort: <strong>4h</strong></label></div>
+</div>
+</details>
+
+<h3 id="q-edge">Edge Function Quality</h3>
+
+<details class="card" data-sev="Low">
+<summary><span class="badge bLow">Low</span><span class="ctitle">Edge Function — invitation-manager has duplicated validation logic and magic number constants</span><span class="cfile">supabase/functions/invitation-manager/index.ts</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> The invitation validation logic — checking <code>used_at</code>, <code>revoked_at</code>, and expiry — is duplicated verbatim between the <code>validateInvitation</code> action (lines 209–240) and the <code>registerUser</code> action (lines 296–320). This is approximately 30 lines of identical logic that should be extracted to a helper <code>checkInvitationValidity(invitation)</code>. Additionally, magic numbers are scattered without constants: <code>24</code> (hours, invitation expiry), <code>8</code> (minimum password length), and role strings <code>'admin'</code> / <code>'petugas'</code> are hardcoded inline.</p>
+<p><strong>Risk:</strong> If the invitation validity rules change (e.g., expiry window extended to 48 hours), both validation blocks must be updated. A missed update would allow expired or revoked tokens to pass validation in the <code>registerUser</code> path even if <code>validateInvitation</code> is fixed. Additionally, if the rollback path fails after auth user creation (line 359), a dangling auth user without a profile record could exist — the rollback call does not check its own error response.</p>
+<pre><code><span class="dr">// BEFORE — validation duplicated between validateInvitation and registerUser actions</span>
+<span class="dr">if (invitation.used_at) return new Response(JSON.stringify({ valid: false, error: '...' }), {...});</span>
+<span class="dr">if (invitation.revoked_at) return new Response(JSON.stringify({ valid: false, error: '...' }), {...});</span>
+<span class="dr">const now = new Date();</span>
+<span class="dr">if (now &gt; new Date(invitation.expires_at)) return new Response(...);</span>
+<span class="da">// AFTER — extracted helper</span>
+<span class="da">const INVITATION_EXPIRY_HOURS = 24;</span>
+<span class="da">const MIN_PASSWORD_LENGTH = 8;</span>
+<span class="da">function checkInvitationValidity(inv: Invitation): { valid: boolean; error?: string } {</span>
+<span class="da">  if (inv.used_at) return { valid: false, error: 'Invitation already used' };</span>
+<span class="da">  if (inv.revoked_at) return { valid: false, error: 'Invitation revoked' };</span>
+<span class="da">  if (new Date() &gt; new Date(inv.expires_at)) return { valid: false, error: 'Invitation expired' };</span>
+<span class="da">  return { valid: true };</span>
+<span class="da">}</span></code></pre>
+<p><strong>Positive findings:</strong> All code paths return proper HTTP status codes (400, 401, 409, 500). The <code>InvitationRequest</code> interface is defined and used. Helper functions (<code>generateToken</code>, <code>hashToken</code>, <code>isValidEmail</code>, <code>normalizeEmail</code>) are all actively used — no dead helpers. CORS wildcard is permissive but acceptable given Supabase anon key authentication.</p>
+<div class="tfields"><label>Effort: <strong>2h</strong></label></div>
+</div>
+</details>
+</section>
+
+<section id="database">
+<h2>Database Architecture</h2>
+<h3 id="db-timeline">Schema Evolution Timeline</h3>
+<p style="color:#4b5563;font-size:13px;margin-bottom:12px">40 migrations applied (001–040). Migration 022 is absent from the sequence (021→023 jump). Files with <code>.bak</code> or <code>.applied</code> suffixes are excluded.</p>
+<div style="overflow-x:auto">
+<table>
+<thead><tr><th>Migration</th><th>Key Changes</th><th>RLS?</th></tr></thead>
+<tbody>
+<tr><td><code>001</code> initial_schema_safe</td><td>Created: <code>users</code>, <code>tahun_zakat</code>, <code>kategori_mustahik</code>, <code>muzakki</code>, <code>pembayaran_zakat</code>, <code>mustahik</code>, <code>distribusi_zakat</code>, <code>audit_logs</code>. Triggers for <code>updated_at</code>; single-active-tahun trigger; indexes on all FK cols.</td><td>—</td></tr>
+<tr><td><code>002</code> rls_policies</td><td>RLS policies for all 001 tables. Adds <code>get_user_role()</code> SECURITY DEFINER function.</td><td>✓ 8 tables</td></tr>
+<tr><td><code>003</code></td><td>Altered <code>mustahik</code>: adds <code>is_data_lama BOOLEAN DEFAULT false</code>; index.</td><td>—</td></tr>
+<tr><td><code>004</code></td><td>Created: <code>pemasukan_uang</code>, <code>hak_amil</code>, <code>rekonsiliasi</code>. Altered <code>pembayaran_zakat</code>: adds <code>akun_uang</code>, <code>jumlah_uang_dibayar_rp</code>. New enums; indexes on all new tables.</td><td>—</td></tr>
+<tr><td><code>005</code></td><td>RLS policies for Phase 2 tables.</td><td>✓ pemasukan_uang, hak_amil, rekonsiliasi</td></tr>
+<tr><td><code>006</code></td><td>Comments only: deprecates <code>jumlah_uang_dibayar_rp</code>, clarifies logic.</td><td>—</td></tr>
+<tr><td><code>007</code></td><td>Created: <code>bukti_sedekah</code>. Receipt number UNIQUE constraint; indexes; <code>updated_at</code> trigger.</td><td>—</td></tr>
+<tr><td><code>008</code></td><td>RLS for <code>bukti_sedekah</code>.</td><td>✓ 4 policies</td></tr>
+<tr><td><code>009</code></td><td>Sequence management for receipt numbers (adds sequence or function).</td><td>—</td></tr>
+<tr><td><code>010</code></td><td>Preview function for next receipt number.</td><td>—</td></tr>
+<tr><td><code>011</code></td><td>Data migration: DELETE 2026 data from <code>pemasukan_uang</code>, <code>distribusi_zakat</code>, <code>pembayaran_zakat</code>, <code>pemasukan_beras</code>.</td><td>—</td></tr>
+<tr><td><code>012</code></td><td>Placeholder (empty).</td><td>—</td></tr>
+<tr><td><code>013</code></td><td>Placeholder (empty).</td><td>—</td></tr>
+<tr><td><code>014</code></td><td>Created: <code>user_invitations</code> with <code>token_hash UNIQUE</code>. Altered <code>users</code>: adds <code>address</code>, <code>phone</code>. Indexes.</td><td>—</td></tr>
+<tr><td><code>015</code></td><td>RLS for <code>user_invitations</code>.</td><td>✓ 4 policies</td></tr>
+<tr><td><code>016</code></td><td>Additional invitation auth RLS fixes.</td><td>—</td></tr>
+<tr><td><code>017</code></td><td>Fix RLS circular reference on <code>users</code> table.</td><td>—</td></tr>
+<tr><td><code>018</code></td><td>Adds <code>get_current_user_role()</code> SECURITY DEFINER function; replaces <code>get_user_role()</code>.</td><td>—</td></tr>
+<tr><td><code>019</code></td><td>Adds <code>get_current_user_is_active()</code> SECURITY DEFINER function; updated domain table RLS.</td><td>—</td></tr>
+<tr><td><code>020</code></td><td>Removes old permissive RLS policies.</td><td>—</td></tr>
+<tr><td><code>021</code></td><td>Trigger: protect last active admin from deactivation/deletion.</td><td>—</td></tr>
+<tr><td><code>023</code></td><td>Created: <code>hak_amil_configs</code>, <code>hak_amil_snapshots</code>. Complex partial unique indexes; <code>UNIQUE(tahun_zakat_id)</code> on configs; check constraints. <em>(022 is missing from sequence.)</em></td><td>—</td></tr>
+<tr><td><code>024</code></td><td>RLS for <code>hak_amil_configs</code> and <code>hak_amil_snapshots</code>.</td><td>✓ 4 policies each</td></tr>
+<tr><td><code>025</code></td><td>Compatibility: adds <code>pemasukan_beras_id</code> FK column to <code>hak_amil_snapshots</code> if <code>pemasukan_beras</code> exists.</td><td>—</td></tr>
+<tr><td><code>026</code></td><td>Created: <code>bulk_submission_logs</code>. Altered <code>pemasukan_beras_kategori</code> enum: adds <code>maal_beras</code>, <code>zakat_fitrah_beras</code>, <code>fidyah_beras</code>. <code>receipt_no UNIQUE</code>.</td><td>✓ 3 policies</td></tr>
+<tr><td><code>027</code></td><td>Created: <code>dashboard_configs</code>, <code>dashboard_widgets</code>. Indexes; check constraints on visibility and widget_type. <strong>No RLS defined in this migration.</strong></td><td>—</td></tr>
+<tr><td><code>028</code></td><td>Created: <code>accounts</code>, <code>account_ledger_entries</code>. New enums; complex linkage constraint; partial indexes for source FK columns.</td><td>—</td></tr>
+<tr><td><code>029</code></td><td>RLS for <code>accounts</code> and <code>account_ledger_entries</code>.</td><td>✓ 6 policies each</td></tr>
+<tr><td><code>030</code></td><td>Seed: inserts default KAS and BCA-SYARIAH accounts.</td><td>—</td></tr>
+<tr><td><code>031</code></td><td>Data migration: backfills <code>account_ledger_entries</code> for existing <code>pemasukan_uang</code> records.</td><td>—</td></tr>
+<tr><td><code>032</code></td><td>Created: <code>transaction_tags</code>. Altered: <code>pemasukan_uang</code>, <code>pemasukan_beras</code>, <code>pembayaran_zakat</code>, <code>distribusi_zakat</code> — adds <code>tag_id</code> FK. Seed: 2 default tags.</td><td>✓ 4 policies on transaction_tags</td></tr>
+<tr><td><code>033</code></td><td>Created: <code>qurban_registrations</code>, <code>qurban_participants</code>. Auto-generate <code>no_qurban</code> trigger; <code>UNIQUE(qurban_registration_id, urutan)</code>. <strong>No RLS for qurban_participants.</strong></td><td>✓ 8 policies (qurban_registrations only)</td></tr>
+<tr><td><code>034</code></td><td>Creates Supabase Storage bucket <code>qurban-photos</code> and storage policies.</td><td>—</td></tr>
+<tr><td><code>035</code></td><td>Created: <code>qurban_events</code>, <code>qurban_animals</code>, <code>qurban_shares</code>. DB-enforced share slot limit trigger; <code>UNIQUE(animal_id, urutan)</code>.</td><td>✓ 12 policies</td></tr>
+<tr><td><code>036</code></td><td>Data migration: moves existing <code>qurban_registrations</code> data into new <code>qurban_events</code>/<code>animals</code>/<code>shares</code> model.</td><td>—</td></tr>
+<tr><td><code>037</code></td><td>Created: <code>qurban_coupons</code>. Partial unique indexes (one per share, one per mustahik per event — dropped in 038); unique token.</td><td>✓ 4 policies</td></tr>
+<tr><td><code>038</code></td><td>Altered <code>qurban_animals</code>: adds <code>al_fajar</code> to <code>sumber_hewan</code> enum. Drops <code>qurban_coupons_mustahik_event_unique</code> partial index.</td><td>—</td></tr>
+<tr><td><code>039</code></td><td>Created: <code>org_settings</code>, <code>upz_units</code>. Single-row org settings; UPZ collection units.</td><td>✓ 2 policies each</td></tr>
+<tr><td><code>040</code></td><td>Altered <code>muzakki</code>: adds <code>nik</code>, <code>rt</code>, <code>rw</code>, <code>jenis_kelamin</code>, <code>tanggal_lahir</code>, <code>keterangan</code>, <code>user_id</code>. Partial unique index on NIK (<code>WHERE nik IS NOT NULL</code>).</td><td>—</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3 id="db-idx">Missing Indexes</h3>
+<p style="color:#4b5563;font-size:13px;margin-bottom:12px">FK columns without a <code>CREATE INDEX</code> statement. All missing indexes should be added via a new migration (<code>041_missing_indexes.sql</code>) — never edit existing migrations. The four highest-impact cases are highlighted.</p>
+<div style="overflow-x:auto">
+<table>
+<thead><tr><th>Table</th><th>FK Column</th><th>References</th><th>Index?</th><th>Impact</th></tr></thead>
+<tbody>
+<tr style="background:#fff7ed"><td><code>pemasukan_uang</code></td><td><code>muzakki_id</code></td><td>muzakki(id)</td><td><span class="rls-no">NO</span></td><td>CRITICAL — queried in N+1 loop per page load</td></tr>
+<tr style="background:#fff7ed"><td><code>pemasukan_beras</code></td><td><code>muzakki_id</code></td><td>muzakki(id)</td><td><span class="rls-no">NO</span></td><td>CRITICAL — same N+1 pattern</td></tr>
+<tr style="background:#fff7ed"><td><code>qurban_coupons</code></td><td><code>event_id</code></td><td>qurban_events(id)</td><td><span class="rls-no">NO</span></td><td>HIGH — every coupon list load</td></tr>
+<tr style="background:#fff7ed"><td><code>bukti_sedekah</code></td><td><code>donor_id</code></td><td>muzakki(id)</td><td><span class="rls-no">NO</span></td><td>MEDIUM — receipt lookup by donor</td></tr>
+<tr><td><code>pemasukan_uang</code></td><td><code>created_by</code></td><td>users(id)</td><td><span class="rls-no">NO</span></td><td>Low</td></tr>
+<tr><td><code>pemasukan_beras</code></td><td><code>created_by</code></td><td>users(id)</td><td><span class="rls-no">NO</span></td><td>Low</td></tr>
+<tr><td><code>rekonsiliasi</code></td><td><code>created_by</code></td><td>users(id)</td><td><span class="rls-no">NO</span></td><td>Low</td></tr>
+<tr><td><code>hak_amil_snapshots</code></td><td><code>created_by</code></td><td>users(id)</td><td><span class="rls-no">NO</span></td><td>Low</td></tr>
+<tr><td><code>hak_amil_configs</code></td><td><code>created_by</code></td><td>users(id)</td><td><span class="rls-no">NO</span></td><td>Low</td></tr>
+<tr><td><code>hak_amil_configs</code></td><td><code>updated_by</code></td><td>users(id)</td><td><span class="rls-no">NO</span></td><td>Low</td></tr>
+<tr><td><code>account_ledger_entries</code></td><td><code>created_by</code></td><td>users(id)</td><td><span class="rls-no">NO</span></td><td>Low</td></tr>
+<tr><td><code>qurban_animals</code></td><td><code>created_by</code></td><td>auth.users(id)</td><td><span class="rls-no">NO</span></td><td>Low</td></tr>
+<tr><td><code>qurban_shares</code></td><td><code>created_by</code></td><td>auth.users(id)</td><td><span class="rls-no">NO</span></td><td>Low</td></tr>
+<tr><td><code>qurban_coupons</code></td><td><code>recipient_id</code></td><td>polymorphic</td><td><span class="rls-no">NO</span></td><td>Low</td></tr>
+<tr><td><code>user_invitations</code></td><td><code>created_by</code></td><td>auth.users(id)</td><td><span class="rls-no">NO</span></td><td>Low</td></tr>
+<tr><td><code>dashboard_configs</code></td><td><code>created_by</code></td><td>auth.users(id)</td><td><span class="rls-no">NO</span></td><td>Low</td></tr>
+</tbody>
+</table>
+</div>
+<pre><code><span class="da">-- Suggested migration: 041_missing_indexes.sql</span>
+<span class="da">CREATE INDEX IF NOT EXISTS idx_pemasukan_uang_muzakki_id  ON public.pemasukan_uang(muzakki_id);</span>
+<span class="da">CREATE INDEX IF NOT EXISTS idx_pemasukan_beras_muzakki_id ON public.pemasukan_beras(muzakki_id);</span>
+<span class="da">CREATE INDEX IF NOT EXISTS idx_qurban_coupons_event_id    ON public.qurban_coupons(event_id);</span>
+<span class="da">CREATE INDEX IF NOT EXISTS idx_bukti_sedekah_donor_id     ON public.bukti_sedekah(donor_id);</span></code></pre>
+
+<h3 id="db-rls">RLS Matrix</h3>
+<p style="color:#4b5563;font-size:13px;margin-bottom:12px">Full RLS policy details are covered in the <a href="#sec-rls">Security → RLS Coverage</a> section. The critical gap is repeated here for visibility.</p>
+<div class="rcard High">
+  <h4><span class="badge bHigh">High</span> qurban_participants — RLS enabled, zero policies (SEC-01)</h4>
+  <p>Migration 033 creates <code>qurban_participants</code> and enables RLS but defines no <code>USING</code> or <code>WITH CHECK</code> policies. With RLS enabled and no policies, PostgreSQL's default-deny applies: all rows are invisible to all roles including authenticated users. Staff cannot see participant lists. This is the only table in the schema with this configuration; all other RLS-enabled tables have at least 2 policies.</p>
+</div>
+<p style="color:#4b5563;font-size:13px;margin-bottom:12px"><strong>Tables with NO RLS at all (policies entirely absent, default allow):</strong> <code>dashboard_configs</code>, <code>dashboard_widgets</code> (migration 027 did not add RLS). These tables store user-facing widget configuration and are accessible to any authenticated user without restriction — an authenticated user could overwrite another user's dashboard config.</p>
+
+<h3 id="db-integrity">Data Integrity Risks</h3>
+
+<details class="card" data-sev="Low">
+<summary><span class="badge bLow">Low</span><span class="ctitle">DB-02 — NIK field has no strict UNIQUE constraint (partial unique only)</span><span class="cfile">supabase/migrations/040</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> Migration 040 adds a <em>partial</em> unique index on <code>muzakki.nik WHERE nik IS NOT NULL</code>. This correctly prevents two non-null NIK values from colliding, but it means the database allows any number of <code>NULL</code> NIK rows. Since the NIK field is optional (not <code>NOT NULL</code>), duplicate family records can be created without any NIK, with no constraint preventing them.</p>
+<p><strong>Risk:</strong> Two warga records for the same physical person can coexist — one with a NIK and one without. Manual data entry errors (mistyped names, duplicate entries) are not caught at the database level. The partial unique approach is correct for NIK itself; the broader deduplication risk requires application-level logic.</p>
+<div class="tfields"><label>Effort: <strong>1h</strong></label></div>
+</div>
+</details>
+
+<details class="card" data-sev="Low">
+<summary><span class="badge bLow">Low</span><span class="ctitle">DB-03 — Several tables missing audit columns (updated_at or both)</span><span class="cfile">supabase/migrations/026, 033, 039</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> The following tables are missing <code>updated_at</code>: <code>kategori_mustahik</code> (read-only reference — low risk), <code>rekonsiliasi</code> (immutable by design — low risk), <code>hak_amil_snapshots</code> (immutable — low risk), <code>bulk_submission_logs</code> (append-only — low risk). More significantly, <code>qurban_participants</code> is missing <strong>both</strong> <code>created_at</code> and <code>updated_at</code> — the only table in the schema with no timestamp tracking at all. <code>org_settings</code> is missing <code>created_at</code> (single-row table, low practical risk).</p>
+<p><strong>Risk:</strong> <code>qurban_participants</code> is the highest-priority gap — participant records cannot be sorted by creation time, and there is no way to determine when a participant was added or last edited. For all other tables, the missing columns are on immutable/append-only data where the absence is intentional.</p>
+<div class="tfields"><label>Effort: <strong>2h</strong></label></div>
+</div>
+</details>
+
+<details class="card" data-sev="Medium">
+<summary><span class="badge bMedium">Medium</span><span class="ctitle">DB-04 — Hard delete on all financial tables — permanent data loss with no recovery</span><span class="cfile">supabase/migrations/001–040 (all tables)</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> None of the financial tables (<code>pembayaran_zakat</code>, <code>pemasukan_uang</code>, <code>pemasukan_beras</code>, <code>distribusi_zakat</code>, <code>rekonsiliasi</code>, <code>hak_amil_snapshots</code>) implement soft-delete (<code>deleted_at TIMESTAMPTZ</code>). Only four non-financial tables have soft-delete via <code>is_active</code>: <code>mustahik</code>, <code>users</code>, <code>transaction_tags</code>, <code>accounts</code>. When a financial record is deleted via any hook, the data is permanently removed from the database with no audit trail of who deleted it or when.</p>
+<p><strong>Risk:</strong> The most severe cascade is in <code>pemasukan_uang</code> deletion: the hook in <code>useDeletePemasukanUang</code> performs a 3-step hard delete (manually delete hak_amil_snapshots → delete ledger entry → delete pemasukan record). If step 2 or 3 fails after step 1 succeeds, the snapshots are gone but the pemasukan record remains in an inconsistent state. There is no rollback. For an Islamic charitable fund, permanent deletion of zakat payment records without an audit trail is a compliance and trust risk.</p>
+<pre><code><span class="da">-- Recommended: add to all financial tables via migration 042</span>
+<span class="da">ALTER TABLE public.pemasukan_uang     ADD COLUMN deleted_at TIMESTAMPTZ DEFAULT NULL;</span>
+<span class="da">ALTER TABLE public.pemasukan_beras    ADD COLUMN deleted_at TIMESTAMPTZ DEFAULT NULL;</span>
+<span class="da">ALTER TABLE public.pembayaran_zakat   ADD COLUMN deleted_at TIMESTAMPTZ DEFAULT NULL;</span>
+<span class="da">ALTER TABLE public.distribusi_zakat   ADD COLUMN deleted_at TIMESTAMPTZ DEFAULT NULL;</span>
+<span class="da">ALTER TABLE public.rekonsiliasi       ADD COLUMN deleted_at TIMESTAMPTZ DEFAULT NULL;</span>
+<span class="da">-- Update RLS policies to add: AND deleted_at IS NULL</span></code></pre>
+<div class="tfields"><label>Effort: <strong>8h</strong></label></div>
+</div>
+</details>
+
+<details class="card" data-sev="Medium">
+<summary><span class="badge bMedium">Medium</span><span class="ctitle">DB-05 — N+1 query in usePembayaranList: 2 extra queries per row, 41 total per page</span><span class="cfile">src/hooks/useMuzakki.ts:500–545</span></summary>
+<div class="cbody">
+<p><strong>Description:</strong> <code>usePembayaranList</code> fetches a page of <code>pembayaran_zakat</code> records and then, for each row, fires two additional Supabase queries inside a <code>Promise.all(data.map(async ...))</code> loop: one against <code>pemasukan_uang</code> and one against <code>pemasukan_beras</code>, both filtering by <code>muzakki_id</code>. With the default page size of 20, this produces 1 + (20 × 2) = 41 Supabase API calls per single page load. Neither <code>pemasukan_uang(muzakki_id)</code> nor <code>pemasukan_beras(muzakki_id)</code> have indexes (confirmed in section 4.8), so each sub-query performs a full table scan.</p>
+<p><strong>Risk:</strong> At approximately 500 <code>pembayaran_zakat</code> records and 5 concurrent users navigating the list, the combined query load exhausts the 60-connection limit on the Supabase Free tier. This is the single highest-priority performance issue in the codebase and the first feature likely to show timeout errors under real usage growth.</p>
+<pre><code><span class="dr">// BEFORE — N+1: 2 queries per row in Promise.all map</span>
+<span class="dr">const pembayaranWithSedekah = await Promise.all(</span>
+<span class="dr">  (data || []).map(async (pembayaran: any) => {</span>
+<span class="dr">    const { data: pemasukanUang } = await supabase.from('pemasukan_uang')</span>
+<span class="dr">      .select('jumlah_uang_rp').eq('muzakki_id', pembayaran.muzakki_id)...;</span>
+<span class="dr">    const { data: pemasukanBeras } = await supabase.from('pemasukan_beras')</span>
+<span class="dr">      .select('jumlah_beras_kg').eq('muzakki_id', pembayaran.muzakki_id)...;</span>
+<span class="dr">  })</span>
+<span class="dr">);</span>
+<span class="da">// AFTER — 3 queries total (batch by muzakki_id list)</span>
+<span class="da">const muzakkiIds = (data || []).map((p: any) => p.muzakki_id);</span>
+<span class="da">const [sedekahUang, sedekahBeras] = await Promise.all([</span>
+<span class="da">  supabase.from('pemasukan_uang').select('muzakki_id, jumlah_uang_rp')</span>
+<span class="da">    .in('muzakki_id', muzakkiIds).eq('kategori', 'infak_sedekah_uang'),</span>
+<span class="da">  supabase.from('pemasukan_beras').select('muzakki_id, jumlah_beras_kg')</span>
+<span class="da">    .in('muzakki_id', muzakkiIds).eq('kategori', 'infak_sedekah_beras'),</span>
+<span class="da">]);</span>
+<span class="da">// Map results by muzakki_id — 3 queries total instead of 41</span></code></pre>
+<div class="tfields"><label>Effort: <strong>3h</strong></label></div>
+</div>
+</details>
+</section>
+
+<section id="scalability">
+<h2>Scalability Assessment</h2>
+<div class="verdict">⚡ Verdict: Partial — App handles current load but will fail at 5–10× growth</div>
+
+<p style="color:#4b5563;font-size:13px;margin-bottom:20px">
+The primary bottleneck is <code>usePembayaranList</code> in <code>useMuzakki.ts</code>, which implements a textbook N+1 query pattern. For each row in a 20-item page, it fires 2 additional queries — one against <code>pemasukan_uang</code> and one against <code>pemasukan_beras</code> — both filtering by <code>muzakki_id</code> without an index. A single page load currently fires 41 Supabase queries. At 10× user load, the Free tier's 500,000 API requests/month would be exhausted in days rather than months, and the lack of an index on <code>pemasukan_uang(muzakki_id)</code> means each of those 40 sub-queries performs a sequential scan of the entire table.
+</p>
+<p style="color:#4b5563;font-size:13px;margin-bottom:20px">
+The second structural problem is <code>useDashboardStats</code> in <code>useDashboard.ts</code>, which fires 10 sequential full-table-scan queries with no limits and runs a 30-second auto-refresh interval (<code>refetchInterval: 30000</code>). With <code>staleTime: 0</code> (the React Query default used by all 28 hooks in the codebase), every user who opens the dashboard — or switches browser tabs — triggers a fresh batch of 10 queries. At 10× users with a 30-second polling interval, the database receives approximately 10 queries × N users every 30 seconds. Combined with the 60-connection limit on the Free tier and no PgBouncer connection pooler (Pro-only), connection exhaustion will occur before significant user volume is reached.
+</p>
+
+<h3>Top 3 Bottlenecks at 10× Load</h3>
+<div class="bn">
+  <h4>1. <span class="badge bHigh">High</span> N+1 query in usePembayaranList — 41 queries per page load</h4>
+  <p><strong>What breaks:</strong> The Pembayaran Zakat list page slows to a crawl and eventually times out.<br>
+  <strong>At what scale:</strong> At approximately 500 <code>pembayaran_zakat</code> records and 5 concurrent users navigating the list page, the combined query load (5 users × 40 queries per page × paginating) will exhaust the 60-connection limit. Without <code>idx_pemasukan_uang_muzakki_id</code> or <code>idx_pemasukan_beras_muzakki_id</code>, each sub-query performs a full sequential scan of those growing tables — effectively scanning the entire <code>pemasukan_uang</code> table 40 times per page navigation.<br>
+  <strong>Evidence:</strong> <code>hooks/useMuzakki.ts</code> lines 500–545 — <code>Promise.all(data.map(async (pembayaran) =&gt; { await supabase.from('pemasukan_uang')...; await supabase.from('pemasukan_beras')... }))</code>. Missing indexes confirmed in section 4.8.</p>
+</div>
+<div class="bn">
+  <h4>2. <span class="badge bMedium">Medium</span> Full-table client-side aggregation in useDashboardStats with 30s polling</h4>
+  <p><strong>What breaks:</strong> The dashboard becomes unresponsive; financial totals take seconds to compute as data accumulates across multiple Ramadan seasons.<br>
+  <strong>At what scale:</strong> At ~2,000 total transactions across 3–4 years of operation, each <code>useDashboardStats</code> call fetches and transmits all rows from <code>pembayaran_zakat</code>, <code>pemasukan_uang</code>, <code>pemasukan_beras</code>, and <code>distribusi_zakat</code> to the browser for JavaScript aggregation. With <code>staleTime: 0</code> on all hooks and a 30-second polling interval, the data volume transferred per minute grows linearly with database size.<br>
+  <strong>Evidence:</strong> <code>hooks/useDashboard.ts</code> — 10 queries with no <code>.limit()</code> call. <code>refetchInterval: 30000</code> at line 263. All aggregation (<code>.reduce()</code>, <code>.filter()</code>) is performed in JavaScript after fetching all rows.</p>
+</div>
+<div class="bn">
+  <h4>3. <span class="badge bMedium">Medium</span> No React Query staleTime → excessive refetching on every navigation and tab focus</h4>
+  <p><strong>What breaks:</strong> Each page navigation triggers a full fresh data load for all mounted hooks, multiplying the Supabase API request count by the number of navigation events per session.<br>
+  <strong>At what scale:</strong> With 50 concurrent users each making 10 navigations per session × 10+ queries per mount = 5,000+ API requests per hour minimum. The Supabase Free tier allows approximately 700 requests/hour (500k/month ÷ 720 hours). 50 users navigating normally would exhaust the monthly API quota in under a week.<br>
+  <strong>Evidence:</strong> Every <code>useQuery</code> call across all 28 hooks has no <code>staleTime</code> set — verified across <code>useDashboard.ts</code>, <code>useMuzakki.ts</code>, <code>useMustahik.ts</code>, <code>useDistribusi.ts</code>, <code>useHakAmil.ts</code>, <code>useQurbanDashboard.ts</code>, and all remaining hooks. Reference data hooks like <code>useKategoriMustahik</code> and <code>useTransactionTags</code> (which rarely change) are unnecessarily re-fetched on every mount.</p>
+</div>
+
+<h3>Scaling Roadmap</h3>
+<div class="road">
+  <div class="road-col rc0">
+    <h4>Current State</h4>
+    <ul>
+      <li>Supabase Free tier (60 direct connections)</li>
+      <li>Full table scans on dashboard (10 queries, no LIMIT)</li>
+      <li>N+1 pattern in Pembayaran list (41 queries/page)</li>
+      <li>No pagination on most list views</li>
+      <li>staleTime: 0 on all 28 hooks</li>
+      <li>~500 concurrent users ceiling before connection exhaustion</li>
+    </ul>
+  </div>
+  <div class="road-col rc1">
+    <h4>Optimized (0–3 months)</h4>
+    <ul>
+      <li>Add 4 missing FK indexes (migration 041)</li>
+      <li>Add staleTime to all useQuery calls</li>
+      <li>Fix N+1 in usePembayaranList (.in() batch)</li>
+      <li>Paginate pemasukan and distribusi lists</li>
+      <li>Server-side dashboard aggregation (RPC/view)</li>
+      <li>Set refetchOnWindowFocus: false globally</li>
+    </ul>
+  </div>
+  <div class="road-col rc2">
+    <h4>Scale-Ready (3–12 months)</h4>
+    <ul>
+      <li>Supabase Pro + PgBouncer (400+ pooled connections)</li>
+      <li>PostgreSQL materialized view for dashboard stats</li>
+      <li>Soft-delete on all financial tables (migration 042)</li>
+      <li>Table partitioning by tahun_zakat_id</li>
+      <li>Edge Function aggregation API</li>
+      <li>Lazy loading for qurban shares/coupons</li>
+    </ul>
+  </div>
+</div>
+
+<h3>Supabase Plan Limits Reference</h3>
+<table>
+  <thead><tr><th>Resource</th><th>Free Tier Limit</th><th>Current Usage Risk</th></tr></thead>
+  <tbody>
+    <tr><td>Database size</td><td>500 MB</td><td>Low — small dataset currently</td></tr>
+    <tr><td>Concurrent connections</td><td>60 direct / pooler (Pro only)</td><td><strong>Medium</strong> — no connection pooling; N+1 pattern exhausts connections under load</td></tr>
+    <tr><td>API requests</td><td>500,000/month (~700/hr)</td><td><strong>High</strong> — staleTime: 0 on 28 hooks; 41 queries per page load on Pembayaran list</td></tr>
+    <tr><td>Edge Function invocations</td><td>500,000/month</td><td>Low — only invitation-manager deployed</td></tr>
+    <tr><td>Auth users</td><td>50,000</td><td>Low — mosque admin users only</td></tr>
+    <tr><td>Storage</td><td>1 GB</td><td>Low — qurban-photos bucket; depends on photo sizes</td></tr>
+    <tr><td>Realtime connections</td><td>200 concurrent</td><td>Low — Realtime not currently used by this app</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="tracker">
+<h2>Remediation Tracker</h2>
+<div style="display:flex;gap:12px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+<div><div id="pt">Loading…</div><div id="pb-wrap"><div id="pb"></div></div></div>
+<button class="btn" id="csv-btn" style="margin-left:auto">⬇ Export CSV</button>
+</div>
+<div style="overflow-x:auto">
+<table id="tracker-table">
+<thead><tr>
+<th data-col="id">ID</th>
+<th data-col="severity">Severity</th>
+<th data-col="category">Category</th>
+<th data-col="description" style="min-width:220px">Description</th>
+<th data-col="file">File</th>
+<th data-col="effort">Effort</th>
+<th style="min-width:120px">Owner</th>
+<th data-col="status">Status</th>
+<th style="min-width:140px">Notes</th>
+</tr></thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+</section>
+</main>
+</div>
+<script>
+const TF=[
+  {id:'SEC-01',sev:'High',cat:'Security / RLS',desc:'qurban_participants: RLS enabled, zero policies — table silently inaccessible or unprotected',file:'supabase/migrations/033',effort:'2h'},
+  {id:'SEC-02',sev:'Medium',cat:'Security / Edge Fn',desc:'Edge Function CORS wildcard (*) allows any origin to call unauthenticated token validation',file:'supabase/functions/invitation-manager/index.ts:29',effort:'1h'},
+  {id:'SEC-03',sev:'Medium',cat:'Security / Debounce',desc:'DataMasterWarga: leaky debounce (timer cleanup ignored by onChange) — every keystroke fires Supabase query',file:'src/pages/DataMasterWarga.tsx:44',effort:'1h'},
+  {id:'SEC-04',sev:'Medium',cat:'Security / Debounce',desc:'DataMasterMustahik: same leaky debounce pattern as DataMasterWarga',file:'src/pages/DataMasterMustahik.tsx:81',effort:'1h'},
+  {id:'SEC-05',sev:'Medium',cat:'Security / Debounce',desc:'AddPesertaDialog: no debounce on muzakki search — every keystroke ≥ 2 chars fires a Supabase query',file:'src/components/qurban/AddPesertaDialog.tsx:67',effort:'1h'},
+  {id:'SEC-06',sev:'Medium',cat:'Security / Type Safety',desc:'WargaImportDialog: bulk insert uses "as any" — bypasses TypeScript column allowlist on CSV import',file:'src/components/data-master/WargaImportDialog.tsx:117',effort:'1h'},
+  {id:'SEC-07',sev:'Low',cat:'Security / Edge Fn',desc:'Edge Function missing HTTP method guard — non-POST requests reach body parsing, returns 500',file:'supabase/functions/invitation-manager/index.ts:42',effort:'0.5h'},
+  {id:'SEC-08',sev:'Low',cat:'Security / Config',desc:'FRONTEND_URL env var defaults to localhost — invitation emails point to localhost if var unset in production',file:'supabase/functions/invitation-manager/index.ts:160',effort:'0.5h'},
+  {id:'SEC-09',sev:'Low',cat:'Security / Credentials',desc:'Mock credentials (role123 passwords) bundled into production dist regardless of VITE_OFFLINE_MODE value',file:'src/lib/mockAuth.ts:109',effort:'1h'},
+  {id:'SEC-10',sev:'Low',cat:'Security / Validation',desc:'Multiple Zod schemas missing .max() — allows arbitrarily large strings to pass validation and reach DB',file:'src/components/muzakki/MuzakkiForm.tsx, WargaForm.tsx, MustahikForm.tsx',effort:'2h'},
+  {id:'SEC-11',sev:'Low',cat:'Security / Validation',desc:'Multiple Zod schemas missing .trim() — leading/trailing whitespace stored in database',file:'src/components/muzakki/MuzakkiForm.tsx, WargaForm.tsx, MustahikForm.tsx',effort:'2h'},
+  {id:'SEC-12',sev:'Low',cat:'Security / Validation',desc:'Login password field missing .max(72) — enables bcrypt long-password computation attack',file:'src/pages/Login.tsx:31',effort:'0.5h'},
+  {id:'SEC-13',sev:'Low',cat:'Security / URL Params',desc:'URL params used in Supabase queries without UUID format validation (mitigated by PostgREST type checking)',file:'src/pages/Register.tsx:33, Dashboard.tsx:33, QurbanScan.tsx:240',effort:'1h'},
+  {id:'SEC-14',sev:'Low',cat:'Security / Auth',desc:'/data-master/warga and /data-master/mustahik routes have no allowedRoles restriction — any authenticated user can access',file:'src/App.tsx:262',effort:'0.5h'},
+  {id:'SEC-15',sev:'Low',cat:'Security / XSS',desc:'thermalCouponPrint.ts uses document.write (deprecated) — XSS risk is mitigated by esc() function',file:'src/lib/thermalCouponPrint.ts:88',effort:'2h'},
+  {id:'SEC-16',sev:'Low',cat:'Security / Mass Assignment',desc:'useDashboardConfig: .update(rest) spreads form fields directly without explicit allowlist',file:'src/hooks/useDashboardConfig.ts:201',effort:'1h'},
+  {id:'QUA-01',sev:'Low',cat:'Code Quality / Duplication',desc:'tahun_zakat active lookup duplicated in useDashboardStats and useMonthlyPemasukan (same file, 2 DB calls for same data)',file:'src/hooks/useDashboard.ts:78,317',effort:'2h'},
+  {id:'QUA-02',sev:'Low',cat:'Code Quality / Duplication',desc:'Ledger entry lookup by source FK duplicated across usePemasukanUang and usePemasukanBeras (40 lines each)',file:'src/hooks/usePemasukanUang.ts:117, usePemasukanBeras.ts:118',effort:'3h'},
+  {id:'QUA-03',sev:'Low',cat:'Code Quality / Duplication',desc:'Account name resolution (resolveXAccountId) duplicated between usePemasukanUang and useRekonsiliasi',file:'src/hooks/usePemasukanUang.ts:66, useRekonsiliasi.ts:37',effort:'2h'},
+  {id:'QUA-04',sev:'Low',cat:'Code Quality / Duplication',desc:'React Query cache invalidation block (5 queryKeys) duplicated across 6 mutation functions in pemasukan hooks',file:'src/hooks/usePemasukanUang.ts, usePemasukanBeras.ts, useMuzakki.ts',effort:'2h'},
+  {id:'QUA-05',sev:'Low',cat:'Code Quality / Duplication',desc:'Error toast pattern (Gagal menyimpan) duplicated ~50 times across 17+ hook files',file:'src/hooks/*.ts (all mutation hooks)',effort:'4h'},
+  {id:'QUA-06',sev:'Low',cat:'Code Quality / Duplication',desc:'Offline mode guard (if OFFLINE_MODE return offlineStore.xxx) duplicated as first statement in ~15 hook queryFns',file:'src/hooks/*.ts',effort:'4h'},
+  {id:'QUA-07',sev:'Medium',cat:'Code Quality / Dead Code',desc:'useDonor hook exported but never imported anywhere — likely superseded by useSedekahReceipts',file:'src/hooks/useDonor.ts',effort:'0.5h'},
+  {id:'QUA-08',sev:'Low',cat:'Code Quality / Dead Code',desc:'Ledger entry helpers (createPemasukanUangLedgerEntry etc.) exported but only used within their own file',file:'src/hooks/usePemasukanUang.ts, usePemasukanBeras.ts, useRekonsiliasi.ts',effort:'1h'},
+  {id:'QUA-09',sev:'Medium',cat:'Code Quality / Dead Code',desc:'SettingsPage.tsx and 4 stub pages (MuzakkiPage, MustahikPage, DistribusiPage, LaporanPage) exist but are not wired to any route',file:'src/pages/SettingsPage.tsx, MuzakkiPage.tsx, MustahikPage.tsx, DistribusiPage.tsx, LaporanPage.tsx',effort:'1h'},
+  {id:'QUA-10',sev:'Medium',cat:'Code Quality / Error Handling',desc:'useDashboard.ts and useHakAmil.ts: console.log only on certain errors — user never sees failure',file:'src/hooks/useDashboard.ts, useHakAmil.ts',effort:'2h'},
+  {id:'QUA-11',sev:'Low',cat:'Code Quality / Magic Values',desc:'Hardcoded letter date "2026-02-25" in SuratPengantar — will be wrong every year',file:'src/pages/SuratPengantar.tsx',effort:'1h'},
+  {id:'QUA-12',sev:'Medium',cat:'Code Quality / Type Safety',desc:'(supabase.from(...).select as any) pattern in usePemasukanUang and usePemasukanBeras bypasses TypeScript generics',file:'src/hooks/usePemasukanUang.ts:28, usePemasukanBeras.ts:28',effort:'2h'},
+  {id:'QUA-13',sev:'Low',cat:'Code Quality / Type Safety',desc:'useDistribusi stock-check reads from legacy pembayaran_zakat table, not pemasukan_uang/pemasukan_beras — stale data risk',file:'src/hooks/useDistribusi.ts',effort:'4h'},
+  {id:'DB-01',sev:'Medium',cat:'Database / Indexes',desc:'Multiple FK columns lack indexes: muzakki_id, mustahik_id, tahun_zakat_id across pemasukan and distribusi tables',file:'supabase/migrations/001-004',effort:'2h'},
+  {id:'DB-02',sev:'Low',cat:'Database / Constraints',desc:'NIK field in warga/muzakki tables has no UNIQUE constraint — duplicate national IDs possible',file:'supabase/migrations/039, 040',effort:'1h'},
+  {id:'DB-03',sev:'Low',cat:'Database / Audit',desc:'Several tables missing updated_at column: bulk_submission_logs, qurban_coupons, org_settings',file:'supabase/migrations/026, 037, 039',effort:'2h'},
+  {id:'DB-04',sev:'Medium',cat:'Database / Integrity',desc:'All tables use hard delete (no deleted_at) — financial records (pemasukan_uang, distribusi_zakat) permanently lost when deleted; no audit trail',file:'supabase/migrations/001-040 (all tables)',effort:'8h'},
+  {id:'DB-05',sev:'Medium',cat:'Database / N+1',desc:'useMuzakki usePembayaranList: fetches muzakki list then queries pembayaran_zakat per ID in sequential calls',file:'src/hooks/useMuzakki.ts',effort:'3h'},
+  {id:'SCALE-01',sev:'High',cat:'Scalability / Aggregation',desc:'Dashboard hooks fetch full pemasukan_uang, pemasukan_beras, distribusi_zakat tables with no LIMIT — full table scan on every dashboard load',file:'src/hooks/useDashboard.ts',effort:'8h'},
+  {id:'SCALE-02',sev:'Medium',cat:'Scalability / React Query',desc:'Most useQuery hooks have no staleTime — refetch on every component mount; dashboard page fires 6+ queries on each navigation',file:'src/hooks/useDashboard.ts, useMuzakki.ts, useMustahik.ts (and others)',effort:'4h'},
+  {id:'SCALE-03',sev:'Medium',cat:'Scalability / Queries',desc:'Missing FK indexes (DB-01) cause full table scans on all join-style queries; worsens significantly at scale',file:'supabase/migrations/001-004',effort:'2h'}
+];
+
+const SEV_ORDER={Critical:0,High:1,Medium:2,Low:3};
+let activeF='All';
+
+function buildTracker(){
+  const tbody=document.getElementById('tbody');
+  tbody.innerHTML='';
+  TF.forEach(f=>{
+    const tr=document.createElement('tr');
+    tr.className='tracker-row';
+    tr.dataset.id=f.id;
+    tr.dataset.sev=f.sev;
+    tr.dataset.cat=f.cat;
+    tr.dataset.desc=f.desc;
+    tr.dataset.file=f.file;
+    tr.dataset.effort=f.effort;
+    tr.innerHTML=`
+      <td style="white-space:nowrap;font-family:monospace;font-size:11px">${f.id}</td>
+      <td><span class="badge b${f.sev}">${f.sev}</span></td>
+      <td style="font-size:12px">${f.cat}</td>
+      <td style="font-size:12px">${f.desc}</td>
+      <td><code>${f.file}</code></td>
+      <td style="white-space:nowrap;font-weight:600">${f.effort}</td>
+      <td><input type="text" class="owner-inp" data-id="${f.id}" placeholder="Assign…"></td>
+      <td><select class="status-sel" data-id="${f.id}"><option>Open</option><option>In Progress</option><option>Resolved</option></select></td>
+      <td><input type="text" class="notes-inp" data-id="${f.id}" placeholder="Notes…"></td>`;
+    tbody.appendChild(tr);
+  });
+  bindTrackerEvents();
+  loadState();
+  updateProgress();
+}
+
+function save(id,field,val){localStorage.setItem('at-'+id+'-'+field,val)}
+function load(id,field){return localStorage.getItem('at-'+id+'-'+field)}
+
+function loadState(){
+  document.querySelectorAll('.owner-inp').forEach(el=>{el.value=load(el.dataset.id,'owner')||''});
+  document.querySelectorAll('.status-sel').forEach(el=>{
+    el.value=load(el.dataset.id,'status')||'Open';
+    styleStatus(el);
+  });
+  document.querySelectorAll('.notes-inp').forEach(el=>{el.value=load(el.dataset.id,'notes')||''});
+}
+
+function styleStatus(sel){
+  sel.className='status-sel st-'+sel.value.replace(' ','-');
+}
+
+function updateProgress(){
+  const rows=document.querySelectorAll('.tracker-row');
+  const resolved=[...rows].filter(r=>(load(r.dataset.id,'status')||'Open')==='Resolved').length;
+  const total=rows.length;
+  const pct=total?Math.round(resolved/total*100):0;
+  document.getElementById('pb').style.width=pct+'%';
+  document.getElementById('pt').textContent=`${resolved} / ${total} resolved (${pct}%)`;
+}
+
+function bindTrackerEvents(){
+  document.querySelectorAll('.owner-inp').forEach(el=>{
+    el.addEventListener('change',()=>save(el.dataset.id,'owner',el.value));
+  });
+  document.querySelectorAll('.status-sel').forEach(el=>{
+    el.addEventListener('change',()=>{
+      save(el.dataset.id,'status',el.value);
+      styleStatus(el);
+      updateProgress();
+    });
+  });
+  document.querySelectorAll('.notes-inp').forEach(el=>{
+    el.addEventListener('change',()=>save(el.dataset.id,'notes',el.value));
+  });
+}
+
+let sortCol=null,sortAsc=true;
+document.querySelectorAll('#tracker-table th[data-col]').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const col=th.dataset.col;
+    sortAsc=sortCol===col?!sortAsc:true;
+    sortCol=col;
+    const tbody=document.getElementById('tbody');
+    const rows=[...tbody.querySelectorAll('.tracker-row')];
+    rows.sort((a,b)=>{
+      const av=col==='sev'?a.dataset.sev:(a.dataset[col]||'');
+      const bv=col==='sev'?b.dataset.sev:(b.dataset[col]||'');
+      if(col==='sev'||col==='severity'){
+        const ao=SEV_ORDER[a.dataset.sev]??9,bo=SEV_ORDER[b.dataset.sev]??9;
+        return sortAsc?ao-bo:bo-ao;
+      }
+      return sortAsc?av.localeCompare(bv):bv.localeCompare(av);
+    });
+    rows.forEach(r=>tbody.appendChild(r));
+  });
+});
+
+document.getElementById('csv-btn').addEventListener('click',()=>{
+  const headers=['ID','Severity','Category','Description','File','Effort','Owner','Status','Notes'];
+  const rows=[...document.querySelectorAll('.tracker-row')].map(r=>{
+    const id=r.dataset.id;
+    return [id,r.dataset.sev,r.dataset.cat,r.dataset.desc,r.dataset.file,r.dataset.effort,
+      load(id,'owner')||'',load(id,'status')||'Open',load(id,'notes')||'']
+      .map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',');
+  });
+  const csv=[headers.join(','),...rows].join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='audit-report-2026-05-22.csv';
+  a.click();
+});
+
+let activeFilter='All';
+document.querySelectorAll('.fbtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    activeFilter=btn.dataset.f;
+    document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    applyFilters();
+  });
+});
+
+let searchTimer;
+document.getElementById('search-input').addEventListener('input',()=>{
+  clearTimeout(searchTimer);
+  searchTimer=setTimeout(applyFilters,300);
+});
+
+function applyFilters(){
+  const q=document.getElementById('search-input').value.toLowerCase().trim();
+  let vis=0;
+  document.querySelectorAll('.card').forEach(card=>{
+    const sev=card.dataset.sev||'';
+    const txt=card.textContent.toLowerCase();
+    const sm=activeFilter==='All'||sev===activeFilter;
+    const tm=!q||txt.includes(q);
+    card.dataset.hidden=(!sm||!tm).toString();
+    if(sm&&tm)vis++;
+  });
+  document.getElementById('fcount').textContent=vis+' finding'+(vis!==1?'s':'')+' shown';
+}
+
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      document.querySelectorAll('#sidebar nav a').forEach(a=>a.classList.remove('active'));
+      const link=document.querySelector('#sidebar nav a[href="#'+e.target.id+'"]');
+      if(link)link.classList.add('active');
+    }
+  });
+},{threshold:0.15,rootMargin:'-10% 0px -80% 0px'});
+document.querySelectorAll('section[id],h3[id]').forEach(s=>obs.observe(s));
+
+document.addEventListener('DOMContentLoaded',()=>{
+  buildTracker();
+  applyFilters();
+});
+</script>
+</body>
+</html>
