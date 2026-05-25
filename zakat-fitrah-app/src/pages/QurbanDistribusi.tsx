@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Select,
   SelectContent,
@@ -52,6 +53,7 @@ import {
 import { useMustahikList, useKategoriMustahik } from '@/hooks/useMustahik'
 import { CouponDetailDialog } from '@/components/qurban/CouponDetailDialog'
 import { MustahikCouponPicker } from '@/components/qurban/MustahikCouponPicker'
+import { PengurbanCouponPanel } from '@/components/qurban/PengurbanCouponPanel'
 import type { QurbanCouponWithRecipient } from '@/types/qurban'
 
 // -----------------------------------------------------------------------
@@ -377,194 +379,212 @@ export function QurbanDistribusi() {
       )}
 
       {selectedEventId && (
-        <>
-          {/* Progress summary */}
-          <div className="rounded-lg border p-4 space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium">Progress Distribusi</span>
-              <span className="text-muted-foreground">
-                {redeemedCount} dari {allCoupons.length} kupon sudah ditebus ({progressPercent}%)
-              </span>
-            </div>
-            <Progress value={progressPercent} className="h-2" />
-          </div>
+        <Tabs defaultValue="mustahik">
+          <TabsList>
+            <TabsTrigger value="mustahik">Warga / Mustahik</TabsTrigger>
+            <TabsTrigger value="pengurban">Pengurban</TabsTrigger>
+          </TabsList>
 
-          {/* Filter bar */}
-          <div className="flex flex-wrap items-center gap-3">
-            <Select
-              value={statusFilter}
-              onValueChange={(val) => {
-                setStatusFilter(val)
-                setCurrentPage(1)
-              }}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Status kupon" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Status</SelectItem>
-                <SelectItem value="active">Aktif</SelectItem>
-                <SelectItem value="redeemed">Sudah Ditebus</SelectItem>
-                <SelectItem value="expired">Kedaluwarsa</SelectItem>
-                <SelectItem value="cancelled">Dibatalkan</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={kategoriFilter}
-              onValueChange={(val) => {
-                setKategoriFilter(val)
-                setCurrentPage(1)
-              }}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Kategori mustahik" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Kategori</SelectItem>
-                {(kategoriData ?? []).map((k) => (
-                  <SelectItem key={k.id} value={k.id}>
-                    {k.nama}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Input
-              placeholder="Cari nama mustahik..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value)
-                setCurrentPage(1)
-              }}
-              className="w-[220px]"
-            />
-          </div>
-
-          {/* Table */}
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[160px]">No. Kupon</TableHead>
-                  <TableHead>Nama Mustahik</TableHead>
-                  <TableHead>Kategori</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Waktu Redemption</TableHead>
-                  <TableHead>Berlaku Hingga</TableHead>
-                  <TableHead className="w-[80px]">Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {couponsLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      Memuat data...
-                    </TableCell>
-                  </TableRow>
-                ) : filteredCoupons.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      Tidak ada data kupon
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredCoupons.map((coupon) => {
-                    const mustahikName = mustahikMap.get(coupon.recipient_id) ?? '—'
-                    const fullMustahik = mustahikAll?.data?.find((m) => m.id === coupon.recipient_id)
-                    const kategoriNama = fullMustahik?.kategori_mustahik?.nama ?? '—'
-                    const ds = getDisplayStatus(coupon)
-                    const isActive = ds === 'active'
-
-                    return (
-                      <TableRow key={coupon.id}>
-                        <TableCell>
-                          <span className="font-mono text-xs">{coupon.coupon_number}</span>
-                        </TableCell>
-                        <TableCell>{mustahikName}</TableCell>
-                        <TableCell className="text-muted-foreground text-sm">{kategoriNama}</TableCell>
-                        <TableCell>
-                          <StatusBadge coupon={coupon} />
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {formatDate(coupon.redeemed_at)}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          <span className={new Date(coupon.expires_at) < new Date() ? 'text-red-600' : ''}>
-                            {formatDate(coupon.expires_at)}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleViewDetail(coupon)}>
-                                Lihat Kupon
-                              </DropdownMenuItem>
-                              {isActive && (
-                                <>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    onClick={() => setRedeemTarget(coupon)}
-                                  >
-                                    Tandai Redeemed
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                              <UpdateExpiryPopover couponId={coupon.id} eventId={selectedEventId} />
-                              {isActive && (
-                                <>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    className="text-red-600 focus:text-red-600"
-                                    onClick={() => setCancelTarget(coupon)}
-                                  >
-                                    Batalkan Kupon
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>
-                Halaman {currentPage} dari {totalPages} ({totalCount} total)
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Sebelumnya
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Berikutnya
-                </Button>
+          {/* ---- Mustahik tab ---- */}
+          <TabsContent value="mustahik" className="space-y-5 mt-4">
+            {/* Progress summary */}
+            <div className="rounded-lg border p-4 space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">Progress Distribusi Mustahik</span>
+                <span className="text-muted-foreground">
+                  {redeemedCount} dari {allCoupons.length} kupon sudah ditebus ({progressPercent}%)
+                </span>
               </div>
+              <Progress value={progressPercent} className="h-2" />
             </div>
-          )}
-        </>
+
+            {/* Filter bar */}
+            <div className="flex flex-wrap items-center gap-3">
+              <Select
+                value={statusFilter}
+                onValueChange={(val) => {
+                  setStatusFilter(val)
+                  setCurrentPage(1)
+                }}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Status kupon" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Status</SelectItem>
+                  <SelectItem value="active">Aktif</SelectItem>
+                  <SelectItem value="redeemed">Sudah Ditebus</SelectItem>
+                  <SelectItem value="expired">Kedaluwarsa</SelectItem>
+                  <SelectItem value="cancelled">Dibatalkan</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={kategoriFilter}
+                onValueChange={(val) => {
+                  setKategoriFilter(val)
+                  setCurrentPage(1)
+                }}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Kategori mustahik" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Kategori</SelectItem>
+                  {(kategoriData ?? []).map((k) => (
+                    <SelectItem key={k.id} value={k.id}>
+                      {k.nama}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Input
+                placeholder="Cari nama mustahik..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value)
+                  setCurrentPage(1)
+                }}
+                className="w-[220px]"
+              />
+            </div>
+
+            {/* Table */}
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[160px]">No. Kupon</TableHead>
+                    <TableHead>Nama Mustahik</TableHead>
+                    <TableHead>Kategori</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Waktu Redemption</TableHead>
+                    <TableHead>Berlaku Hingga</TableHead>
+                    <TableHead className="w-[80px]">Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {couponsLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        Memuat data...
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredCoupons.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                        Tidak ada data kupon
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredCoupons.map((coupon) => {
+                      const mustahikName = mustahikMap.get(coupon.recipient_id) ?? '—'
+                      const fullMustahik = mustahikAll?.data?.find((m) => m.id === coupon.recipient_id)
+                      const kategoriNama = fullMustahik?.kategori_mustahik?.nama ?? '—'
+                      const ds = getDisplayStatus(coupon)
+                      const isActive = ds === 'active'
+
+                      return (
+                        <TableRow key={coupon.id}>
+                          <TableCell>
+                            <span className="font-mono text-xs">{coupon.coupon_number}</span>
+                          </TableCell>
+                          <TableCell>{mustahikName}</TableCell>
+                          <TableCell className="text-muted-foreground text-sm">{kategoriNama}</TableCell>
+                          <TableCell>
+                            <StatusBadge coupon={coupon} />
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {formatDate(coupon.redeemed_at)}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            <span className={new Date(coupon.expires_at) < new Date() ? 'text-red-600' : ''}>
+                              {formatDate(coupon.expires_at)}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleViewDetail(coupon)}>
+                                  Lihat Kupon
+                                </DropdownMenuItem>
+                                {isActive && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      onClick={() => setRedeemTarget(coupon)}
+                                    >
+                                      Tandai Redeemed
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                                <UpdateExpiryPopover couponId={coupon.id} eventId={selectedEventId} />
+                                {isActive && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      className="text-red-600 focus:text-red-600"
+                                      onClick={() => setCancelTarget(coupon)}
+                                    >
+                                      Batalkan Kupon
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>
+                  Halaman {currentPage} dari {totalPages} ({totalCount} total)
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Sebelumnya
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Berikutnya
+                  </Button>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* ---- Pengurban tab ---- */}
+          <TabsContent value="pengurban" className="mt-4">
+            {selectedEvent && (
+              <PengurbanCouponPanel
+                eventId={selectedEventId}
+                eventName={selectedEvent.nama}
+              />
+            )}
+          </TabsContent>
+        </Tabs>
       )}
 
       {/* Mustahik Coupon Picker */}
