@@ -12,10 +12,11 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Share2 } from 'lucide-react'
+import { Printer, Share2 } from 'lucide-react'
 import type { QurbanCoupon } from '@/types/qurban'
 import { CouponShareImage } from '@/components/qurban/CouponShareImage'
 import { shareCouponImage } from '@/lib/couponExport'
+import { printThermalCoupon } from '@/lib/thermalCouponPrint'
 
 interface CouponDetailDialogProps {
   open: boolean
@@ -69,6 +70,7 @@ export function CouponDetailDialog({
   distribusiDate,
 }: CouponDetailDialogProps) {
   const shareImageRef = useRef<HTMLDivElement>(null)
+  const qrWrapperRef = useRef<HTMLDivElement>(null)
   const [isSharing, setIsSharing] = useState(false)
 
   if (!coupon) return null
@@ -98,6 +100,30 @@ export function CouponDetailDialog({
     } finally {
       setIsSharing(false)
     }
+  }
+
+  const handlePrintThermal = () => {
+    if (!coupon || !qrWrapperRef.current) return
+    const svgEl = qrWrapperRef.current.querySelector('svg')
+    if (!svgEl) return
+
+    const rows = [
+      { label: 'Nama', value: recipientName },
+      { label: 'Event', value: eventName },
+    ]
+    if (animalInfo) rows.push({ label: 'Hewan', value: animalInfo })
+    if (nominal) rows.push({ label: 'Nominal', value: `Rp ${nominal.toLocaleString('id-ID')}` })
+    if (distribusiDate)
+      rows.push({ label: 'Distribusi', value: format(new Date(distribusiDate), 'dd/MM/yyyy', { locale: id }) })
+    rows.push({ label: 'Berlaku', value: format(new Date(coupon.expires_at), 'dd/MM/yyyy', { locale: id }) })
+
+    printThermalCoupon({
+      qrSvgElement: svgEl as SVGElement,
+      couponNumber: coupon.coupon_number,
+      couponType: coupon.recipient_type as 'muzakki' | 'mustahik',
+      mosqueName: 'Masjid Al-Fajar',
+      rows,
+    })
   }
 
   return (
@@ -153,12 +179,16 @@ export function CouponDetailDialog({
 
         {/* QR Code */}
         <div className="flex justify-center py-4">
-          <div className="p-3 bg-white border rounded-lg shadow-sm">
+          <div ref={qrWrapperRef} className="p-3 bg-white border rounded-lg shadow-sm">
             <QRCode value={coupon.token} size={200} />
           </div>
         </div>
 
         <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={handlePrintThermal}>
+            <Printer className="h-4 w-4 mr-2" />
+            Cetak Termal
+          </Button>
           <Button variant="outline" onClick={handleShare} disabled={isSharing}>
             <Share2 className="h-4 w-4 mr-2" />
             {isSharing ? 'Memproses...' : 'Bagikan Kupon'}

@@ -261,6 +261,146 @@ export function useCancelCoupon() {
   })
 }
 
+// ---- Muzakki distribution status (for pengurban panel) ----
+// Target counts: sapi pengurban = 5, kambing-only = 3
+const SAPI_TARGET = 5
+const KAMBING_TARGET = 3
+
+export interface MuzakkiDistributionStatus {
+  muzakki_id: string
+  nama_kk: string
+  no_telp: string | null
+  hasSapi: boolean
+  hasKambing: boolean
+  targetCount: number
+  currentCount: number
+  deficit: number
+}
+
+export function useQurbanMuzakkiDistributionStatus(eventId: string | null) {
+  return useQuery({
+    queryKey: ['qurban-muzakki-distribution-status', eventId],
+    queryFn: async (): Promise<MuzakkiDistributionStatus[]> => {
+      if (!eventId) return []
+
+      // 1. Get all animals for this event with their shares and muzakki
+      const { data: animals, error: animalsError } = await supabase
+        .from('qurban_animals')
+        .select(`
+          id,
+          jenis,
+          qurban_shares(
+            muzakki_id,
+            muzakki(id, nama_kk, no_telp)
+          )
+        `)
+        .eq('event_id', eventId)
+
+      if (animalsError) throw animalsError
+
+      // 2. Get existing distribution coupons (share_id IS NULL = distribution, not ownership)
+      const { data: coupons, error: couponsError } = await supabase
+        .from('qurban_coupons')
+        .select('recipient_id')
+        .eq('event_id', eventId)
+        .eq('recipient_type', 'muzakki')
+        .is('qurban_share_id', null)
+        .in('status', ['active', 'redeemed'])
+
+      if (couponsError) throw couponsError
+
+      // 3. Build coupon count map
+      const couponCountMap = new Map<string, number>()
+      for (const c of coupons ?? []) {
+        couponCountMap.set(c.recipient_id, (couponCountMap.get(c.recipient_id) ?? 0) + 1)
+      }
+
+      // 4. Aggregate per muzakki
+      const muzakkiMap = new Map<string, MuzakkiDistributionStatus>()
+      for (const animal of animals ?? []) {
+        const jenis = animal.jenis as 'sapi' | 'kambing'
+        for (const share of (animal.qurban_shares as any[]) ?? []) {
+          const muzakkiId = share.muzakki_id as string
+          const m = share.muzakki as { id: string; nama_kk: string; no_telp: string | null } | null
+          if (!muzakkiMap.has(muzakkiId)) {
+            muzakkiMap.set(muzakkiId, {
+              muzakki_id: muzakkiId,
+              nama_kk: m?.nama_kk ?? '—',
+              no_telp: m?.no_telp ?? null,
+              hasSapi: false,
+              hasKambing: false,
+              targetCount: 0,
+              currentCount: couponCountMap.get(muzakkiId) ?? 0,
+              deficit: 0,
+            })
+          }
+          const entry = muzakkiMap.get(muzakkiId)!
+          if (jenis === 'sapi') entry.hasSapi = true
+          if (jenis === 'kambing') entry.hasKambing = true
+        }
+      }
+
+      // 5. Calculate targets and deficits
+      return Array.from(muzakkiMap.values()).map((entry) => {
+        const target = entry.hasSapi ? SAPI_TARGET : KAMBING_TARGET
+        return {
+          ...entry,
+          targetCount: target,
+          deficit: Math.max(0, target - entry.currentCount),
+        }
+      }).sort((a, b) => a.nama_kk.localeCompare(b.nama_kk))
+    },
+    enabled: !!eventId,
+  })
+}
+
+// ---- Generate pengurban distribution coupons ----
+export function useGeneratePengurbanDistributionCoupons() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      eventId,
+      items,
+      expiresAt,
+    }: {
+      eventId: string
+      items: { muzakkiId: string; count: number }[]
+      expiresAt: string
+    }) => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
+
+      const itemsWithCoupons = items.filter((i) => i.count > 0)
+      if (itemsWithCoupons.length === 0) return []
+
+      const rows = itemsWithCoupons.flatMap(({ muzakkiId, count }) =>
+        Array.from({ length: count }).map(() => ({
+          event_id: eventId,
+          recipient_type: 'muzakki' as const,
+          recipient_id: muzakkiId,
+          qurban_share_id: null,
+          expires_at: expiresAt,
+          created_by: user.id,
+        }))
+      )
+
+      const { data, error } = await supabase
+        .from('qurban_coupons')
+        .insert(rows)
+        .select()
+
+      if (error) throw error
+      return data
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: [COUPONS_QUERY_KEY, variables.eventId] })
+      queryClient.invalidateQueries({ queryKey: ['qurban-muzakki-distribution-status', variables.eventId] })
+      toast.success('Kupon pengurban berhasil dibuat')
+    },
+    onError: (err: Error) => toast.error(`Gagal membuat kupon: ${err.message}`),
+  })
+}
+
 // ---- Update expiry ----
 export function useUpdateCouponExpiry() {
   const queryClient = useQueryClient()
