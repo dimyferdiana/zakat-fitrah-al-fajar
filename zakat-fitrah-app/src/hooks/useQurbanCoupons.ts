@@ -13,7 +13,7 @@ export function useQurbanCouponsByEvent(
   const { recipientType, status, page = 1, pageSize = 20 } = params
 
   return useQuery({
-    queryKey: [COUPONS_QUERY_KEY, eventId, recipientType, status, page],
+    queryKey: [COUPONS_QUERY_KEY, eventId, recipientType, status, page, pageSize],
     queryFn: async () => {
       if (!eventId) return { data: [], count: 0 }
 
@@ -261,6 +261,65 @@ export function useCancelCoupon() {
   })
 }
 
+// ---- Count-only queries (for progress stats without pagination interference) ----
+export function useQurbanCouponCounts(eventId: string | null, recipientType: 'mustahik' | 'muzakki') {
+  return useQuery({
+    queryKey: [COUPONS_QUERY_KEY, eventId, 'counts', recipientType],
+    queryFn: async () => {
+      if (!eventId) return { total: 0, redeemed: 0, active: 0 }
+
+      const [totalRes, redeemedRes, activeRes] = await Promise.all([
+        supabase
+          .from('qurban_coupons')
+          .select('*', { count: 'exact', head: true })
+          .eq('event_id', eventId)
+          .eq('recipient_type', recipientType),
+        supabase
+          .from('qurban_coupons')
+          .select('*', { count: 'exact', head: true })
+          .eq('event_id', eventId)
+          .eq('recipient_type', recipientType)
+          .eq('status', 'redeemed'),
+        supabase
+          .from('qurban_coupons')
+          .select('*', { count: 'exact', head: true })
+          .eq('event_id', eventId)
+          .eq('recipient_type', recipientType)
+          .eq('status', 'active'),
+      ])
+
+      return {
+        total: totalRes.count ?? 0,
+        redeemed: redeemedRes.count ?? 0,
+        active: activeRes.count ?? 0,
+      }
+    },
+    enabled: !!eventId,
+  })
+}
+
+// ---- Fetch distribution coupons for a single muzakki ----
+export function useMuzakkiDistributionCoupons(eventId: string | null, muzakkiId: string | null) {
+  return useQuery({
+    queryKey: [COUPONS_QUERY_KEY, eventId, 'muzakki-distribution', muzakkiId],
+    queryFn: async () => {
+      if (!eventId || !muzakkiId) return []
+      const { data, error } = await supabase
+        .from('qurban_coupons')
+        .select('*')
+        .eq('event_id', eventId)
+        .eq('recipient_type', 'muzakki')
+        .eq('recipient_id', muzakkiId)
+        .is('qurban_share_id', null)
+        .in('status', ['active', 'redeemed'])
+        .order('created_at', { ascending: true })
+      if (error) throw error
+      return (data || []) as QurbanCoupon[]
+    },
+    enabled: !!eventId && !!muzakkiId,
+  })
+}
+
 // ---- Muzakki distribution status (for pengurban panel) ----
 // Target counts: sapi pengurban = 5, kambing-only = 3
 const SAPI_TARGET = 5
@@ -399,6 +458,26 @@ export function useGeneratePengurbanDistributionCoupons() {
     },
     onError: (err: Error) => toast.error(`Gagal membuat kupon: ${err.message}`),
   })
+}
+
+// ---- Fetch all distribution coupons for given muzakki IDs (imperative, for bulk download) ----
+export async function fetchMuzakkiDistributionCouponsForIds(
+  eventId: string,
+  muzakkiIds: string[]
+): Promise<QurbanCoupon[]> {
+  if (muzakkiIds.length === 0) return []
+  const { data, error } = await supabase
+    .from('qurban_coupons')
+    .select('*')
+    .eq('event_id', eventId)
+    .eq('recipient_type', 'muzakki')
+    .is('qurban_share_id', null)
+    .in('status', ['active', 'redeemed'])
+    .in('recipient_id', muzakkiIds)
+    .order('recipient_id', { ascending: true })
+    .order('created_at', { ascending: true })
+  if (error) throw error
+  return (data || []) as QurbanCoupon[]
 }
 
 // ---- Update expiry ----

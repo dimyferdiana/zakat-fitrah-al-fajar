@@ -1,13 +1,21 @@
 import { useState, useMemo } from 'react'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
-import { CalendarIcon, Search, CheckCircle2, AlertCircle } from 'lucide-react'
+import { CalendarIcon, Search, CheckCircle2, AlertCircle, Eye, Download, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -26,8 +34,14 @@ import {
 import {
   useQurbanMuzakkiDistributionStatus,
   useGeneratePengurbanDistributionCoupons,
+  useMuzakkiDistributionCoupons,
+  fetchMuzakkiDistributionCouponsForIds,
   type MuzakkiDistributionStatus,
 } from '@/hooks/useQurbanCoupons'
+import { CouponDetailDialog } from '@/components/qurban/CouponDetailDialog'
+import { BulkCouponDownloader, type BulkDownloadItem } from '@/components/qurban/BulkCouponDownloader'
+import { PaginationBar } from '@/components/ui/pagination-bar'
+import type { QurbanCoupon } from '@/types/qurban'
 
 interface PengurbanCouponPanelProps {
   eventId: string
@@ -44,18 +58,41 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
     new Date('2026-05-29T23:59:59+07:00')
   )
   const [calendarOpen, setCalendarOpen] = useState(false)
+  const [viewCouponsFor, setViewCouponsFor] = useState<MuzakkiDistributionStatus | null>(null)
+  const [viewCoupon, setViewCoupon] = useState<QurbanCoupon | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
+
+  // Checkbox selection
+  const [selectedMuzakkiIds, setSelectedMuzakkiIds] = useState<Set<string>>(new Set())
+
+  // Bulk download
+  const [bulkItems, setBulkItems] = useState<BulkDownloadItem[]>([])
+  const [bulkDownloading, setBulkDownloading] = useState(false)
+  const [bulkProgress, setBulkProgress] = useState({ done: 0, total: 0 })
 
   const { data: muzakkiList = [], isLoading } = useQurbanMuzakkiDistributionStatus(eventId)
   const generateMutation = useGeneratePengurbanDistributionCoupons()
+  const { data: selectedMuzakkiCoupons = [], isLoading: couponsLoading } = useMuzakkiDistributionCoupons(
+    eventId,
+    viewCouponsFor?.muzakki_id ?? null
+  )
 
   const filteredList = useMemo(() => {
-    return muzakkiList.filter((m) => {
+    const result = muzakkiList.filter((m) => {
       if (search && !m.nama_kk.toLowerCase().includes(search.toLowerCase())) return false
       if (statusFilter === 'complete' && m.deficit > 0) return false
       if (statusFilter === 'missing' && m.deficit === 0) return false
       return true
     })
+    return result
   }, [muzakkiList, search, statusFilter])
+
+  const totalFiltered = filteredList.length
+  const totalFilteredCoupons = filteredList.reduce((sum, m) => sum + m.currentCount, 0)
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize))
+  const safePage = Math.min(currentPage, totalPages)
+  const pagedList = filteredList.slice((safePage - 1) * pageSize, safePage * pageSize)
 
   const totalPengurban = muzakkiList.length
   const completePengurban = muzakkiList.filter((m) => m.deficit === 0).length
@@ -80,6 +117,66 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
       items: [{ muzakkiId: m.muzakki_id, count: m.deficit }],
       expiresAt: expiryDate.toISOString(),
     })
+  }
+
+  // Total coupon count for selected muzakki (shown in floating bar)
+  const selectedCouponCount = useMemo(
+    () => muzakkiList
+      .filter((m) => selectedMuzakkiIds.has(m.muzakki_id))
+      .reduce((sum, m) => sum + m.currentCount, 0),
+    [muzakkiList, selectedMuzakkiIds]
+  )
+
+  // Checkbox helpers (operates on current page items)
+  const pagedIds = pagedList.map((m) => m.muzakki_id)
+  const allOnPageSelected = pagedIds.length > 0 && pagedIds.every((id) => selectedMuzakkiIds.has(id))
+  const someOnPageSelected = pagedIds.some((id) => selectedMuzakkiIds.has(id)) && !allOnPageSelected
+
+  const toggleSelectAll = () => {
+    setSelectedMuzakkiIds((prev) => {
+      const next = new Set(prev)
+      if (allOnPageSelected) {
+        pagedIds.forEach((id) => next.delete(id))
+      } else {
+        pagedIds.forEach((id) => next.add(id))
+      }
+      return next
+    })
+  }
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedMuzakkiIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const handleBulkDownload = async () => {
+    const ids = Array.from(selectedMuzakkiIds)
+    setBulkDownloading(true)
+    try {
+      const coupons = await fetchMuzakkiDistributionCouponsForIds(eventId, ids)
+      const items: BulkDownloadItem[] = coupons.map((c) => {
+        const muzakki = muzakkiList.find((m) => m.muzakki_id === c.recipient_id)
+        return {
+          coupon: c,
+          recipientName: muzakki?.nama_kk ?? '—',
+          eventName,
+        }
+      })
+      if (items.length === 0) {
+        toast.info('Tidak ada kupon aktif untuk pengurban yang dipilih')
+        setBulkDownloading(false)
+        return
+      }
+      setBulkItems(items)
+      setBulkProgress({ done: 0, total: items.length })
+    } catch {
+      toast.error('Gagal memuat kupon untuk diunduh')
+      setBulkDownloading(false)
+    }
   }
 
   const animalBadge = (m: MuzakkiDistributionStatus) => {
@@ -114,13 +211,13 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
           <Input
             placeholder="Cari nama..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
             className="pl-9 w-[220px]"
           />
         </div>
 
         {/* Status filter */}
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as StatusFilter); setCurrentPage(1) }}>
           <SelectTrigger className="w-[180px]">
             <SelectValue />
           </SelectTrigger>
@@ -168,30 +265,44 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[48px]">
+                <Checkbox
+                  checked={allOnPageSelected ? true : someOnPageSelected ? 'indeterminate' : false}
+                  onCheckedChange={toggleSelectAll}
+                  aria-label="Pilih semua di halaman ini"
+                />
+              </TableHead>
               <TableHead>Nama Pengurban</TableHead>
               <TableHead>Jenis Hewan</TableHead>
               <TableHead className="text-center">Target</TableHead>
               <TableHead className="text-center">Sudah Ada</TableHead>
               <TableHead className="text-center">Kurang</TableHead>
-              <TableHead className="w-[120px]">Aksi</TableHead>
+              <TableHead className="w-[200px]">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   Memuat data...
                 </TableCell>
               </TableRow>
             ) : filteredList.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   {muzakkiList.length === 0 ? 'Belum ada peserta qurban' : 'Tidak ada data sesuai filter'}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredList.map((m) => (
+              pagedList.map((m) => (
                 <TableRow key={m.muzakki_id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedMuzakkiIds.has(m.muzakki_id)}
+                      onCheckedChange={() => toggleSelectOne(m.muzakki_id)}
+                      aria-label={`Pilih ${m.nama_kk}`}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{m.nama_kk}</TableCell>
                   <TableCell>{animalBadge(m)}</TableCell>
                   <TableCell className="text-center">{m.targetCount}</TableCell>
@@ -207,18 +318,30 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
                     )}
                   </TableCell>
                   <TableCell>
-                    {m.deficit > 0 ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleGenerateSingle(m)}
-                        disabled={!expiryDate || generateMutation.isPending}
-                      >
-                        +{m.deficit} Kupon
-                      </Button>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">Lengkap</span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {m.currentCount > 0 && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setViewCouponsFor(m)}
+                        >
+                          <Eye className="h-3.5 w-3.5 mr-1" />
+                          Lihat Kupon
+                        </Button>
+                      )}
+                      {m.deficit > 0 ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleGenerateSingle(m)}
+                          disabled={!expiryDate || generateMutation.isPending}
+                        >
+                          +{m.deficit} Kupon
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Lengkap</span>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -226,9 +349,99 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
           </TableBody>
         </Table>
       </div>
+      <PaginationBar
+        currentPage={safePage}
+        totalPages={totalPages}
+        totalCount={totalFiltered}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1) }}
+        suffix={`${totalFilteredCoupons} kupon`}
+      />
+
       <p className="text-xs text-muted-foreground">
         Target: Pengurban sapi = 5 kupon &middot; Pengurban kambing = 3 kupon
       </p>
+
+      {/* Coupon list dialog for a muzakki */}
+      <Dialog open={!!viewCouponsFor} onOpenChange={(open) => !open && setViewCouponsFor(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Kupon — {viewCouponsFor?.nama_kk}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+            {couponsLoading ? (
+              <p className="text-center text-muted-foreground py-6">Memuat kupon...</p>
+            ) : selectedMuzakkiCoupons.length === 0 ? (
+              <p className="text-center text-muted-foreground py-6">Belum ada kupon</p>
+            ) : (
+              selectedMuzakkiCoupons.map((c, i) => (
+                <div key={c.id} className="flex items-center justify-between rounded-md border px-3 py-2">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Kupon {i + 1}</p>
+                    <p className="font-mono text-sm font-medium">{c.coupon_number}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{c.status}</p>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => setViewCoupon(c)}>
+                    Lihat Kupon
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Individual coupon detail dialog */}
+      <CouponDetailDialog
+        open={!!viewCoupon}
+        onOpenChange={(open) => !open && setViewCoupon(null)}
+        coupon={viewCoupon}
+        recipientName={viewCouponsFor?.nama_kk ?? ''}
+        eventName={eventName}
+      />
+
+      {/* Floating selection action bar */}
+      {selectedMuzakkiIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-full border bg-background px-5 py-3 shadow-lg text-sm">
+          <span className="font-medium">
+            {selectedMuzakkiIds.size} pengurban · {selectedCouponCount} kupon
+          </span>
+          <Button
+            size="sm"
+            onClick={handleBulkDownload}
+            disabled={bulkDownloading}
+          >
+            <Download className="h-3.5 w-3.5 mr-1.5" />
+            {bulkDownloading
+              ? bulkItems.length > 0
+                ? `${bulkProgress.done}/${bulkProgress.total}`
+                : 'Memuat...'
+              : 'Download Kupon'}
+          </Button>
+          <button
+            onClick={() => setSelectedMuzakkiIds(new Set())}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Batal pilih"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Bulk downloader */}
+      {bulkDownloading && bulkItems.length > 0 && (
+        <BulkCouponDownloader
+          items={bulkItems}
+          onProgress={(done, total) => setBulkProgress({ done, total })}
+          onDone={() => {
+            setBulkDownloading(false)
+            setBulkItems([])
+            setSelectedMuzakkiIds(new Set())
+            toast.success(`${bulkProgress.total} kupon berhasil diunduh`)
+          }}
+        />
+      )}
     </div>
   )
 }

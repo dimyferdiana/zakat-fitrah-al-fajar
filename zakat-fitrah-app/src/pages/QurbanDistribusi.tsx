@@ -2,10 +2,11 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
-import { MoreHorizontal, QrCode, UserPlus, Clock } from 'lucide-react'
+import { MoreHorizontal, QrCode, UserPlus, Clock, Download, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -46,6 +47,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { useQurbanEventList } from '@/hooks/useQurbanEvents'
 import {
   useQurbanCouponsByEvent,
+  useQurbanCouponCounts,
   useRedeemCouponManually,
   useCancelCoupon,
   useUpdateCouponExpiry,
@@ -54,6 +56,8 @@ import { useMustahikList, useKategoriMustahik } from '@/hooks/useMustahik'
 import { CouponDetailDialog } from '@/components/qurban/CouponDetailDialog'
 import { MustahikCouponPicker } from '@/components/qurban/MustahikCouponPicker'
 import { PengurbanCouponPanel } from '@/components/qurban/PengurbanCouponPanel'
+import { BulkCouponDownloader, type BulkDownloadItem } from '@/components/qurban/BulkCouponDownloader'
+import { PaginationBar } from '@/components/ui/pagination-bar'
 import type { QurbanCouponWithRecipient } from '@/types/qurban'
 
 // -----------------------------------------------------------------------
@@ -191,7 +195,7 @@ function UpdateAllExpiryButton({
 // Main page
 // -----------------------------------------------------------------------
 
-const PAGE_SIZE = 20
+const PAGE_SIZE_OPTIONS = [20, 50, 100]
 
 export function QurbanDistribusi() {
   const navigate = useNavigate()
@@ -202,6 +206,15 @@ export function QurbanDistribusi() {
   const [kategoriFilter, setKategoriFilter] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
+
+  // Checkbox selection
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  // Bulk download
+  const [bulkItems, setBulkItems] = useState<BulkDownloadItem[]>([])
+  const [bulkDownloading, setBulkDownloading] = useState(false)
+  const [bulkProgress, setBulkProgress] = useState({ done: 0, total: 0 })
 
   // Dialogs
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -236,12 +249,18 @@ export function QurbanDistribusi() {
       recipientType: 'mustahik',
       status: statusFilter !== 'all' && statusFilter !== 'expired' ? (statusFilter as 'active' | 'redeemed' | 'cancelled') : undefined,
       page: currentPage,
-      pageSize: PAGE_SIZE,
+      pageSize,
     }
   )
 
   const allCoupons = couponData?.data ?? []
   const totalCount = couponData?.count ?? 0
+
+  // True totals (all pages, no filter) for progress bar
+  const { data: mustahikCounts } = useQurbanCouponCounts(selectedEventId || null, 'mustahik')
+  const trueRedeemedCount = mustahikCounts?.redeemed ?? 0
+  const trueTotalCount = mustahikCounts?.total ?? 0
+  const progressPercent = trueTotalCount > 0 ? Math.round((trueRedeemedCount / trueTotalCount) * 100) : 0
 
   // Client-side filter for expired (since DB doesn't have 'expired' as a status)
   // and for kategori / search
@@ -268,9 +287,43 @@ export function QurbanDistribusi() {
     })
   }, [allCoupons, statusFilter, kategoriFilter, searchQuery, mustahikMap, mustahikAll])
 
-  // Progress stats
-  const redeemedCount = allCoupons.filter((c) => c.status === 'redeemed').length
-  const progressPercent = totalCount > 0 ? Math.round((redeemedCount / allCoupons.length) * 100) : 0
+  // Checkbox helpers
+  const currentPageIds = filteredCoupons.map((c) => c.id)
+  const allOnPageSelected = currentPageIds.length > 0 && currentPageIds.every((id) => selectedIds.has(id))
+  const someOnPageSelected = currentPageIds.some((id) => selectedIds.has(id)) && !allOnPageSelected
+
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (allOnPageSelected) {
+        currentPageIds.forEach((id) => next.delete(id))
+      } else {
+        currentPageIds.forEach((id) => next.add(id))
+      }
+      return next
+    })
+  }
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const handleBulkDownload = () => {
+    const selected = filteredCoupons.filter((c) => selectedIds.has(c.id))
+    const items: BulkDownloadItem[] = selected.map((c) => ({
+      coupon: c,
+      recipientName: mustahikMap.get(c.recipient_id) ?? '—',
+      eventName: selectedEvent?.nama ?? '',
+    }))
+    setBulkItems(items)
+    setBulkProgress({ done: 0, total: items.length })
+    setBulkDownloading(true)
+  }
 
   // Active coupon IDs for "Update Expiry Semua"
   const activeCouponIds = useMemo(
@@ -301,7 +354,7 @@ export function QurbanDistribusi() {
     setCancelTarget(null)
   }
 
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE)
+  const totalPages = Math.ceil(totalCount / pageSize)
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '—'
@@ -356,6 +409,7 @@ export function QurbanDistribusi() {
           onValueChange={(val) => {
             setSelectedEventId(val)
             setCurrentPage(1)
+            setSelectedIds(new Set())
           }}
         >
           <SelectTrigger className="w-[280px]">
@@ -392,7 +446,7 @@ export function QurbanDistribusi() {
               <div className="flex items-center justify-between text-sm">
                 <span className="font-medium">Progress Distribusi Mustahik</span>
                 <span className="text-muted-foreground">
-                  {redeemedCount} dari {allCoupons.length} kupon sudah ditebus ({progressPercent}%)
+                  {trueRedeemedCount} dari {trueTotalCount} kupon sudah ditebus ({progressPercent}%)
                 </span>
               </div>
               <Progress value={progressPercent} className="h-2" />
@@ -455,6 +509,13 @@ export function QurbanDistribusi() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[48px]">
+                      <Checkbox
+                        checked={allOnPageSelected ? true : someOnPageSelected ? 'indeterminate' : false}
+                        onCheckedChange={toggleSelectAll}
+                        aria-label="Pilih semua di halaman ini"
+                      />
+                    </TableHead>
                     <TableHead className="w-[160px]">No. Kupon</TableHead>
                     <TableHead>Nama Mustahik</TableHead>
                     <TableHead>Kategori</TableHead>
@@ -467,13 +528,13 @@ export function QurbanDistribusi() {
                 <TableBody>
                   {couponsLoading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         Memuat data...
                       </TableCell>
                     </TableRow>
                   ) : filteredCoupons.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         Tidak ada data kupon
                       </TableCell>
                     </TableRow>
@@ -486,7 +547,14 @@ export function QurbanDistribusi() {
                       const isActive = ds === 'active'
 
                       return (
-                        <TableRow key={coupon.id}>
+                        <TableRow key={coupon.id} data-selected={selectedIds.has(coupon.id) ? 'true' : undefined}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedIds.has(coupon.id)}
+                              onCheckedChange={() => toggleSelectOne(coupon.id)}
+                              aria-label={`Pilih kupon ${coupon.coupon_number}`}
+                            />
+                          </TableCell>
                           <TableCell>
                             <span className="font-mono text-xs">{coupon.coupon_number}</span>
                           </TableCell>
@@ -548,31 +616,15 @@ export function QurbanDistribusi() {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>
-                  Halaman {currentPage} dari {totalPages} ({totalCount} total)
-                </span>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    Sebelumnya
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Berikutnya
-                  </Button>
-                </div>
-              </div>
-            )}
+            <PaginationBar
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalCount={totalCount}
+              pageSize={pageSize}
+              pageSizeOptions={PAGE_SIZE_OPTIONS}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1) }}
+            />
           </TabsContent>
 
           {/* ---- Pengurban tab ---- */}
@@ -646,6 +698,44 @@ export function QurbanDistribusi() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Floating selection action bar */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-full border bg-background px-5 py-3 shadow-lg text-sm">
+          <span className="font-medium">{selectedIds.size} kupon dipilih</span>
+          <Button
+            size="sm"
+            onClick={handleBulkDownload}
+            disabled={bulkDownloading}
+          >
+            <Download className="h-3.5 w-3.5 mr-1.5" />
+            {bulkDownloading
+              ? `${bulkProgress.done}/${bulkProgress.total}`
+              : 'Download'}
+          </Button>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Batal pilih"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Bulk downloader (renders off-screen coupon cards then downloads) */}
+      {bulkDownloading && bulkItems.length > 0 && (
+        <BulkCouponDownloader
+          items={bulkItems}
+          onProgress={(done, total) => setBulkProgress({ done, total })}
+          onDone={() => {
+            setBulkDownloading(false)
+            setBulkItems([])
+            setSelectedIds(new Set())
+            toast.success(`${bulkProgress.total} kupon berhasil diunduh`)
+          }}
+        />
+      )}
     </div>
   )
 }

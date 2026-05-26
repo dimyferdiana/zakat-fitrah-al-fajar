@@ -86,7 +86,7 @@ export function AnimalCard({
               {animal.jenis === 'sapi' ? 'Sapi' : 'Kambing'}
             </Badge>
             <Badge variant={animal.sumber_hewan === 'titipan' ? 'default' : 'outline'} className="text-xs">
-              {animal.sumber_hewan === 'beli' ? 'Beli' : animal.sumber_hewan === 'titipan' ? 'Titipan' : 'Al Fajar'}
+              {animal.sumber_hewan === 'beli' ? 'Beli' : 'Titipan'}
             </Badge>
           </div>
 
@@ -122,7 +122,15 @@ export function AnimalCard({
           {animal.berat_kg != null && (
             <p className="text-sm text-muted-foreground">±{animal.berat_kg} kg</p>
           )}
-          <p className="text-sm font-semibold">{formatCurrency(animal.harga)}</p>
+          {animal.sumber_hewan === 'beli' ? (
+            <p className="text-sm font-semibold">
+              Harga: {formatCurrency(animal.harga)}
+            </p>
+          ) : (
+            <p className="text-sm font-semibold">
+              Biaya Perawatan: {animal.biaya_perawatan != null ? formatCurrency(animal.biaya_perawatan) : '—'}
+            </p>
+          )}
         </div>
 
         {/* Slot progress */}
