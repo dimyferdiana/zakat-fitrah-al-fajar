@@ -39,8 +39,8 @@ const animalSchema = z
     sumber_hewan: z.enum(['beli', 'titipan']),
     nomor: z.string().min(1, 'Nomor hewan wajib diisi'),
     berat_kg: z.number().positive().nullable().optional(),
-    harga: z.number().positive().nullable().optional(),
-    biaya_perawatan: z.number().positive().nullable().optional(),
+    harga: z.number().min(0).nullable().optional(),
+    biaya_perawatan: z.number().min(0).nullable().optional(),
     catatan: z.string().optional(),
   })
   .superRefine((data, ctx) => {
@@ -169,7 +169,11 @@ export function AnimalForm({
     }
 
     if (initialData) {
-      await updateMutation.mutateAsync({ ...payload, id: initialData.id })
+      await updateMutation.mutateAsync({
+        ...payload,
+        id: initialData.id,
+        foto_url: selectedFile ? undefined : (initialData.foto_url ?? null),
+      })
     } else {
       await createMutation.mutateAsync(payload)
     }

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Plus, CalendarDays, ArrowUpDown, X, LayoutGrid, List } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { AnimalForm } from '@/components/qurban/AnimalForm'
 import { AnimalGrid, type AnimalView } from '@/components/qurban/AnimalGrid'
+import { PaginationBar } from '@/components/ui/pagination-bar'
 import { AnimalDetailDialog } from '@/components/qurban/AnimalDetailDialog'
 import type { QurbanAnimal } from '@/types/qurban'
 import { getMaxSlots } from '@/types/qurban'
@@ -91,6 +92,8 @@ export default function Qurban() {
   const [filterPeserta, setFilterPeserta] = useState<FilterPeserta>('all')
   const [filterPembayaran, setFilterPembayaran] = useState<FilterPembayaran>('all')
   const [sortKey, setSortKey] = useState<SortKey>('terbaru')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
 
   const hasActiveFilter =
     filterJenis !== 'all' ||
@@ -106,6 +109,11 @@ export default function Qurban() {
     setFilterPembayaran('all')
     setSortKey('terbaru')
   }
+
+  // Reset to page 1 when filters, sort, or event change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [filterJenis, filterSumber, filterPeserta, filterPembayaran, sortKey, selectedEvent?.id])
 
   // --- Filtered + sorted animals ---
   const filteredAnimals = useMemo(() => {
@@ -142,6 +150,9 @@ export default function Qurban() {
       }
     })
   }, [allAnimals, shareCounts, filterJenis, filterSumber, filterPeserta, filterPembayaran, sortKey])
+
+  const totalPages = Math.max(1, Math.ceil(filteredAnimals.length / pageSize))
+  const pagedAnimals = filteredAnimals.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   // --- Animal handlers ---
   const handleAddAnimal = () => {
@@ -363,17 +374,31 @@ export default function Qurban() {
 
           {/* Animal grid */}
           {selectedEvent && (
-            <AnimalGrid
-              animals={filteredAnimals}
-              isLoading={animalsLoading}
-              view={view}
-              shareCounts={shareCounts}
-              onSelectAnimal={handleSelectAnimal}
-              onEditAnimal={handleEditAnimal}
-              onDeleteAnimal={handleDeleteAnimalClick}
-              onAddAnimal={handleAddAnimal}
-              canWrite={canWrite}
-            />
+            <>
+              <AnimalGrid
+                animals={pagedAnimals}
+                isLoading={animalsLoading}
+                view={view}
+                shareCounts={shareCounts}
+                onSelectAnimal={handleSelectAnimal}
+                onEditAnimal={handleEditAnimal}
+                onDeleteAnimal={handleDeleteAnimalClick}
+                onAddAnimal={handleAddAnimal}
+                canWrite={canWrite}
+              />
+              {!animalsLoading && filteredAnimals.length > 0 && (
+                <PaginationBar
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalCount={filteredAnimals.length}
+                  pageSize={pageSize}
+                  pageSizeOptions={[10, 20, 50]}
+                  onPageChange={setCurrentPage}
+                  onPageSizeChange={(size) => { setPageSize(size); setCurrentPage(1) }}
+                  suffix="hewan"
+                />
+              )}
+            </>
           )}
         </>
       )}

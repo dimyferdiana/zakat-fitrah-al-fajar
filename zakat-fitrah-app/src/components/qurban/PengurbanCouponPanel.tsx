@@ -36,6 +36,7 @@ import {
   useGeneratePengurbanDistributionCoupons,
   useMuzakkiDistributionCoupons,
   fetchMuzakkiDistributionCouponsForIds,
+  useQurbanCouponCounts,
   type MuzakkiDistributionStatus,
 } from '@/hooks/useQurbanCoupons'
 import { CouponDetailDialog } from '@/components/qurban/CouponDetailDialog'
@@ -54,7 +55,6 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [expiryDate, setExpiryDate] = useState<Date | undefined>(
-    // Default expiry: 29 May 2026
     new Date('2026-05-29T23:59:59+07:00')
   )
   const [calendarOpen, setCalendarOpen] = useState(false)
@@ -77,15 +77,15 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
     eventId,
     viewCouponsFor?.muzakki_id ?? null
   )
+  const { data: pengurbanCounts } = useQurbanCouponCounts(eventId, 'muzakki')
 
   const filteredList = useMemo(() => {
-    const result = muzakkiList.filter((m) => {
+    return muzakkiList.filter((m) => {
       if (search && !m.nama_kk.toLowerCase().includes(search.toLowerCase())) return false
       if (statusFilter === 'complete' && m.deficit > 0) return false
       if (statusFilter === 'missing' && m.deficit === 0) return false
       return true
     })
-    return result
   }, [muzakkiList, search, statusFilter])
 
   const totalFiltered = filteredList.length
@@ -97,9 +97,13 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
   const totalPengurban = muzakkiList.length
   const completePengurban = muzakkiList.filter((m) => m.deficit === 0).length
   const totalDeficit = muzakkiList.reduce((sum, m) => sum + m.deficit, 0)
-  const progressPercent = totalPengurban > 0 ? Math.round((completePengurban / totalPengurban) * 100) : 0
-
+  const totalCouponsGenerated = muzakkiList.reduce((sum, m) => sum + m.currentCount, 0)
+  const distribusiProgressPercent = totalPengurban > 0 ? Math.round((completePengurban / totalPengurban) * 100) : 0
   const missingList = muzakkiList.filter((m) => m.deficit > 0)
+
+  const totalCouponsRedeemed = pengurbanCounts?.redeemed ?? 0
+  const totalCouponsAll = pengurbanCounts?.total ?? 0
+  const kuponProgressPercent = totalCouponsAll > 0 ? Math.round((totalCouponsRedeemed / totalCouponsAll) * 100) : 0
 
   const handleGenerateAll = async () => {
     if (!expiryDate || missingList.length === 0) return
@@ -119,7 +123,6 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
     })
   }
 
-  // Total coupon count for selected muzakki (shown in floating bar)
   const selectedCouponCount = useMemo(
     () => muzakkiList
       .filter((m) => selectedMuzakkiIds.has(m.muzakki_id))
@@ -127,23 +130,18 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
     [muzakkiList, selectedMuzakkiIds]
   )
 
-  // Checkbox helpers (operates on current page items)
   const pagedIds = pagedList.map((m) => m.muzakki_id)
-  const allOnPageSelected = pagedIds.length > 0 && pagedIds.every((id) => selectedMuzakkiIds.has(id))
-  const someOnPageSelected = pagedIds.some((id) => selectedMuzakkiIds.has(id)) && !allOnPageSelected
+  const allOnPageSelected = pagedIds.length > 0 && pagedIds.every((i) => selectedMuzakkiIds.has(i))
+  const someOnPageSelected = pagedIds.some((i) => selectedMuzakkiIds.has(i)) && !allOnPageSelected
 
   const toggleSelectAll = () => {
     setSelectedMuzakkiIds((prev) => {
       const next = new Set(prev)
-      if (allOnPageSelected) {
-        pagedIds.forEach((id) => next.delete(id))
-      } else {
-        pagedIds.forEach((id) => next.add(id))
-      }
+      if (allOnPageSelected) pagedIds.forEach((i) => next.delete(i))
+      else pagedIds.forEach((i) => next.add(i))
       return next
     })
   }
-
   const toggleSelectOne = (id: string) => {
     setSelectedMuzakkiIds((prev) => {
       const next = new Set(prev)
@@ -160,11 +158,7 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
       const coupons = await fetchMuzakkiDistributionCouponsForIds(eventId, ids)
       const items: BulkDownloadItem[] = coupons.map((c) => {
         const muzakki = muzakkiList.find((m) => m.muzakki_id === c.recipient_id)
-        return {
-          coupon: c,
-          recipientName: muzakki?.nama_kk ?? '—',
-          eventName,
-        }
+        return { coupon: c, recipientName: muzakki?.nama_kk ?? '—', eventName }
       })
       if (items.length === 0) {
         toast.info('Tidak ada kupon aktif untuk pengurban yang dipilih')
@@ -187,25 +181,40 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
 
   return (
     <div className="space-y-5">
-      {/* Summary */}
-      <div className="rounded-lg border p-4 space-y-3">
-        <div className="flex items-center justify-between text-sm">
-          <span className="font-medium">Progress Kupon Pengurban — {eventName}</span>
-          <span className="text-muted-foreground">
-            {completePengurban} dari {totalPengurban} pengurban sudah lengkap
-          </span>
+      {/* Progress: distribusi + kupon side by side */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Distribusi progress */}
+        <div className="rounded-lg border p-4 space-y-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium">Progress Distribusi Kupon</span>
+            <span className="text-muted-foreground text-right">
+              {completePengurban} dari {totalPengurban} ({totalCouponsGenerated} kupon) pengurban sudah lengkap
+            </span>
+          </div>
+          <Progress value={distribusiProgressPercent} className="h-2" />
+          {totalDeficit > 0 && (
+            <p className="text-xs text-muted-foreground">
+              Masih kurang{' '}
+              <span className="font-semibold text-foreground">{totalDeficit} kupon</span>{' '}
+              untuk {missingList.length} pengurban
+            </p>
+          )}
         </div>
-        <Progress value={progressPercent} className="h-2" />
-        {totalDeficit > 0 && (
-          <p className="text-xs text-muted-foreground">
-            Masih kurang <span className="font-semibold text-foreground">{totalDeficit} kupon</span> untuk {missingList.length} pengurban
-          </p>
-        )}
+
+        {/* Kupon progress */}
+        <div className="rounded-lg border p-4 space-y-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium">Progress Kupon Ditebus</span>
+            <span className="text-muted-foreground text-right">
+              {totalCouponsRedeemed} dari {totalCouponsAll} kupon sudah ditebus ({kuponProgressPercent}%)
+            </span>
+          </div>
+          <Progress value={kuponProgressPercent} className="h-2" />
+        </div>
       </div>
 
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-3">
-        {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -216,7 +225,6 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
           />
         </div>
 
-        {/* Status filter */}
         <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as StatusFilter); setCurrentPage(1) }}>
           <SelectTrigger className="w-[180px]">
             <SelectValue />
@@ -228,7 +236,6 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
           </SelectContent>
         </Select>
 
-        {/* Expiry date */}
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger asChild>
             <Button variant="outline" className="justify-start text-left font-normal min-w-[180px]">
@@ -246,7 +253,6 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
           </PopoverContent>
         </Popover>
 
-        {/* Generate all missing */}
         {missingList.length > 0 && (
           <Button
             onClick={handleGenerateAll}
@@ -349,6 +355,7 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
           </TableBody>
         </Table>
       </div>
+
       <PaginationBar
         currentPage={safePage}
         totalPages={totalPages}
@@ -392,7 +399,6 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
         </DialogContent>
       </Dialog>
 
-      {/* Individual coupon detail dialog */}
       <CouponDetailDialog
         open={!!viewCoupon}
         onOpenChange={(open) => !open && setViewCoupon(null)}
@@ -407,11 +413,7 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
           <span className="font-medium">
             {selectedMuzakkiIds.size} pengurban · {selectedCouponCount} kupon
           </span>
-          <Button
-            size="sm"
-            onClick={handleBulkDownload}
-            disabled={bulkDownloading}
-          >
+          <Button size="sm" onClick={handleBulkDownload} disabled={bulkDownloading}>
             <Download className="h-3.5 w-3.5 mr-1.5" />
             {bulkDownloading
               ? bulkItems.length > 0
@@ -429,7 +431,6 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
         </div>
       )}
 
-      {/* Bulk downloader */}
       {bulkDownloading && bulkItems.length > 0 && (
         <BulkCouponDownloader
           items={bulkItems}
