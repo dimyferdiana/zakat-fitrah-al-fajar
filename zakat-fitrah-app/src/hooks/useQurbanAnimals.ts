@@ -44,7 +44,7 @@ export function useQurbanAnimalDetail(animalId: string | null) {
 interface CreateQurbanAnimalInput {
   event_id: string
   jenis: 'sapi' | 'kambing'
-  sumber_hewan: 'beli' | 'titipan' | 'al_fajar'
+  sumber_hewan: 'beli' | 'titipan'
   nomor: string
   berat_kg?: number | null
   harga: number
@@ -179,6 +179,30 @@ interface DeleteQurbanAnimalInput {
   id: string
   event_id: string
   foto_url?: string | null
+}
+
+export function useQurbanAnimalShareCounts(eventId: string | null) {
+  return useQuery({
+    queryKey: ['qurban-animals', eventId, 'share-counts'],
+    queryFn: async (): Promise<Map<string, { shareCount: number; paidCount: number }>> => {
+      if (!eventId) return new Map()
+      const { data, error } = await supabase
+        .from('qurban_animals')
+        .select('id, qurban_shares(status_pembayaran)')
+        .eq('event_id', eventId)
+      if (error) throw error
+      const map = new Map<string, { shareCount: number; paidCount: number }>()
+      for (const animal of data ?? []) {
+        const shares = (animal.qurban_shares ?? []) as { status_pembayaran: string }[]
+        map.set(animal.id, {
+          shareCount: shares.length,
+          paidCount: shares.filter((s) => s.status_pembayaran === 'lunas').length,
+        })
+      }
+      return map
+    },
+    enabled: !!eventId,
+  })
 }
 
 export function useDeleteQurbanAnimal() {

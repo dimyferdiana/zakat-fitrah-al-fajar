@@ -127,12 +127,21 @@ export function AnimalDetailDialog({
                   {animal.jenis === 'sapi' ? 'Sapi' : 'Kambing'}
                 </Badge>
                 <Badge variant="secondary">
-                  {animal.sumber_hewan === 'beli' ? 'Beli' : animal.sumber_hewan === 'titipan' ? 'Titipan' : 'Al Fajar'}
+                  {animal.sumber_hewan === 'beli' ? 'Beli' : 'Titipan'}
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Harga: <span className="font-medium text-foreground">{formatCurrency(animal.harga)}</span>
-              </p>
+              {animal.sumber_hewan === 'beli' ? (
+                <p className="text-sm text-muted-foreground">
+                  Harga: <span className="font-medium text-foreground">{formatCurrency(animal.harga)}</span>
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Biaya Perawatan:{' '}
+                  <span className="font-medium text-foreground">
+                    {animal.biaya_perawatan != null ? formatCurrency(animal.biaya_perawatan) : '—'}
+                  </span>
+                </p>
+              )}
               {animal.berat_kg != null && (
                 <p className="text-sm text-muted-foreground">
                   Berat: <span className="font-medium text-foreground">{animal.berat_kg} kg</span>
