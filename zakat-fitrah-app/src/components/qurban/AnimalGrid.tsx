@@ -61,7 +61,7 @@ export function AnimalGrid({
           <Table>
             <TableHeader>
               <TableRow>
-                {['Nomor', 'Jenis', 'Sumber', 'Harga / Biaya', 'Berat', 'Peserta', 'Lunas', ''].map((h) => (
+                {['Foto', 'Nomor', 'Jenis', 'Sumber', 'Harga / Biaya', 'Berat', 'Peserta', 'Lunas', ''].map((h) => (
                   <TableHead key={h}>{h}</TableHead>
                 ))}
               </TableRow>
@@ -69,7 +69,7 @@ export function AnimalGrid({
             <TableBody>
               {[1, 2, 3].map((i) => (
                 <TableRow key={i}>
-                  {Array.from({ length: 8 }).map((_, j) => (
+                  {Array.from({ length: 9 }).map((_, j) => (
                     <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
                   ))}
                 </TableRow>
@@ -122,6 +122,7 @@ export function AnimalGrid({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[52px]">Foto</TableHead>
               <TableHead className="w-[110px]">Nomor</TableHead>
               <TableHead>Jenis</TableHead>
               <TableHead>Sumber</TableHead>
@@ -145,6 +146,21 @@ export function AnimalGrid({
                   className="cursor-pointer"
                   onClick={() => onSelectAnimal(animal)}
                 >
+                  <TableCell className="p-1.5">
+                    <div className="h-10 w-10 rounded overflow-hidden bg-muted flex items-center justify-center shrink-0">
+                      {animal.foto_url ? (
+                        <img
+                          src={animal.foto_url}
+                          alt={animal.nomor}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-lg leading-none">
+                          {animal.jenis === 'sapi' ? '🐄' : '🐐'}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <span className="font-mono font-semibold text-sm">{animal.nomor}</span>
                     {isAllPaid && (

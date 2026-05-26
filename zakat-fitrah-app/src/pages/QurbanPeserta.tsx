@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Users, MoreVertical, ChevronLeft, ChevronRight, FileText, Trash2, CreditCard, Ticket, Plus } from 'lucide-react'
+import { Users, MoreVertical, FileText, Trash2, CreditCard, Ticket, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { addDays } from 'date-fns'
 
@@ -51,10 +51,11 @@ import { useQurbanShareListFlat, useUpdateSharePayment, useRemoveQurbanShare } f
 import { useGenerateMuzakkiCoupon } from '@/hooks/useQurbanCoupons'
 import { downloadQurbanShareReceipt } from '@/components/qurban/BuktiQurban'
 import { AddPesertaDialog } from '@/components/qurban/AddPesertaDialog'
+import { PaginationBar } from '@/components/ui/pagination-bar'
 import type { QurbanShareFlat } from '@/types/qurban'
 import type { QurbanAnimal, QurbanEvent } from '@/types/qurban'
 
-const PAGE_SIZE = 20
+const DEFAULT_PAGE_SIZE = 20
 
 function formatRupiah(amount: number): string {
   return new Intl.NumberFormat('id-ID', {
@@ -117,6 +118,7 @@ export function QurbanPeserta() {
   const [searchInput, setSearchInput] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
 
   // Dialogs state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -144,7 +146,7 @@ export function QurbanPeserta() {
     status: selectedStatus !== 'all' ? (selectedStatus as 'belum_bayar' | 'lunas') : undefined,
     search: debouncedSearch || undefined,
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
   }
 
   const { data: sharesResult, isLoading } = useQurbanShareListFlat(queryParams)
@@ -311,7 +313,7 @@ export function QurbanPeserta() {
                     {shares.map((share, index) => (
                       <TableRow key={share.id}>
                         <TableCell className="text-muted-foreground">
-                          {(page - 1) * PAGE_SIZE + index + 1}
+                          {(page - 1) * pageSize + index + 1}
                         </TableCell>
                         <TableCell>
                           <div className="font-medium">{share.muzakki_nama}</div>
@@ -420,34 +422,18 @@ export function QurbanPeserta() {
                 </Table>
               </div>
 
-              {/* Pagination + total count */}
-              <div className="mt-6 flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                  Total: <span className="font-semibold">{totalCount}</span> peserta
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    Sebelumnya
-                  </Button>
-                  <span className="text-sm text-muted-foreground">
-                    Halaman {page}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((p) => p + 1)}
-                    disabled={shares.length < PAGE_SIZE}
-                  >
-                    Selanjutnya
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
+              {/* Pagination */}
+              <div className="mt-6">
+                <PaginationBar
+                  currentPage={page}
+                  totalPages={Math.max(1, Math.ceil(totalCount / pageSize))}
+                  totalCount={totalCount}
+                  pageSize={pageSize}
+                  pageSizeOptions={[20, 50, 100]}
+                  onPageChange={setPage}
+                  onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
+                  suffix="peserta"
+                />
               </div>
             </>
           )}
