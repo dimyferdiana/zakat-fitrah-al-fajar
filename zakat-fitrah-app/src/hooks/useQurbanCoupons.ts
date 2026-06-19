@@ -124,10 +124,12 @@ export function useGenerateMustahikCoupons() {
       eventId,
       mustahikIds,
       expiresAt,
+      packagesPerCoupon = 1,
     }: {
       eventId: string
       mustahikIds: string[]
       expiresAt: string
+      packagesPerCoupon?: number
     }) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
@@ -139,6 +141,7 @@ export function useGenerateMustahikCoupons() {
         event_id: eventId,
         recipient_type: 'mustahik' as const,
         recipient_id: mustahikId,
+        packages_per_coupon: packagesPerCoupon,
         expires_at: expiresAt,
         created_by: user.id,
       }))
@@ -421,10 +424,12 @@ export function useGeneratePengurbanDistributionCoupons() {
       eventId,
       items,
       expiresAt,
+      packagesPerCoupon = 1,
     }: {
       eventId: string
       items: { muzakkiId: string; count: number }[]
       expiresAt: string
+      packagesPerCoupon?: number
     }) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
@@ -438,6 +443,7 @@ export function useGeneratePengurbanDistributionCoupons() {
           recipient_type: 'muzakki' as const,
           recipient_id: muzakkiId,
           qurban_share_id: null,
+          packages_per_coupon: packagesPerCoupon,
           expires_at: expiresAt,
           created_by: user.id,
         }))

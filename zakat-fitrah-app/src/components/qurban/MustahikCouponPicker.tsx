@@ -59,6 +59,7 @@ export function MustahikCouponPicker({
     if (eventTanggal) return addDays(new Date(eventTanggal), 1)
     return undefined
   })
+  const [packagesPerCoupon, setPackagesPerCoupon] = useState(1)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [duplicateCount, setDuplicateCount] = useState(0)
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
@@ -105,6 +106,7 @@ export function MustahikCouponPicker({
         eventId,
         mustahikIds: Array.from(selectedIds),
         expiresAt: expiryDate.toISOString(),
+        packagesPerCoupon,
       })
       onOpenChange(false)
       setSelectedIds(new Set())
@@ -146,6 +148,7 @@ export function MustahikCouponPicker({
     setSelectedIds(new Set())
     setSearch('')
     setKategoriFilter('all')
+    setPackagesPerCoupon(1)
   }
 
   return (
@@ -234,6 +237,24 @@ export function MustahikCouponPicker({
                   </tbody>
                 </table>
               )}
+            </div>
+
+            {/* Packages per coupon */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium min-w-[120px]">Paket per Kupon</span>
+              <Input
+                type="number"
+                min={1}
+                value={packagesPerCoupon}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10)
+                  if (!isNaN(val) && val >= 1) setPackagesPerCoupon(val)
+                }}
+                className="w-[100px]"
+              />
+              <span className="text-xs text-muted-foreground">
+                Jumlah paket per kupon. Default: 1
+              </span>
             </div>
 
             {/* Expiry date picker */}

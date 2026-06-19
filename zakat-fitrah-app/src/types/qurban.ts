@@ -101,6 +101,7 @@ export interface QurbanCoupon {
   coupon_number: string
   token: string
   status: QurbanCouponStatus
+  packages_per_coupon: number
   expires_at: string
   redeemed_at: string | null
   redeemed_by: string | null

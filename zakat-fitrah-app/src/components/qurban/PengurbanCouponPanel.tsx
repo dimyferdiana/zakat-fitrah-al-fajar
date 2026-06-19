@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -57,6 +58,7 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
   const [expiryDate, setExpiryDate] = useState<Date | undefined>(
     new Date('2026-05-29T23:59:59+07:00')
   )
+  const [packagesPerCoupon, setPackagesPerCoupon] = useState(1)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [viewCouponsFor, setViewCouponsFor] = useState<MuzakkiDistributionStatus | null>(null)
   const [viewCoupon, setViewCoupon] = useState<QurbanCoupon | null>(null)
@@ -111,6 +113,7 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
       eventId,
       items: missingList.map((m) => ({ muzakkiId: m.muzakki_id, count: m.deficit })),
       expiresAt: expiryDate.toISOString(),
+      packagesPerCoupon,
     })
   }
 
@@ -120,6 +123,7 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
       eventId,
       items: [{ muzakkiId: m.muzakki_id, count: m.deficit }],
       expiresAt: expiryDate.toISOString(),
+      packagesPerCoupon,
     })
   }
 
@@ -252,6 +256,23 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
             />
           </PopoverContent>
         </Popover>
+
+        <div className="flex items-center gap-2">
+          <Label htmlFor="packages-per-coupon" className="text-sm whitespace-nowrap">
+            Paket/Kupon
+          </Label>
+          <Input
+            id="packages-per-coupon"
+            type="number"
+            min={1}
+            value={packagesPerCoupon}
+            onChange={(e) => {
+              const val = parseInt(e.target.value, 10)
+              if (!isNaN(val) && val >= 1) setPackagesPerCoupon(val)
+            }}
+            className="w-[72px]"
+          />
+        </div>
 
         {missingList.length > 0 && (
           <Button
@@ -388,6 +409,9 @@ export function PengurbanCouponPanel({ eventId, eventName }: PengurbanCouponPane
                     <p className="text-xs text-muted-foreground">Kupon {i + 1}</p>
                     <p className="font-mono text-sm font-medium">{c.coupon_number}</p>
                     <p className="text-xs text-muted-foreground capitalize">{c.status}</p>
+                    {c.packages_per_coupon > 1 && (
+                      <p className="text-xs text-amber-600 font-medium">{c.packages_per_coupon} paket</p>
+                    )}
                   </div>
                   <Button size="sm" variant="outline" onClick={() => setViewCoupon(c)}>
                     Lihat Kupon

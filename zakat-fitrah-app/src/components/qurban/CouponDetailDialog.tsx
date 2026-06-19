@@ -164,6 +164,13 @@ export function CouponDetailDialog({
             </InfoRow>
           )}
 
+          {/* Packages per coupon — only shown if > 1 */}
+          {coupon.packages_per_coupon > 1 && (
+            <InfoRow label="Jumlah Paket">
+              <span className="text-amber-600 font-semibold">{coupon.packages_per_coupon} paket</span>
+            </InfoRow>
+          )}
+
           {/* Expiry */}
           <InfoRow label="Berlaku Hingga">
             <span className={isExpired ? 'text-red-600' : ''}>
