@@ -54,7 +54,7 @@ export function QurbanStatCards({ stats }: QurbanStatCardsProps) {
           title="Total Kambing"
           value={stats.totalKambing}
           description="ekor kambing"
-          icon={GoatIcon as any}
+          icon={GoatIcon}
         />
         <StatCard
           title="Total Peserta"

@@ -134,7 +134,7 @@ export function LaporanPemasukan({ tahunZakatId }: LaporanPemasukanProps) {
   const paginatedRows = allRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const handleExportPDF = () => {
-    exportPemasukanPDF(allRows as any, {
+    exportPemasukanPDF(allRows, {
       dateFrom,
       dateTo,
       jenisFilter,
@@ -145,7 +145,7 @@ export function LaporanPemasukan({ tahunZakatId }: LaporanPemasukanProps) {
   };
 
   const handleExportExcel = () => {
-    exportPemasukanExcel(allRows as any, {
+    exportPemasukanExcel(allRows, {
       dateFrom,
       dateTo,
       jenisFilter,

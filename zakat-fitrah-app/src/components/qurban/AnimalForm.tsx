@@ -1,5 +1,6 @@
+import { PrivateStorageImage } from '@/components/common/PrivateStorageImage'
 import { useEffect, useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Camera, ImageOff } from 'lucide-react'
@@ -77,7 +78,11 @@ function generateNomor(jenis: 'sapi' | 'kambing', existingAnimals: QurbanAnimal[
   return `${prefix}-${String(nextNum).padStart(3, '0')}`
 }
 
-export function AnimalForm({
+export function AnimalForm(props: AnimalFormProps) {
+  return props.open ? <AnimalFormContent key={`${props.initialData?.id ?? 'new'}-${props.initialData?.foto_url ?? ''}`} {...props} /> : null
+}
+
+function AnimalFormContent({
   open,
   onOpenChange,
   eventId,
@@ -88,7 +93,7 @@ export function AnimalForm({
   const updateMutation = useUpdateQurbanAnimal()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(initialData?.foto_url ?? null)
 
   const form = useForm<AnimalFormValues>({
     resolver: zodResolver(animalSchema),
@@ -103,14 +108,11 @@ export function AnimalForm({
     },
   })
 
-  const watchJenis = form.watch('jenis')
-  const watchSumberHewan = form.watch('sumber_hewan')
+  const [watchJenis, watchSumberHewan] = useWatch({ control: form.control, name: ['jenis', 'sumber_hewan'] })
 
   // Reset form on open/close or initialData change
   useEffect(() => {
     if (open) {
-      setSelectedFile(null)
-      setPreviewUrl(null)
       if (initialData) {
         form.reset({
           jenis: initialData.jenis,
@@ -121,7 +123,6 @@ export function AnimalForm({
           biaya_perawatan: initialData.biaya_perawatan ?? null,
           catatan: initialData.catatan ?? '',
         })
-        setPreviewUrl(initialData.foto_url ?? null)
       } else {
         const nomor = generateNomor('sapi', existingAnimals)
         form.reset({
@@ -366,7 +367,7 @@ export function AnimalForm({
               <div className="flex items-start gap-3">
                 <div className="h-24 w-24 shrink-0 rounded-md border bg-muted overflow-hidden flex items-center justify-center">
                   {previewUrl ? (
-                    <img
+                    <PrivateStorageImage
                       src={previewUrl}
                       alt="Preview foto hewan"
                       className="h-full w-full object-cover"

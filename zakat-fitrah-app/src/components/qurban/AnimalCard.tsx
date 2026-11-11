@@ -1,3 +1,4 @@
+import { PrivateStorageImage } from '@/components/common/PrivateStorageImage'
 import { Beef, MoreVertical, ImageOff } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -51,7 +52,7 @@ export function AnimalCard({
         onClick={onSelect}
       >
         {animal.foto_url ? (
-          <img
+          <PrivateStorageImage
             src={animal.foto_url}
             alt={`Foto hewan ${animal.nomor}`}
             className="h-full w-full object-cover"

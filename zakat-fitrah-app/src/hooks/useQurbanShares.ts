@@ -220,7 +220,7 @@ export function useAvailableAnimalSlots(eventId?: string) {
       if (error) throw error
 
       const slots: AvailableAnimalSlot[] = (data || [])
-        .map((animal: any) => {
+        .map((animal) => {
           const maxSlots = getMaxSlots(animal.jenis as 'sapi' | 'kambing')
           const assignedCount = animal.qurban_shares?.[0]?.count ?? 0
           const harga = animal.harga ?? 0
@@ -276,19 +276,19 @@ export function useQurbanShareListFlat(params: QurbanShareListParams) {
       const { data, error, count } = await query
       if (error) throw error
 
-      const flat: QurbanShareFlat[] = (data || []).map((row: any) => ({
+      const flat: QurbanShareFlat[] = (data || []).map((row) => ({
         id: row.id,
         animal_id: row.animal_id,
         urutan: row.urutan,
         nominal: row.nominal,
-        status_pembayaran: row.status_pembayaran,
+        status_pembayaran: row.status_pembayaran as QurbanShareFlat['status_pembayaran'],
         catatan: row.catatan,
         created_at: row.created_at,
         muzakki_id: row.muzakki_id,
         muzakki_nama: row.muzakki?.nama_kk ?? '',
         muzakki_no_telp: row.muzakki?.no_telp ?? null,
         animal_nomor: row.qurban_animals?.nomor ?? '',
-        animal_jenis: row.qurban_animals?.jenis ?? 'sapi',
+        animal_jenis: (row.qurban_animals?.jenis ?? 'sapi') as QurbanShareFlat['animal_jenis'],
         event_id: row.qurban_animals?.event_id ?? '',
         event_nama: row.qurban_animals?.qurban_events?.nama ?? '',
         event_tanggal: row.qurban_animals?.qurban_events?.tanggal ?? '',

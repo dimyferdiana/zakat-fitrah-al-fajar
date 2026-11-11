@@ -38,18 +38,20 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export function Login() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { login, user } = useAuth();
+  const { login, user, customer } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = (location.state as any)?.from?.pathname || '/dashboard';
+  const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname || '/dashboard';
 
   // Redirect if already authenticated
   useEffect(() => {
     if (user) {
       navigate('/dashboard', { replace: true });
+    } else if (customer) {
+      navigate('/portal-pinjaman', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, customer, navigate]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -63,8 +65,8 @@ export function Login() {
     setIsLoading(true);
     try {
       setError(null);
-      await login(values.email, values.password);
-      navigate(from, { replace: true });
+      const accountType = await login(values.email, values.password);
+      navigate(accountType === 'customer' ? '/portal-pinjaman' : from, { replace: true });
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : 'Login gagal. Periksa email dan password Anda.';
       

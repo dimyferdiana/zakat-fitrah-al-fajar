@@ -149,7 +149,7 @@ export interface QurbanShareFlat {
   event_id: string
   event_nama: string
   event_tanggal: string
-  coupon?: QurbanCoupon | null
+  coupon?: Pick<QurbanCoupon, 'id' | 'coupon_number' | 'token' | 'expires_at' | 'redeemed_at'> & { status: string } | null
 }
 
 export interface QurbanShareListParams {

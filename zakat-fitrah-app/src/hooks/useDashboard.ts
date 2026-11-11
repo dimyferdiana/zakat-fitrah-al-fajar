@@ -150,21 +150,21 @@ export function useDashboardStats(tahunZakatId?: string) {
         .eq('tahun_zakat_id', activeTahunId);
 
       const fidyahUangRp = (pemasukanUangData || [])
-        .filter((p: any) => p.kategori === 'fidyah_uang')
-        .reduce((sum: number, p: any) => sum + (Number(p.jumlah_uang_rp) || 0), 0);
+        .filter((p) => p.kategori === 'fidyah_uang')
+        .reduce((sum, p) => sum + (Number(p.jumlah_uang_rp) || 0), 0);
 
       const infakSedekahUangRp = (pemasukanUangData || [])
-        .filter((p: any) => p.kategori === 'infak_sedekah_uang')
-        .reduce((sum: number, p: any) => sum + (Number(p.jumlah_uang_rp) || 0), 0);
+        .filter((p) => p.kategori === 'infak_sedekah_uang')
+        .reduce((sum, p) => sum + (Number(p.jumlah_uang_rp) || 0), 0);
 
       const maalPenghasilanUangRp = (pemasukanUangData || [])
-        .filter((p: any) => p.kategori === 'maal_penghasilan_uang')
-        .reduce((sum: number, p: any) => sum + (Number(p.jumlah_uang_rp) || 0), 0);
+        .filter((p) => p.kategori === 'maal_penghasilan_uang')
+        .reduce((sum, p) => sum + (Number(p.jumlah_uang_rp) || 0), 0);
 
       // Zakat fitrah uang entered via pemasukan_uang table (new entry path)
       const zakatFitrahUangFromPemasukan = (pemasukanUangData || [])
-        .filter((p: any) => p.kategori === 'zakat_fitrah_uang')
-        .reduce((sum: number, p: any) => sum + (Number(p.jumlah_uang_rp) || 0), 0);
+        .filter((p) => p.kategori === 'zakat_fitrah_uang')
+        .reduce((sum, p) => sum + (Number(p.jumlah_uang_rp) || 0), 0);
 
       // Phase 2.2: Get pemasukan_beras (infak/sedekah beras)
       const { data: pemasukanBerasData } = await supabase
@@ -173,16 +173,16 @@ export function useDashboardStats(tahunZakatId?: string) {
         .eq('tahun_zakat_id', activeTahunId);
 
       const infakSedekahBerasKg = (pemasukanBerasData || [])
-        .filter((p: any) => p.kategori === 'infak_sedekah_beras')
-        .reduce((sum: number, p: any) => sum + (Number(p.jumlah_beras_kg) || 0), 0);
+        .filter((p) => p.kategori === 'infak_sedekah_beras')
+        .reduce((sum, p) => sum + (Number(p.jumlah_beras_kg) || 0), 0);
 
       const fidyahBerasKg = (pemasukanBerasData || [])
-        .filter((p: any) => p.kategori === 'fidyah_beras')
-        .reduce((sum: number, p: any) => sum + (Number(p.jumlah_beras_kg) || 0), 0);
+        .filter((p) => p.kategori === 'fidyah_beras')
+        .reduce((sum, p) => sum + (Number(p.jumlah_beras_kg) || 0), 0);
 
       const zakatFitrahBerasKg = (pemasukanBerasData || [])
-        .filter((p: any) => p.kategori === 'zakat_fitrah_beras')
-        .reduce((sum: number, p: any) => sum + (Number(p.jumlah_beras_kg) || 0), 0);
+        .filter((p) => p.kategori === 'zakat_fitrah_beras')
+        .reduce((sum, p) => sum + (Number(p.jumlah_beras_kg) || 0), 0);
 
       // Combined totals: entries from both pembayaran_zakat (legacy) and pemasukan_uang/beras (new)
       const totalBerasKg = zakatFitrahBerasFromPembayaran + zakatFitrahBerasKg;
@@ -202,7 +202,7 @@ export function useDashboardStats(tahunZakatId?: string) {
         .eq('jenis', 'uang');
 
       const rekonsiliasiUangRp = (rekonsiliasiData || [])
-        .reduce((sum: number, r: any) => sum + (Number(r.jumlah_uang_rp) || 0), 0);
+        .reduce((sum, r) => sum + (Number(r.jumlah_uang_rp) || 0), 0);
 
       // Phase 2: Get Hak Amil manual
       const { data: hakAmilData } = await supabase
@@ -391,7 +391,7 @@ export function useMonthlyPemasukan(tahunZakatId?: string) {
       });
 
       // Process pemasukan_uang
-      (uangData || []).forEach((item: any) => {
+      (uangData || []).forEach((item) => {
         const month = new Date(item.tanggal).toLocaleString('id-ID', { month: 'short' });
         
         if (!monthlyData[month]) {
@@ -417,7 +417,7 @@ export function useMonthlyPemasukan(tahunZakatId?: string) {
       });
 
       // Process pemasukan_beras
-      (berasData || []).forEach((item: any) => {
+      (berasData || []).forEach((item) => {
         const month = new Date(item.tanggal).toLocaleString('id-ID', { month: 'short' });
         
         if (!monthlyData[month]) {

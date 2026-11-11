@@ -60,7 +60,7 @@ export function BuktiPembayaran({ open, onOpenChange, data }: BuktiPembayaranPro
         .maybeSingle();
 
       if (!error && sedekahData) {
-        setSedekahAmount((sedekahData as any)[amountField]);
+        setSedekahAmount((sedekahData as unknown as Record<string, number | null>)[amountField]);
       } else {
         setSedekahAmount(null);
       }

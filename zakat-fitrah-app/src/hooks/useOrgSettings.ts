@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { toast } from 'sonner'
+
+const settingsClient = supabase as unknown as SupabaseClient
 
 export interface OrgSettings {
   id: string
@@ -43,7 +46,7 @@ export function useOrgSettings() {
   return useQuery({
     queryKey: ['org_settings'],
     queryFn: async (): Promise<OrgSettings | null> => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await settingsClient
         .from('org_settings')
         .select('*')
         .eq('id', 'org')
@@ -58,7 +61,7 @@ export function useUpdateOrgSettings() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (input: UpdateOrgSettingsInput) => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await settingsClient
         .from('org_settings')
         .upsert({
           id: 'org',
@@ -88,7 +91,7 @@ export function useUPZUnitList() {
   return useQuery({
     queryKey: ['upz_units'],
     queryFn: async (): Promise<UPZUnit[]> => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await settingsClient
         .from('upz_units')
         .select('*')
         .order('created_at', { ascending: true })
@@ -102,7 +105,7 @@ export function useCreateUPZUnit() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (input: CreateUPZUnitInput) => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await settingsClient
         .from('upz_units')
         .insert({
           nama_unit: input.nama_unit,
@@ -128,7 +131,7 @@ export function useUpdateUPZUnit() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (input: UpdateUPZUnitInput) => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await settingsClient
         .from('upz_units')
         .update({
           nama_unit: input.nama_unit,
@@ -156,7 +159,7 @@ export function useDeleteUPZUnit() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any).from('upz_units').delete().eq('id', id)
+      const { error } = await settingsClient.from('upz_units').delete().eq('id', id)
       if (error) throw error
     },
     onSuccess: () => {

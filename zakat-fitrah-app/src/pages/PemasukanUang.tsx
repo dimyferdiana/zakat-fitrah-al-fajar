@@ -94,7 +94,7 @@ export function PemasukanUang() {
   const deleteMutation = useDeletePemasukanUang();
   const accountsQuery = useAccountsList({ is_active: true });
 
-  const accountOptions = accountsQuery.data || [];
+  const accountOptions = useMemo(() => accountsQuery.data || [], [accountsQuery.data]);
   const accountNameMap = useMemo(
     () => new Map(accountOptions.map((account) => [account.id, account.account_name])),
     [accountOptions]

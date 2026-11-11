@@ -35,7 +35,6 @@ import {
   useMuzakkiList,
   useCreateMuzakki,
   useUpdateMuzakki,
-  useDeleteMuzakki,
   useMuzakkiTransactionHistory,
 } from '@/hooks/useMuzakki';
 import { useTahunZakatList } from '@/hooks/useDashboard';
@@ -128,12 +127,11 @@ export function Muzakki() {
   const { data: tags } = useTransactionTags();
 
   const filteredHistory = historyTagFilter
-    ? (transactionHistory ?? []).filter((t) => (t as any).tag_id === historyTagFilter)
+    ? (transactionHistory ?? []).filter((t) => (t as { tag_id?: string | null }).tag_id === historyTagFilter)
     : (transactionHistory ?? []);
 
   const createMutation = useCreateMuzakki();
   const updateMutation = useUpdateMuzakki();
-  const deleteMutation = useDeleteMuzakki();
 
   const handleOpenForm = (data?: Muzakki) => {
     if (data) {
@@ -166,11 +164,6 @@ export function Muzakki() {
     }
 
     handleCloseForm();
-    refetch();
-  };
-
-  const handleDelete = async (id: string) => {
-    await deleteMutation.mutateAsync(id);
     refetch();
   };
 
@@ -237,7 +230,6 @@ export function Muzakki() {
           isLoading={isLoading}
           onEdit={handleOpenForm}
           onViewHistory={setHistoryMuzakki}
-          onDelete={handleDelete}
           searchValue={searchInput}
           onSearchChange={handleSearchChange}
           onSortChange={(column, order) => {

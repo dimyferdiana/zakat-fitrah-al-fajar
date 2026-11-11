@@ -81,7 +81,6 @@ hr.d { border: none; border-top: 1px dashed #000; margin: 2mm 0; }
 
   const win = window.open('', '_blank', 'width=300,height=500,toolbar=0,menubar=0,scrollbars=1')
   if (!win) {
-    // eslint-disable-next-line no-alert
     alert('Popup diblokir. Izinkan popup untuk halaman ini agar bisa mencetak kupon.')
     return
   }

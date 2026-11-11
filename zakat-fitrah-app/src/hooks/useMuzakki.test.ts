@@ -58,11 +58,11 @@ describe('muzakki master-only persistence', () => {
     expect(result.id).toBe('muzakki-1');
     expect(mockFrom).toHaveBeenCalledTimes(1);
     expect(mockFrom).toHaveBeenCalledWith('muzakki');
-    expect(mockInsert).toHaveBeenCalledWith({
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
       nama_kk: 'Ahmad',
       alamat: 'Bandung',
       no_telp: '08123',
-    });
+    }));
   });
 
   it('updateMuzakkiRecord updates only muzakki table by id', async () => {

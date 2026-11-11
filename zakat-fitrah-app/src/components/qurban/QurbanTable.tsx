@@ -1,3 +1,4 @@
+import { PrivateStorageImage } from '@/components/common/PrivateStorageImage'
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { id as idLocale } from 'date-fns/locale'
@@ -276,7 +277,7 @@ export function QurbanTable({ onEdit, onDownloadPdf }: QurbanTableProps) {
                   </TableCell>
                   <TableCell className="text-center">
                     {reg.photo_url ? (
-                      <img
+                      <PrivateStorageImage
                         src={reg.photo_url}
                         alt="Foto hewan"
                         className="h-8 w-8 rounded object-cover mx-auto"

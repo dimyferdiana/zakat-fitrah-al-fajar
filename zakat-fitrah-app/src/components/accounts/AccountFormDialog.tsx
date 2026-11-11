@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -42,7 +42,11 @@ interface AccountFormDialogProps {
   isSubmitting?: boolean;
 }
 
-export function AccountFormDialog({
+export function AccountFormDialog(props: AccountFormDialogProps) {
+  return props.open ? <AccountFormDialogContent key={props.initialData?.id ?? 'new'} {...props} /> : null;
+}
+
+function AccountFormDialogContent({
   open,
   onOpenChange,
   mode,
@@ -50,19 +54,9 @@ export function AccountFormDialog({
   onSubmit,
   isSubmitting,
 }: AccountFormDialogProps) {
-  const [name, setName] = useState('');
-  const [type, setType] = useState<'kas' | 'bank' | 'qris'>('kas');
-  const [accountNumber, setAccountNumber] = useState('');
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    setName(initialData?.account_name || initialData?.name || initialData?.nama || '');
-    setType(initialData?.account_channel || initialData?.type || initialData?.jenis || 'kas');
-    setAccountNumber(initialData?.account_number || initialData?.nomor_rekening || '');
-  }, [open, initialData]);
+  const [name, setName] = useState(initialData?.account_name || initialData?.name || initialData?.nama || '');
+  const [type, setType] = useState<'kas' | 'bank' | 'qris'>(initialData?.account_channel || initialData?.type || initialData?.jenis || 'kas');
+  const [accountNumber, setAccountNumber] = useState(initialData?.account_number || initialData?.nomor_rekening || '');
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

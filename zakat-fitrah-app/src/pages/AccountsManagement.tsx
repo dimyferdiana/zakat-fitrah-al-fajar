@@ -81,7 +81,7 @@ export function AccountsManagement() {
     [accounts, selectedAccountId]
   );
 
-  const filteredLedger = ledgerQuery.data?.data || [];
+  const filteredLedger = useMemo(() => ledgerQuery.data?.data || [], [ledgerQuery.data]);
 
   const latestBalance = useMemo(() => {
     if (!filteredLedger.length) return 0;
@@ -217,7 +217,7 @@ export function AccountsManagement() {
                   const accountType = account.account_channel || '-';
                   const accountName = account.account_name || '-';
                   const metadata = typeof account.metadata === 'object' ? account.metadata : {};
-                  const accountNumber = (metadata as any)?.account_number || '-';
+                  const accountNumber = (metadata as { account_number?: string } | null)?.account_number || '-';
                   const isSelected = selectedAccountId === account.id;
 
                   return (

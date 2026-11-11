@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 import { Suspense, lazy } from 'react';
 import { Toaster } from '@/components/ui/sonner';
 import { Analytics } from '@vercel/analytics/react';
-import { AuthProvider } from '@/lib/auth';
+import { AuthProvider, useAuth } from '@/lib/auth';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
@@ -40,15 +41,16 @@ const DataMasterWarga = lazy(() => import('@/pages/DataMasterWarga').then(m => (
 const DataMasterMustahik = lazy(() => import('@/pages/DataMasterMustahik').then(m => ({ default: m.DataMasterMustahik })));
 const DataMasterPengguna = lazy(() => import('@/pages/DataMasterPengguna').then(m => ({ default: m.DataMasterPengguna })));
 const DataMasterUPZSettings = lazy(() => import('@/pages/DataMasterUPZSettings').then(m => ({ default: m.DataMasterUPZSettings })));
+const LoanCustomerPortal = lazy(() => import('@/pages/LoanCustomerPortal').then(m => ({ default: m.LoanCustomerPortal })));
+const LoanManagement = lazy(() => import('@/pages/LoanManagement').then(m => ({ default: m.LoanManagement })));
+const LoanViewerSummary = lazy(() => import('@/pages/LoanViewerSummary').then(m => ({ default: m.LoanViewerSummary })));
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+function CustomerPortalRoute() {
+  const { customer, loading } = useAuth();
+  if (loading) return <LoadingSpinner />;
+  if (!customer) return <Navigate to="/login" replace />;
+  return <LoanCustomerPortal />;
+}
 
 function App() {
   return (
@@ -62,6 +64,9 @@ function App() {
               <Route path="/email-confirmation" element={<EmailConfirmation />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/portal-pinjaman" element={<CustomerPortalRoute />} />
+              <Route path="/pinjaman" element={<ProtectedRoute allowedRoles={['admin', 'petugas']}><AppLayout><LoanManagement /></AppLayout></ProtectedRoute>} />
+              <Route path="/pinjaman/ringkasan" element={<ProtectedRoute allowedRoles={['admin', 'petugas', 'viewer']}><AppLayout><LoanViewerSummary /></AppLayout></ProtectedRoute>} />
               <Route
                 path="/dashboard"
                 element={

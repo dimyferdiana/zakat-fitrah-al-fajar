@@ -199,7 +199,7 @@ export function useRedeemCouponByToken() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: [COUPONS_QUERY_KEY, variables.expectedEventId] })
     },
-    onError: (_err: Error) => {
+    onError: () => {
       // Caller handles error message display — don't auto-toast here
     },
   })
@@ -209,7 +209,7 @@ export function useRedeemCouponByToken() {
 export function useRedeemCouponManually() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ couponId, eventId: _eventId }: { couponId: string; eventId: string }) => {
+    mutationFn: async ({ couponId }: { couponId: string; eventId: string }) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
@@ -243,7 +243,7 @@ export function useRedeemCouponManually() {
 export function useCancelCoupon() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ couponId, eventId: _eventId }: { couponId: string; eventId: string }) => {
+    mutationFn: async ({ couponId }: { couponId: string; eventId: string }) => {
       const { data, error } = await supabase
         .from('qurban_coupons')
         .update({ status: 'cancelled' })
@@ -378,7 +378,7 @@ export function useQurbanMuzakkiDistributionStatus(eventId: string | null) {
       const muzakkiMap = new Map<string, MuzakkiDistributionStatus>()
       for (const animal of animals ?? []) {
         const jenis = animal.jenis as 'sapi' | 'kambing'
-        for (const share of (animal.qurban_shares as any[]) ?? []) {
+        for (const share of (animal.qurban_shares) ?? []) {
           const muzakkiId = share.muzakki_id as string
           const m = share.muzakki as { id: string; nama_kk: string; no_telp: string | null } | null
           if (!muzakkiMap.has(muzakkiId)) {
@@ -486,7 +486,6 @@ export function useUpdateCouponExpiry() {
   return useMutation({
     mutationFn: async ({
       couponIds,
-      eventId: _eventId,
       expiresAt,
     }: {
       couponIds: string[]

@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react';
 import { useEffect, useState } from 'react';
 import { Plus, CheckCircle2, XCircle, Download } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader';
@@ -26,7 +27,6 @@ import {
   useBulkToggleMustahik,
   usePreviousYearMustahik,
   useImportMustahik,
-  useDeleteMustahik,
   useMustahikHistory,
   type Mustahik,
 } from '@/hooks/useMustahik';
@@ -76,7 +76,7 @@ export default function MustahikPage() {
     selectedMustahik?.id || null
   );
   const { data: tahunList = [] } = useTahunZakatList();
-  const activeTahun = tahunList.find((t: any) => t.is_active);
+  const activeTahun = tahunList.find((t) => t.is_active);
   const [receivedIds, setReceivedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -114,7 +114,7 @@ export default function MustahikPage() {
         return;
       }
 
-      setReceivedIds(new Set((data || []).map((d: any) => d.mustahik_id)));
+      setReceivedIds(new Set((data || []).map((d) => d.mustahik_id)));
     };
 
     fetchReceived();
@@ -126,7 +126,6 @@ export default function MustahikPage() {
   const toggleActiveMutation = useToggleMustahikActive();
   const bulkToggleMutation = useBulkToggleMustahik();
   const importMutation = useImportMustahik();
-  const deleteMutation = useDeleteMustahik();
 
   // Handlers
   const handleOpenForm = (mustahik?: Mustahik) => {
@@ -139,9 +138,9 @@ export default function MustahikPage() {
     setEditData(null);
   };
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: Parameters<ComponentProps<typeof MustahikForm>['onSubmit']>[0]) => {
     if (data.id) {
-      await updateMutation.mutateAsync(data);
+      await updateMutation.mutateAsync({ ...data, id: data.id });
     } else {
       await createMutation.mutateAsync(data);
     }
@@ -172,14 +171,10 @@ export default function MustahikPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    await deleteMutation.mutateAsync(id);
-  };
-
-  const mustahikList = (mustahikData?.data || []).map((m: any) => ({
+  const mustahikList = (mustahikData?.data || []).map((m) => ({
     ...m,
     has_received: receivedIds.has(m.id),
-  }));
+  })) as unknown as Mustahik[];
   const totalCount = mustahikData?.totalCount || 0;
 
   return (
@@ -232,7 +227,6 @@ export default function MustahikPage() {
             onEdit={handleOpenForm}
             onToggleActive={handleToggleActive}
             onViewHistory={handleViewHistory}
-            onDelete={handleDelete}
             onSearch={setSearch}
             onFilterKategori={setKategoriFilter}
             onFilterStatus={(status) => setStatusFilter(status as 'aktif' | 'non-aktif' | 'semua')}

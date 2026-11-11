@@ -19,7 +19,7 @@ export function useQurbanDashboardStats(eventId?: string | null) {
         .select('id, nominal, status_pembayaran, qurban_animals!inner(event_id, jenis)')
       if (eventId) sharesQ = sharesQ.eq('qurban_animals.event_id', eventId)
       const { data: shares } = await sharesQ
-      const shareList = (shares || []) as any[]
+      const shareList = (shares || [])
       const totalPeserta = shareList.length
       const totalNominal = shareList.reduce((s, r) => s + (r.nominal ?? 0), 0)
       const lunasShares = shareList.filter(r => r.status_pembayaran === 'lunas')
@@ -30,8 +30,8 @@ export function useQurbanDashboardStats(eventId?: string | null) {
       const kambingShares = shareList.filter(r => r.qurban_animals?.jenis === 'kambing')
       const pesertaSapi = sapiShares.length
       const pesertaDomba = kambingShares.length
-      const nominalSapi = sapiShares.reduce((s: number, r: any) => s + (r.nominal ?? 0), 0)
-      const nominalDomba = kambingShares.reduce((s: number, r: any) => s + (r.nominal ?? 0), 0)
+      const nominalSapi = sapiShares.reduce((s, r) => s + (r.nominal ?? 0), 0)
+      const nominalDomba = kambingShares.reduce((s, r) => s + (r.nominal ?? 0), 0)
       const sisaSlotSapi = totalSapi * 7 - pesertaSapi
       const sisaSlotDomba = totalKambing * 1 - pesertaDomba
 
@@ -49,15 +49,15 @@ export function useQurbanDashboardStats(eventId?: string | null) {
 
       const perEvent: QurbanEventStats[] = (events || []).map(event => {
         const evAnimals = (animals || []).filter(a => a.event_id === event.id)
-        const evShares = shareList.filter((r: any) => r.qurban_animals?.event_id === event.id)
+        const evShares = shareList.filter((r) => r.qurban_animals?.event_id === event.id)
         const evCoupons = couponList.filter(c => c.event_id === event.id)
         return {
           event,
           sapiCount: evAnimals.filter(a => a.jenis === 'sapi').length,
           kambingCount: evAnimals.filter(a => a.jenis === 'kambing').length,
           pesertaCount: evShares.length,
-          lunasNominal: evShares.filter((r: any) => r.status_pembayaran === 'lunas').reduce((s: number, r: any) => s + r.nominal, 0),
-          belumBayarNominal: evShares.filter((r: any) => r.status_pembayaran === 'belum_bayar').reduce((s: number, r: any) => s + r.nominal, 0),
+          lunasNominal: evShares.filter((r) => r.status_pembayaran === 'lunas').reduce((s, r) => s + r.nominal, 0),
+          belumBayarNominal: evShares.filter((r) => r.status_pembayaran === 'belum_bayar').reduce((s, r) => s + r.nominal, 0),
           couponsIssued: evCoupons.length,
           couponsRedeemed: evCoupons.filter(c => c.status === 'redeemed').length,
         }
@@ -69,9 +69,9 @@ export function useQurbanDashboardStats(eventId?: string | null) {
         totalPeserta,
         totalNominal,
         lunasCount: lunasShares.length,
-        lunasNominal: lunasShares.reduce((s: number, r: any) => s + (r.nominal ?? 0), 0),
+        lunasNominal: lunasShares.reduce((s, r) => s + (r.nominal ?? 0), 0),
         belumBayarCount: belumShares.length,
-        belumBayarNominal: belumShares.reduce((s: number, r: any) => s + (r.nominal ?? 0), 0),
+        belumBayarNominal: belumShares.reduce((s, r) => s + (r.nominal ?? 0), 0),
         couponsIssued: couponList.length,
         couponsRedeemed: couponList.filter(c => c.status === 'redeemed').length,
         perEvent,

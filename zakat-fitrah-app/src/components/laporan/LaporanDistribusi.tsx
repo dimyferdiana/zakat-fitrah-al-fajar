@@ -56,21 +56,21 @@ export function LaporanDistribusi({ tahunZakatId }: LaporanDistribusiProps) {
   // Filter by kategori (client-side for now)
   const filteredList = kategoriFilter === 'semua'
     ? distribusiList
-    : distribusiList.filter((d: any) => d.mustahik?.kategori_id === kategoriFilter);
+    : distribusiList.filter((d) => d.mustahik?.kategori_id === kategoriFilter);
 
   // Calculate summary per kategori
-  const summaryByKategori = kategoriList.map((kategori: any) => {
+  const summaryByKategori = kategoriList.map((kategori) => {
     const distribusiKategori = filteredList.filter(
-      (d: any) => d.mustahik?.kategori_id === kategori.id
+      (d) => d.mustahik?.kategori_id === kategori.id
     );
 
     const totalBeras = distribusiKategori
-      .filter((d: any) => d.jenis_distribusi === 'beras')
-      .reduce((sum: number, d: any) => sum + (d.jumlah || 0), 0);
+      .filter((d) => d.jenis_distribusi === 'beras')
+      .reduce((sum, d) => sum + (d.jumlah || 0), 0);
 
     const totalUang = distribusiKategori
-      .filter((d: any) => d.jenis_distribusi === 'uang')
-      .reduce((sum: number, d: any) => sum + (d.jumlah || 0), 0);
+      .filter((d) => d.jenis_distribusi === 'uang')
+      .reduce((sum, d) => sum + (d.jumlah || 0), 0);
 
     const count = distribusiKategori.length;
 
@@ -220,7 +220,7 @@ export function LaporanDistribusi({ tahunZakatId }: LaporanDistribusiProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="semua">Semua Kategori</SelectItem>
-                  {kategoriList.map((kategori: any) => (
+                  {kategoriList.map((kategori) => (
                     <SelectItem key={kategori.id} value={kategori.id}>
                       {kategori.nama}
                     </SelectItem>
@@ -274,7 +274,7 @@ export function LaporanDistribusi({ tahunZakatId }: LaporanDistribusiProps) {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredList.map((distribusi: any) => (
+                filteredList.map((distribusi) => (
                   <TableRow key={distribusi.id}>
                     <TableCell>
                       {distribusi.tanggal_distribusi && !isNaN(new Date(distribusi.tanggal_distribusi).getTime())

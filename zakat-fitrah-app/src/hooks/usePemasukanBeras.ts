@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import {
   createHakAmilSnapshot,
@@ -9,6 +10,7 @@ import {
 } from '@/lib/hakAmilSnapshot';
 import { offlineStore } from '@/lib/offlineStore';
 
+const financeClient = supabase as unknown as SupabaseClient;
 const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 export type PemasukanBerasKategori =
@@ -56,9 +58,7 @@ interface CreatePemasukanInput {
 const DEFAULT_KAS_ACCOUNT_NAME = 'KAS';
 
 async function resolveKASAccountId(): Promise<string> {
-  const { data: account, error } = await (supabase
-    .from('accounts')
-    .select as any)('id')
+  const { data: account, error } = await financeClient.from('accounts').select('id')
     .eq('account_name', DEFAULT_KAS_ACCOUNT_NAME)
     .eq('is_active', true)
     .maybeSingle();
@@ -72,9 +72,7 @@ async function resolveKASAccountId(): Promise<string> {
 }
 
 async function convertBerasKgToRp(tahunZakatId: string, jumlahBerasKg: number): Promise<number> {
-  const { data: tahunZakat, error } = await (supabase
-    .from('tahun_zakat')
-    .select as any)('nilai_beras_kg')
+  const { data: tahunZakat, error } = await financeClient.from('tahun_zakat').select('nilai_beras_kg')
     .eq('id', tahunZakatId)
     .single();
 
@@ -98,7 +96,7 @@ interface SyncPemasukanBerasLedgerInput {
 }
 
 export async function createPemasukanBerasLedgerEntry(input: SyncPemasukanBerasLedgerInput) {
-  const { error } = await (supabase.from('account_ledger_entries').insert as any)({
+  const { error } = await financeClient.from('account_ledger_entries').insert({
     account_id: input.accountId,
     entry_type: 'IN',
     amount_rp: input.amountRp,
@@ -115,9 +113,7 @@ export async function createPemasukanBerasLedgerEntry(input: SyncPemasukanBerasL
 }
 
 export async function updatePemasukanBerasLedgerEntry(input: SyncPemasukanBerasLedgerInput) {
-  const { data: existingLedger, error: existingLedgerError } = await (supabase
-    .from('account_ledger_entries')
-    .select as any)('id')
+  const { data: existingLedger, error: existingLedgerError } = await financeClient.from('account_ledger_entries').select('id')
     .eq('source_pemasukan_beras_id', input.pemasukanBerasId)
     .maybeSingle();
 
@@ -128,9 +124,7 @@ export async function updatePemasukanBerasLedgerEntry(input: SyncPemasukanBerasL
     return;
   }
 
-  const { error } = await (supabase
-    .from('account_ledger_entries')
-    .update as any)({
+  const { error } = await financeClient.from('account_ledger_entries').update({
       account_id: input.accountId,
       entry_type: 'IN',
       amount_rp: input.amountRp,
@@ -148,9 +142,7 @@ export async function updatePemasukanBerasLedgerEntry(input: SyncPemasukanBerasL
 }
 
 export async function deletePemasukanBerasLedgerEntry(pemasukanBerasId: string) {
-  const { data: existingLedger, error: existingLedgerError } = await (supabase
-    .from('account_ledger_entries')
-    .select as any)('id')
+  const { data: existingLedger, error: existingLedgerError } = await financeClient.from('account_ledger_entries').select('id')
     .eq('source_pemasukan_beras_id', pemasukanBerasId)
     .maybeSingle();
 
@@ -226,7 +218,7 @@ export function useCreatePemasukanBeras() {
 
   return useMutation({
     mutationFn: async (input: CreatePemasukanInput) => {
-      if (OFFLINE_MODE) return offlineStore.addPemasukanBeras(input) as any;
+      if (OFFLINE_MODE) return offlineStore.addPemasukanBeras(input);
       const { data: auth } = await supabase.auth.getUser();
       const userId = auth.user?.id;
 
@@ -245,8 +237,7 @@ export function useCreatePemasukanBeras() {
         updated_at: new Date().toISOString(),
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase.from('pemasukan_beras').insert as any)(payload)
+      const { data, error } = await financeClient.from('pemasukan_beras').insert(payload)
         .select('*')
         .single();
 
@@ -311,7 +302,7 @@ export function useUpdatePemasukanBeras() {
 
   return useMutation({
     mutationFn: async (input: UpdatePemasukanInput) => {
-      if (OFFLINE_MODE) { offlineStore.updatePemasukanBeras(input.id, input); return offlineStore.getPemasukanBerasList({}).data.find(p => p.id === input.id) as any; }
+      if (OFFLINE_MODE) { offlineStore.updatePemasukanBeras(input.id, input); return offlineStore.getPemasukanBerasList({}).data.find(p => p.id === input.id); }
       const { id, ...updateData } = input;
       const accountId = await resolveKASAccountId();
       const payload = {
@@ -322,10 +313,7 @@ export function useUpdatePemasukanBeras() {
         updated_at: new Date().toISOString(),
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase
-        .from('pemasukan_beras')
-        .update as any)(payload)
+      const { data, error } = await financeClient.from('pemasukan_beras').update(payload)
         .eq('id', id)
         .select('*')
         .single();

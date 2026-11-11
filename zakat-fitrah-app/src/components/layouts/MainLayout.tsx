@@ -209,7 +209,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
           {/* Navigation */}
           <div className="flex-1 overflow-y-auto p-4">
-            <NavContent />
+            {NavContent()}
           </div>
 
           {/* Footer */}
@@ -247,7 +247,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
                 {/* Mobile Navigation */}
                 <div className="flex-1 overflow-y-auto p-4">
-                  <NavContent />
+                  {NavContent()}
                 </div>
 
                 {/* Mobile Footer */}

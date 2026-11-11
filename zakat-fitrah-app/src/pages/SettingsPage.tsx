@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
 import { AlertCircle, Info } from 'lucide-react';
@@ -115,9 +116,9 @@ export function SettingsPage() {
         updated_at: new Date().toISOString(),
       };
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as unknown as SupabaseClient)
         .from('hak_amil')
-        .upsert(payload as any, {
+        .upsert(payload, {
           onConflict: 'tahun_zakat_id',
         })
         .select()
@@ -132,7 +133,7 @@ export function SettingsPage() {
       toast.success('Hak amil berhasil diperbarui');
       setHakAmilValue('');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Gagal memperbarui hak amil');
     },
   });

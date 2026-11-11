@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ComponentProps } from 'react';
 import { Plus, Info, Lock } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { offlineStore } from '@/lib/offlineStore';
 import { toast } from 'sonner';
 import {
@@ -45,6 +46,10 @@ import {
 } from '@/hooks/useUsers';
 import { useAuth } from '@/lib/auth';
 
+type HakAmilValues = Parameters<ComponentProps<typeof HakAmilConfigForm>['onSubmit']>[0];
+type NilaiZakatValues = Parameters<ComponentProps<typeof NilaiZakatForm>['onSubmit']>[0];
+type UserValues = Parameters<ComponentProps<typeof UserForm>['onSubmit']>[0];
+const settingsClient = supabase as unknown as SupabaseClient;
 const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 interface TahunZakat {
@@ -108,7 +113,7 @@ export default function Settings() {
   const [hakAmilValue, setHakAmilValue] = useState<string>('');
 
   // Hak Amil Config state
-  const [editHakAmilConfig, setEditHakAmilConfig] = useState<any>(null);
+  const [editHakAmilConfig, setEditHakAmilConfig] = useState<Partial<HakAmilValues> | null>(null);
 
   // Transaction Tags state
   const [tagFormOpen, setTagFormOpen] = useState(false);
@@ -166,7 +171,7 @@ export default function Settings() {
       }
 
       // Fetch user names for updated_by
-      const userIds = data.map((c: any) => c.updated_by).filter(Boolean);
+      const userIds = data.map((c) => c.updated_by).filter((id): id is string => Boolean(id));
       const uniqueUserIds = [...new Set(userIds)];
       
       let userMap: Record<string, string> = {};
@@ -177,14 +182,14 @@ export default function Settings() {
           .in('id', uniqueUserIds);
         
         if (users) {
-          userMap = users.reduce((acc: Record<string, string>, u: any) => {
+          userMap = users.reduce((acc: Record<string, string>, u) => {
             acc[u.id] = u.nama_lengkap;
             return acc;
           }, {});
         }
       }
 
-      return data.map((config: any) => ({
+      return data.map((config) => ({
         id: config.id,
         tahun_label: `${config.tahun_zakat?.tahun_hijriah} H (${config.tahun_zakat?.tahun_masehi} M)`,
         basis_mode: config.basis_mode,
@@ -201,7 +206,7 @@ export default function Settings() {
 
   // Hak Amil Config mutation
   const saveHakAmilConfigMutation = useMutation({
-    mutationFn: async (values: any) => {
+    mutationFn: async (values: HakAmilValues) => {
       if (OFFLINE_MODE) {
         return offlineStore.upsertHakAmilConfig(values);
       }
@@ -256,7 +261,7 @@ export default function Settings() {
       toast.success('Konfigurasi hak amil berhasil disimpan');
       setEditHakAmilConfig(null);
     },
-    onError: (error: any) => {
+    onError: (error: Error & { code?: string }) => {
       // Provide helpful message if table doesn't exist yet
       if (error?.code === 'PGRST116' || error?.message?.includes('relation') || error?.message?.includes('does not exist')) {
         toast.error('Fitur Hak Amil belum tersedia. Hubungi administrator untuk menjalankan migrasi database.');
@@ -321,9 +326,9 @@ export default function Settings() {
         updated_at: new Date().toISOString(),
       };
 
-      const { data, error } = await supabase
+      const { data, error } = await settingsClient
         .from('hak_amil')
-        .upsert(payload as any, {
+        .upsert(payload, {
           onConflict: 'tahun_zakat_id',
         })
         .select()
@@ -338,7 +343,7 @@ export default function Settings() {
       toast.success('Hak amil berhasil diperbarui');
       setHakAmilValue('');
     },
-    onError: (error: any) => {
+    onError: (error: Error & { code?: string }) => {
       toast.error(error.message || 'Gagal memperbarui hak amil');
     },
   });
@@ -354,9 +359,9 @@ export default function Settings() {
     setEditNilaiZakat(null);
   };
 
-  const handleSubmitNilaiZakat = async (data: any) => {
+  const handleSubmitNilaiZakat = async (data: NilaiZakatValues) => {
     if (data.id) {
-      await updateTahunZakatMutation.mutateAsync(data);
+      await updateTahunZakatMutation.mutateAsync({ ...data, id: data.id });
     } else {
       await createTahunZakatMutation.mutateAsync(data);
     }
@@ -383,11 +388,11 @@ export default function Settings() {
     setEditUser(null);
   };
 
-  const handleSubmitUser = async (data: any) => {
+  const handleSubmitUser = async (data: UserValues) => {
     if (data.id) {
-      await updateUserMutation.mutateAsync(data);
+      await updateUserMutation.mutateAsync({ ...data, id: data.id, is_active: data.is_active ?? editUser?.is_active ?? true });
     } else {
-      await createUserMutation.mutateAsync(data);
+      await createUserMutation.mutateAsync({ ...data, password: data.password ?? '' });
     }
     handleCloseUserForm();
   };
@@ -400,7 +405,7 @@ export default function Settings() {
   };
 
   // Hak Amil Config handlers
-  const handleSubmitHakAmilConfig = async (values: any) => {
+  const handleSubmitHakAmilConfig = async (values: HakAmilValues) => {
     await saveHakAmilConfigMutation.mutateAsync(values);
   };
 

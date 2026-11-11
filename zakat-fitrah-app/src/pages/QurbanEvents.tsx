@@ -62,7 +62,7 @@ function useQurbanEventCounts() {
       }
 
       const shareCountMap: Record<string, number> = {}
-      for (const row of (sharesRes.data || []) as any[]) {
+      for (const row of (sharesRes.data || [])) {
         const eventId = row.qurban_animals?.event_id
         if (eventId) {
           shareCountMap[eventId] = (shareCountMap[eventId] ?? 0) + 1

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import type { QurbanAnimal } from '@/types/qurban'
+import { privateStoragePath } from '@/lib/privateStorage'
 
 export function useQurbanAnimalList(eventId: string | null) {
   return useQuery({
@@ -67,21 +68,14 @@ async function uploadAnimalPhoto(userId: string, file: File): Promise<string> {
 
   if (uploadError) throw uploadError
 
-  const { data } = supabase.storage
-    .from('qurban-photos')
-    .getPublicUrl(path)
-
-  return data.publicUrl
+  return `storage://qurban-photos/${path}`
 }
 
 async function deleteAnimalPhoto(fotoUrl: string): Promise<void> {
   // Extract the path from the public URL
   // URL format: .../storage/v1/object/public/qurban-photos/<path>
-  const marker = '/qurban-photos/'
-  const idx = fotoUrl.indexOf(marker)
-  if (idx === -1) return
-
-  const path = fotoUrl.slice(idx + marker.length)
+  const path = privateStoragePath(fotoUrl, 'qurban-photos')
+  if (!path) return
   await supabase.storage.from('qurban-photos').remove([path])
 }
 

@@ -1,7 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { offlineStore } from '@/lib/offlineStore';
+
+const untypedSchemaClient = supabase as unknown as SupabaseClient;
 
 const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
@@ -24,9 +27,7 @@ export function useTransactionTags() {
         return offlineStore.transactionTags.filter((t) => t.is_active);
       }
 
-      const { data, error } = await (supabase
-        .from('transaction_tags')
-        .select as any)('*')
+      const { data, error } = await untypedSchemaClient.from('transaction_tags').select('*')
         .eq('is_active', true)
         .order('name');
 
@@ -45,9 +46,7 @@ export function useAllTransactionTags() {
         return offlineStore.transactionTags;
       }
 
-      const { data, error } = await (supabase
-        .from('transaction_tags')
-        .select as any)('*')
+      const { data, error } = await untypedSchemaClient.from('transaction_tags').select('*')
         .order('name');
 
       if (error) throw error;
@@ -80,7 +79,7 @@ export function useAddTransactionTag() {
         return newTag;
       }
 
-      const { data, error } = await (supabase.from('transaction_tags').insert as any)({
+      const { data, error } = await untypedSchemaClient.from('transaction_tags').insert({
         name: input.name,
         description: input.description ?? null,
         color: input.color ?? null,
@@ -117,7 +116,7 @@ export function useDeactivateTransactionTag() {
         return id;
       }
 
-      const { error } = await (supabase.from('transaction_tags').update as any)({
+      const { error } = await untypedSchemaClient.from('transaction_tags').update({
         is_active: false,
       }).eq('id', id);
 

@@ -1,3 +1,4 @@
+import { PrivateStorageImage } from '@/components/common/PrivateStorageImage'
 import { useState } from 'react'
 import {
   Dialog,
@@ -29,7 +30,7 @@ import {
 } from '@/hooks/useQurbanShares'
 import { useAuth } from '@/lib/auth'
 import { SlotAssignDialog } from '@/components/qurban/SlotAssignDialog'
-import { downloadQurbanShareReceipt } from '@/components/qurban/BuktiQurban'
+import { downloadQurbanShareReceipt } from '@/components/qurban/qurbanReceipt'
 
 export interface AnimalDetailDialogProps {
   open: boolean
@@ -110,7 +111,7 @@ export function AnimalDetailDialog({
           {/* Animal info header */}
           <div className="flex gap-4 items-start">
             {animal.foto_url ? (
-              <img
+              <PrivateStorageImage
                 src={animal.foto_url}
                 alt={animal.nomor}
                 className="h-20 w-20 rounded-md object-cover flex-shrink-0 border"

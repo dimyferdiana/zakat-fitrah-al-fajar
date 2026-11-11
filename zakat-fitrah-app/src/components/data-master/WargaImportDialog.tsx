@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { supabase } from '@/lib/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
@@ -114,7 +115,7 @@ export function WargaImportDialog({ open, onOpenChange }: WargaImportDialogProps
       keterangan: r.keterangan || null,
     }))
 
-    const { error } = await supabase.from('muzakki').insert(toInsert as any)
+    const { error } = await (supabase as unknown as SupabaseClient).from('muzakki').insert(toInsert)
     setIsImporting(false)
 
     if (error) {

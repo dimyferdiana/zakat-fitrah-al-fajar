@@ -15,6 +15,8 @@ import { useTahunZakatList } from '@/hooks/useDashboard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 
+type DistributionMeasure = { jenis_distribusi: string; jumlah: number | null };
+
 interface YearData {
   tahun_hijriah: string;
   tahun_masehi: number;
@@ -41,7 +43,7 @@ export function PerbandinganTahun() {
       if (selectedYears.length === 0) return [];
 
       const promises = selectedYears.map(async (tahunId) => {
-        const tahun = tahunZakatList.find((t: any) => t.id === tahunId);
+        const tahun = tahunZakatList.find((t) => t.id === tahunId);
         if (!tahun) return null;
 
         // Get pemasukan
@@ -50,13 +52,13 @@ export function PerbandinganTahun() {
           .select('jenis_zakat, jumlah_beras_kg, jumlah_uang_rp')
           .eq('tahun_zakat_id', tahunId);
 
-        const pemasukanBeras = (pemasukanData as any)
-          ?.filter((p: any) => p.jenis_zakat === 'beras')
-          .reduce((sum: number, p: any) => sum + (p.jumlah_beras_kg || 0), 0) || 0;
+        const pemasukanBeras = pemasukanData
+          ?.filter((p) => p.jenis_zakat === 'beras')
+          .reduce((sum, p) => sum + (p.jumlah_beras_kg || 0), 0) || 0;
 
-        const pemasukanUang = (pemasukanData as any)
-          ?.filter((p: any) => p.jenis_zakat === 'uang')
-          .reduce((sum: number, p: any) => sum + (p.jumlah_uang_rp || 0), 0) || 0;
+        const pemasukanUang = pemasukanData
+          ?.filter((p) => p.jenis_zakat === 'uang')
+          .reduce((sum, p) => sum + (p.jumlah_uang_rp || 0), 0) || 0;
 
         // Get distribusi
         const { data: distribusiData } = await supabase
@@ -65,13 +67,13 @@ export function PerbandinganTahun() {
           .eq('tahun_zakat_id', tahunId)
           .eq('status', 'selesai');
 
-        const distribusiBeras = (distribusiData as any)
-          ?.filter((d: any) => d.jenis_distribusi === 'beras')
-          .reduce((sum: number, d: any) => sum + (d.jumlah || 0), 0) || 0;
+        const distribusiBeras = (distribusiData as unknown as DistributionMeasure[] | null)
+          ?.filter((d) => d.jenis_distribusi === 'beras')
+          .reduce((sum, d) => sum + (d.jumlah || 0), 0) || 0;
 
-        const distribusiUang = (distribusiData as any)
-          ?.filter((d: any) => d.jenis_distribusi === 'uang')
-          .reduce((sum: number, d: any) => sum + (d.jumlah || 0), 0) || 0;
+        const distribusiUang = (distribusiData as unknown as DistributionMeasure[] | null)
+          ?.filter((d) => d.jenis_distribusi === 'uang')
+          .reduce((sum, d) => sum + (d.jumlah || 0), 0) || 0;
 
         // Get muzakki count
         const { count: muzakkiCount } = await supabase
@@ -87,8 +89,8 @@ export function PerbandinganTahun() {
           .eq('status', 'selesai');
 
         return {
-          tahun_hijriah: (tahun as any).tahun_hijriah,
-          tahun_masehi: (tahun as any).tahun_masehi,
+          tahun_hijriah: tahun.tahun_hijriah,
+          tahun_masehi: tahun.tahun_masehi,
           pemasukan_beras: pemasukanBeras,
           pemasukan_uang: pemasukanUang,
           distribusi_beras: distribusiBeras,
@@ -189,7 +191,7 @@ export function PerbandinganTahun() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {tahunZakatList.map((tahun: any) => (
+            {tahunZakatList.map((tahun) => (
               <div key={tahun.id} className="flex items-center space-x-2">
                 <Checkbox
                   id={tahun.id}

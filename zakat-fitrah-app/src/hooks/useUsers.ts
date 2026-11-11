@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
+
+const untypedSchemaClient = supabase as unknown as SupabaseClient;
 
 interface User {
   id: string;
@@ -71,6 +74,7 @@ export function useCreateUser() {
 
   return useMutation({
     mutationFn: async (_input: CreateUserInput) => {
+      void _input;
       // Note: Direct user creation from client is not secure
       // This should be done via Supabase Edge Function with service role
       
@@ -97,7 +101,7 @@ export function useCreateUser() {
 
       // Create user record
       if (authData.user) {
-        const { error: userError } = await (supabase.from('users').insert as any)({
+        const { error: userError } = await untypedSchemaClient.from('users').insert({
           id: authData.user.id,
           email: input.email,
           nama_lengkap: input.nama_lengkap,
@@ -127,7 +131,7 @@ export function useUpdateUser() {
 
   return useMutation({
     mutationFn: async (input: UpdateUserInput) => {
-      const { data, error } = await (supabase.from('users').update as any)({
+      const { data, error } = await untypedSchemaClient.from('users').update({
         nama_lengkap: input.nama_lengkap,
         role: input.role,
         is_active: input.is_active,
@@ -153,7 +157,7 @@ export function useToggleUserActive() {
 
   return useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      const { data, error } = await (supabase.from('users').update as any)({
+      const { data, error } = await untypedSchemaClient.from('users').update({
         is_active,
         updated_at: new Date().toISOString(),
       }).eq('id', id).select().single();

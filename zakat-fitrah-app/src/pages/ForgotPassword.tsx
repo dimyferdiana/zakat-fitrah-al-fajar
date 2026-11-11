@@ -92,6 +92,7 @@ export function ForgotPassword() {
           <CardTitle>Forgot Password</CardTitle>
           <CardDescription>
             Enter your email address and we'll send you a link to reset your password
+            <span className="mt-2 block">Nasabah pinjaman: perubahan email dan pemulihan password dilakukan oleh admin masjid. Hubungi admin untuk memastikan identitas Anda.</span>
           </CardDescription>
         </CardHeader>
         <CardContent>

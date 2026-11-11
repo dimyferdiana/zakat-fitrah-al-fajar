@@ -102,6 +102,13 @@ serve(async (req: RequestEvent) => {
 
       const normalizedEmail = normalizeEmail(email);
 
+      const { data: { user: currentUser }, error: sessionError } = await supabaseClient.auth.getUser();
+      const { data: isAdmin, error: roleError } = await supabaseClient.rpc('loan_is_admin');
+      if (sessionError || !currentUser || roleError || isAdmin !== true) {
+        return new Response(JSON.stringify({ error: 'Hanya admin aktif dalam mode pengurus dapat membuat undangan.' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
       // Check if user already exists and is active
       const { data: existingUser } = await supabaseAdmin
         .from('users')
@@ -119,7 +126,6 @@ serve(async (req: RequestEvent) => {
       }
 
       // Get current user (admin creating invitation)
-      const { data: { user: currentUser } } = await supabaseClient.auth.getUser();
       if (!currentUser) {
         return new Response(
           JSON.stringify({ error: 'Unauthorized' }),
@@ -149,7 +155,7 @@ serve(async (req: RequestEvent) => {
         .single();
 
       if (insertError) {
-        console.error('Insert error:', insertError);
+        console.error('Invitation insert failed');
         return new Response(
           JSON.stringify({ error: 'Failed to create invitation' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -335,7 +341,7 @@ serve(async (req: RequestEvent) => {
       });
 
       if (authError) {
-        console.error('Auth creation error:', authError);
+        console.error('Invited account creation failed');
         return new Response(
           JSON.stringify({ error: `Failed to create account: ${authError.message}` }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -354,7 +360,7 @@ serve(async (req: RequestEvent) => {
         });
 
       if (profileError) {
-        console.error('Profile creation error:', profileError);
+        console.error('Invited profile creation failed');
         // Rollback: delete auth user
         await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
         return new Response(
@@ -389,7 +395,7 @@ serve(async (req: RequestEvent) => {
     );
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Invitation operation failed');
     const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(
       JSON.stringify({ error: errorMessage }),

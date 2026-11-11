@@ -17,20 +17,15 @@ import { LaporanHakAmil } from '@/components/laporan/LaporanHakAmil';
 import { PerbandinganTahun } from '@/components/laporan/PerbandinganTahun';
 
 export default function Laporan() {
-  const [selectedTahun, setSelectedTahun] = useState<string>('');
+  const [selectedTahun, setSelectedTahun] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('pemasukan');
   const [isMobile, setIsMobile] = useState(false);
 
   const { data: tahunZakatData, isLoading: loadingTahunZakat } = useTahunZakatList();
   const tahunZakatList = tahunZakatData || [];
-  const activeTahun = tahunZakatList.find((t: any) => t.is_active);
+  const activeTahun = tahunZakatList.find((t) => t.is_active);
 
-  // Set default selected tahun to active year when data loads
-  useEffect(() => {
-    if (selectedTahun === '' && activeTahun?.id) {
-      setSelectedTahun(activeTahun.id);
-    }
-  }, [activeTahun?.id]);
+  const effectiveTahun = selectedTahun ?? activeTahun?.id ?? '';
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 640px)');
@@ -60,7 +55,7 @@ export default function Laporan() {
         </CardHeader>
         <CardContent>
           <Select
-            value={selectedTahun}
+            value={effectiveTahun}
             onValueChange={setSelectedTahun}
             disabled={loadingTahunZakat}
           >
@@ -68,7 +63,7 @@ export default function Laporan() {
               <SelectValue placeholder="Pilih tahun zakat" />
             </SelectTrigger>
             <SelectContent>
-              {tahunZakatList.map((tahun: any) => (
+              {tahunZakatList.map((tahun) => (
                 <SelectItem key={tahun.id} value={tahun.id}>
                   {tahun.tahun_hijriah} ({tahun.tahun_masehi})
                   {tahun.is_active && ' - Aktif'}
@@ -108,19 +103,19 @@ export default function Laporan() {
         )}
 
         <TabsContent value="pemasukan">
-          <LaporanPemasukan tahunZakatId={selectedTahun} />
+          <LaporanPemasukan tahunZakatId={effectiveTahun} />
         </TabsContent>
 
         <TabsContent value="distribusi">
-          <LaporanDistribusi tahunZakatId={selectedTahun} />
+          <LaporanDistribusi tahunZakatId={effectiveTahun} />
         </TabsContent>
 
         <TabsContent value="mustahik">
-          <LaporanMustahik tahunZakatId={selectedTahun} />
+          <LaporanMustahik tahunZakatId={effectiveTahun} />
         </TabsContent>
 
         <TabsContent value="hakamil">
-          <LaporanHakAmil tahunZakatId={selectedTahun} />
+          <LaporanHakAmil tahunZakatId={effectiveTahun} />
         </TabsContent>
 
         <TabsContent value="perbandingan">

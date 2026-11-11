@@ -61,7 +61,8 @@ export const mockAuthService = {
       throw new Error('Akun Anda tidak aktif. Silakan hubungi administrator.');
     }
 
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: omittedPassword, ...userWithoutPassword } = user;
+    void omittedPassword;
     const session: MockSession = {
       user: userWithoutPassword as User,
       token: `mock-token-${Date.now()}`,

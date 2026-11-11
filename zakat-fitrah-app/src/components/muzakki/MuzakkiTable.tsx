@@ -9,17 +9,7 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Search, Edit, Trash2, ChevronLeft, ChevronRight, X, History } from 'lucide-react';
+import { Search, Edit, ChevronLeft, ChevronRight, X, History } from 'lucide-react';
 
 interface MuzakkiMaster {
   id: string;
@@ -40,7 +30,6 @@ interface MuzakkiTableProps {
   isLoading: boolean;
   onEdit: (muzakki: MuzakkiMaster) => void;
   onViewHistory: (muzakki: MuzakkiMaster) => void;
-  onDelete: (id: string) => void;
   searchValue: string;
   onSearchChange: (search: string) => void;
   onSortChange: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
@@ -56,7 +45,6 @@ export function MuzakkiTable({
   isLoading,
   onEdit,
   onViewHistory,
-  onDelete,
   searchValue,
   onSearchChange,
   onSortChange,
@@ -64,7 +52,6 @@ export function MuzakkiTable({
   pageSize,
   onPageChange,
 }: MuzakkiTableProps) {
-  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('nama_kk');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
@@ -175,14 +162,6 @@ export function MuzakkiTable({
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteId(muzakki.id)}
-                          title="Hapus"
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -221,32 +200,6 @@ export function MuzakkiTable({
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Muzakki?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tindakan ini tidak dapat dibatalkan. Data muzakki akan dihapus secara permanen jika
-              tidak memiliki riwayat transaksi.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (deleteId) {
-                  onDelete(deleteId);
-                  setDeleteId(null);
-                }
-              }}
-              className="bg-destructive hover:bg-destructive/90"
-            >
-              Hapus
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

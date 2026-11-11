@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useEffect, useMemo } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
@@ -62,6 +62,7 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+type MustahikOption = { id: string; nama: string; alamat: string; jumlah_anggota: number | null; kategori_mustahik?: { nama: string } | null };
 
 interface DistribusiSubmitData {
   mustahik_id: string;
@@ -86,8 +87,7 @@ export function DistribusiForm({
   isSubmitting,
   tahunZakatId,
 }: DistribusiFormProps) {
-  const [selectedMustahik, setSelectedMustahik] = useState<any>(null);
-  const [eligibleMustahik, setEligibleMustahik] = useState<any[]>([]);
+  const [eligibleMustahik, setEligibleMustahik] = useState<MustahikOption[]>([]);
   const { data: tags = [] } = useTransactionTags();
 
   const form = useForm<FormValues>({
@@ -109,10 +109,9 @@ export function DistribusiForm({
   });
   const { data: stokData, isLoading: loadingStok } = useStokCheck(tahunZakatId);
 
-  const mustahikList = mustahikData?.data || [];
-  const jenisDistribusi = form.watch('jenis_distribusi');
-  const jumlah = form.watch('jumlah');
-  const mustahikId = form.watch('mustahik_id');
+  const mustahikList = useMemo(() => mustahikData?.data || [], [mustahikData]);
+  const [jenisDistribusi, jumlah, mustahikId] = useWatch({ control: form.control, name: ['jenis_distribusi', 'jumlah', 'mustahik_id'] });
+  const selectedMustahik = mustahikList.find(mustahik => mustahik.id === mustahikId) || null;
 
     // Filter out mustahik who already received distribusi in this tahun
     useEffect(() => {
@@ -131,8 +130,8 @@ export function DistribusiForm({
               .map((d) => d.mustahik_id)
           );
 
-          const fallbackEligible = (mustahikList as any).filter(
-            (m: any) => !offlineTakenIds.has(m.id)
+          const fallbackEligible = mustahikList.filter(
+            (m) => !offlineTakenIds.has(m.id)
           );
           setEligibleMustahik(fallbackEligible);
 
@@ -154,8 +153,8 @@ export function DistribusiForm({
           return;
         }
 
-        const takenIds = new Set((alreadyReceived || []).map((d: any) => d.mustahik_id));
-        const filtered = (mustahikList as any).filter((m: any) => !takenIds.has(m.id));
+        const takenIds = new Set((alreadyReceived || []).map((d) => d.mustahik_id));
+        const filtered = mustahikList.filter((m) => !takenIds.has(m.id));
         setEligibleMustahik(filtered);
 
         // If the currently selected mustahik is no longer eligible, clear selection
@@ -176,16 +175,6 @@ export function DistribusiForm({
     sisa_uang: 0,
   };
 
-  // Update selected mustahik info
-  useEffect(() => {
-    if (mustahikId) {
-      const mustahik = (mustahikList as any).find((m: any) => m.id === mustahikId);
-      setSelectedMustahik(mustahik || null);
-    } else {
-      setSelectedMustahik(null);
-    }
-  }, [mustahikId, mustahikList]);
-
   // Reset form when dialog opens
   useEffect(() => {
     if (open) {
@@ -196,7 +185,6 @@ export function DistribusiForm({
         tanggal_distribusi: new Date(),
         tag_id: undefined,
       });
-      setSelectedMustahik(null);
     }
   }, [open, form]);
 
@@ -255,7 +243,7 @@ export function DistribusiForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {(eligibleMustahik as any).map((mustahik: any) => (
+                      {eligibleMustahik.map((mustahik) => (
                         <SelectItem key={mustahik.id} value={mustahik.id}>
                           {mustahik.nama} - {mustahik.kategori_mustahik?.nama}
                         </SelectItem>

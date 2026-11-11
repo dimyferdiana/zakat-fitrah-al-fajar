@@ -1,9 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { offlineStore } from '@/lib/offlineStore';
 
 const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
+const zakatClient = supabase as unknown as SupabaseClient;
 
 interface TahunZakat {
   id: string;
@@ -54,10 +56,10 @@ export function useCreateTahunZakat() {
       if (OFFLINE_MODE) return offlineStore.addTahunZakat(input);
       // If setting as active, deactivate all others first
       if (input.is_active) {
-        await (supabase.from('tahun_zakat').update as any)({ is_active: false }).neq('id', '00000000-0000-0000-0000-000000000000');
+        await zakatClient.from('tahun_zakat').update({ is_active: false }).neq('id', '00000000-0000-0000-0000-000000000000');
       }
 
-      const { data, error } = await (supabase.from('tahun_zakat').insert as any)({
+      const { data, error } = await zakatClient.from('tahun_zakat').insert({
         tahun_hijriah: input.tahun_hijriah,
         tahun_masehi: input.tahun_masehi,
         nilai_beras_kg: input.nilai_beras_kg,
@@ -88,10 +90,10 @@ export function useUpdateTahunZakat() {
       if (OFFLINE_MODE) return offlineStore.updateTahunZakat(input.id, input);
       // If setting as active, deactivate all others first
       if (input.is_active) {
-        await (supabase.from('tahun_zakat').update as any)({ is_active: false }).neq('id', input.id);
+        await zakatClient.from('tahun_zakat').update({ is_active: false }).neq('id', input.id);
       }
 
-      const { data, error } = await (supabase.from('tahun_zakat').update as any)({
+      const { data, error } = await zakatClient.from('tahun_zakat').update({
         tahun_hijriah: input.tahun_hijriah,
         tahun_masehi: input.tahun_masehi,
         nilai_beras_kg: input.nilai_beras_kg,
@@ -122,10 +124,10 @@ export function useToggleTahunZakatActive() {
     mutationFn: async (id: string) => {
       if (OFFLINE_MODE) return offlineStore.updateTahunZakat(id, { is_active: true });
       // Deactivate all others first
-      await (supabase.from('tahun_zakat').update as any)({ is_active: false }).neq('id', id);
+      await zakatClient.from('tahun_zakat').update({ is_active: false }).neq('id', id);
 
       // Activate the selected one
-      const { data, error } = await (supabase.from('tahun_zakat').update as any)({
+      const { data, error } = await zakatClient.from('tahun_zakat').update({
         is_active: true,
         updated_at: new Date().toISOString(),
       }).eq('id', id).select().single();

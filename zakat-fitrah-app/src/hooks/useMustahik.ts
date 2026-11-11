@@ -1,8 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { offlineStore } from '@/lib/offlineStore';
 
+const mustahikClient = supabase as unknown as SupabaseClient;
 const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 // Interfaces
@@ -27,6 +29,7 @@ export interface Mustahik {
   updated_at: string;
   kategori_mustahik?: KategoriMustahik;
   has_received?: boolean;
+  orang_id?: string | null;
 }
 
 export interface MustahikListParams {
@@ -191,13 +194,13 @@ export function usePreviousYearMustahik(tahunMasehi: number) {
       const { data, error } = await supabase
         .from('distribusi_zakat')
         .select('mustahik_id, mustahik(*, kategori_mustahik(nama))')
-        .eq('tahun_zakat_id', (tahunZakat as any).id);
+        .eq('tahun_zakat_id', tahunZakat.id);
 
       if (error) throw error;
 
       // Extract unique mustahik
       const uniqueMustahik = new Map();
-      data?.forEach((item: any) => {
+      data?.forEach((item) => {
         if (item.mustahik && !uniqueMustahik.has(item.mustahik.id)) {
           uniqueMustahik.set(item.mustahik.id, item.mustahik);
         }
@@ -214,10 +217,8 @@ export function useCreateMustahik() {
 
   return useMutation({
     mutationFn: async (input: CreateMustahikInput) => {
-      if (OFFLINE_MODE) return offlineStore.addMustahik(input as any) as any;
-      const { data, error } = await (supabase
-        .from('mustahik')
-        .insert as any)({
+      if (OFFLINE_MODE) return offlineStore.addMustahik(input as unknown as Parameters<typeof offlineStore.addMustahik>[0]);
+      const { data, error } = await mustahikClient.from('mustahik').insert({
           nama: input.nama,
           alamat: input.alamat,
           kategori_id: input.kategori_id,
@@ -235,7 +236,7 @@ export function useCreateMustahik() {
       queryClient.invalidateQueries({ queryKey: ['mustahik-list'] });
       toast.success('Mustahik berhasil ditambahkan');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(`Gagal menambahkan mustahik: ${error.message}`);
     },
   });
@@ -247,10 +248,8 @@ export function useUpdateMustahik() {
 
   return useMutation({
     mutationFn: async (input: UpdateMustahikInput) => {
-      if (OFFLINE_MODE) return offlineStore.updateMustahik(input.id, input as any) as any;
-      const { data, error } = await (supabase
-        .from('mustahik')
-        .update as any)({
+      if (OFFLINE_MODE) return offlineStore.updateMustahik(input.id, input);
+      const { data, error } = await mustahikClient.from('mustahik').update({
           nama: input.nama,
           alamat: input.alamat,
           kategori_id: input.kategori_id,
@@ -271,7 +270,7 @@ export function useUpdateMustahik() {
       queryClient.invalidateQueries({ queryKey: ['mustahik-detail'] });
       toast.success('Mustahik berhasil diperbarui');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(`Gagal memperbarui mustahik: ${error.message}`);
     },
   });
@@ -283,10 +282,8 @@ export function useToggleMustahikActive() {
 
   return useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      if (OFFLINE_MODE) return offlineStore.updateMustahik(id, { is_active }) as any;
-      const { data, error } = await (supabase
-        .from('mustahik')
-        .update as any)({ is_active, updated_at: new Date().toISOString() })
+      if (OFFLINE_MODE) return offlineStore.updateMustahik(id, { is_active });
+      const { data, error } = await mustahikClient.from('mustahik').update({ is_active, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select();
 
@@ -299,7 +296,7 @@ export function useToggleMustahikActive() {
         variables.is_active ? 'Mustahik berhasil diaktifkan' : 'Mustahik berhasil dinonaktifkan'
       );
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(`Gagal mengubah status: ${error.message}`);
     },
   });
@@ -311,9 +308,7 @@ export function useBulkToggleMustahik() {
 
   return useMutation({
     mutationFn: async ({ ids, is_active }: { ids: string[]; is_active: boolean }) => {
-      const { data, error } = await (supabase
-        .from('mustahik')
-        .update as any)({ is_active, updated_at: new Date().toISOString() })
+      const { data, error } = await mustahikClient.from('mustahik').update({ is_active, updated_at: new Date().toISOString() })
         .in('id', ids)
         .select();
 
@@ -326,7 +321,7 @@ export function useBulkToggleMustahik() {
         `${variables.ids.length} mustahik berhasil ${variables.is_active ? 'diaktifkan' : 'dinonaktifkan'}`
       );
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(`Gagal mengubah status: ${error.message}`);
     },
   });
@@ -347,7 +342,7 @@ export function useImportMustahik() {
       if (fetchError) throw fetchError;
 
       // Create new records with is_data_lama = true
-      const newMustahik = mustahikData.map((m: any) => ({
+      const newMustahik = mustahikData.map((m) => ({
         nama: m.nama,
         alamat: m.alamat,
         kategori_id: m.kategori_id,
@@ -358,9 +353,7 @@ export function useImportMustahik() {
         is_active: true,
       }));
 
-      const { data, error } = await (supabase
-        .from('mustahik')
-        .insert as any)(newMustahik)
+      const { data, error } = await mustahikClient.from('mustahik').insert(newMustahik)
         .select();
 
       if (error) throw error;
@@ -370,7 +363,7 @@ export function useImportMustahik() {
       queryClient.invalidateQueries({ queryKey: ['mustahik-list'] });
       toast.success(`${data.length} mustahik berhasil diimpor dari tahun lalu`);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(`Gagal mengimpor mustahik: ${error.message}`);
     },
   });
@@ -378,24 +371,9 @@ export function useImportMustahik() {
 
 // Mutation: Delete mustahik
 export function useDeleteMustahik() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      if (OFFLINE_MODE) { offlineStore.deleteMustahik(id); return id; }
-      const { error } = await (supabase
-        .from('mustahik')
-        .delete as any)()
-        .eq('id', id);
-
-      if (error) throw error;
-      return id;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['mustahik-list'] });
-      toast.success('Mustahik berhasil dihapus');
-    },
-    onError: (error: any) => {
+  return useMutation<void, Error, string>({
+    mutationFn: async () => { throw new Error('Data mustahik tidak dapat dihapus permanen; gunakan penonaktifan.'); },
+    onError: (error: Error) => {
       toast.error(`Gagal menghapus mustahik: ${error.message}`);
     },
   });

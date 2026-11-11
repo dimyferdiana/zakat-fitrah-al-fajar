@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import type {
   Account,
@@ -8,6 +9,8 @@ import type {
   AccountLedgerEntryType,
   Json,
 } from '@/types/database.types';
+
+const untypedSchemaClient = supabase as unknown as SupabaseClient;
 
 const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 const OFFLINE_MUTATION_ERROR = 'Mode offline belum mendukung perubahan data akun/ledger.';
@@ -105,7 +108,7 @@ export function useCreateAccount() {
         updated_at: new Date().toISOString(),
       };
 
-      const { data, error } = await (supabase.from('accounts').insert as any)(payload)
+      const { data, error } = await untypedSchemaClient.from('accounts').insert(payload)
         .select('*')
         .single();
 
@@ -138,9 +141,7 @@ export function useUpdateAccount() {
         updated_at: new Date().toISOString(),
       };
 
-      const { data, error } = await (supabase
-        .from('accounts')
-        .update as any)(payload)
+      const { data, error } = await untypedSchemaClient.from('accounts').update(payload)
         .eq('id', id)
         .select('*')
         .single();
@@ -307,9 +308,7 @@ export function useCreateManualLedgerEntry() {
         updated_at: now.toISOString(),
       };
 
-      const { data, error } = await (supabase
-        .from('account_ledger_entries')
-        .insert as any)(payload)
+      const { data, error } = await untypedSchemaClient.from('account_ledger_entries').insert(payload)
         .select('*')
         .single();
 

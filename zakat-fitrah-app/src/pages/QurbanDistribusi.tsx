@@ -253,7 +253,7 @@ export function QurbanDistribusi() {
     }
   )
 
-  const allCoupons = couponData?.data ?? []
+  const allCoupons = useMemo(() => couponData?.data ?? [], [couponData])
   const totalCount = couponData?.count ?? 0
 
   // True totals (all pages, no filter) for progress bar

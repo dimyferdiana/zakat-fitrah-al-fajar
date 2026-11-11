@@ -15,6 +15,8 @@ const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 interface MuzakkiOption {
   id: string;
   nama_kk: string;
+  alamat: string;
+  no_telp: string | null;
 }
 
 interface MuzakkiCreatableComboboxProps {
@@ -51,13 +53,13 @@ export function MuzakkiCreatableCombobox({
       if (OFFLINE_MODE) {
         return offlineStore
           .getMuzakkiAll()
-          .map((item) => ({ id: item.id, nama_kk: item.nama_kk }))
+          .map((item) => ({ id: item.id, nama_kk: item.nama_kk, alamat: item.alamat, no_telp: item.no_telp }))
           .sort((a, b) => a.nama_kk.localeCompare(b.nama_kk));
       }
 
       const { data, error } = await supabase
         .from('muzakki')
-        .select('id, nama_kk')
+        .select('id, nama_kk, alamat, no_telp')
         .order('nama_kk', { ascending: true });
       if (error) throw error;
       return data || [];
@@ -70,15 +72,15 @@ export function MuzakkiCreatableCombobox({
   // Filtered list based on search text
   const filtered = search.trim()
     ? muzakkiOptions.filter((m) =>
-        m.nama_kk.toLowerCase().includes(search.trim().toLowerCase())
+        [m.nama_kk, m.alamat, m.no_telp || ''].some(value => value.toLowerCase().includes(search.trim().toLowerCase()))
       )
     : muzakkiOptions;
 
-  // Whether there's an exact match (to decide whether to show "Tambah baru")
+  // A shared name is a reason to review, not a unique identity.
   const hasExactMatch = muzakkiOptions.some(
     (m) => m.nama_kk.toLowerCase() === search.trim().toLowerCase()
   );
-  const showAddNew = search.trim().length > 0 && !hasExactMatch;
+  const showAddNew = search.trim().length > 0;
 
   // Focus search input when popover opens
   useEffect(() => {
@@ -222,7 +224,7 @@ export function MuzakkiCreatableCombobox({
             <div className="p-2 border-b">
               <Input
                 ref={searchInputRef}
-                placeholder="Cari nama muzakki..."
+                placeholder="Cari nama, alamat, atau telepon..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="h-8 text-sm"
@@ -279,7 +281,7 @@ export function MuzakkiCreatableCombobox({
                     m.id === value && 'bg-accent/50 font-medium'
                   )}
                 >
-                  {m.nama_kk}
+                  <span>{m.nama_kk}<span className="block text-xs text-muted-foreground">{m.alamat}{m.no_telp && ` · ${m.no_telp}`}</span></span>
                 </button>
               ))}
             </div>
@@ -291,6 +293,7 @@ export function MuzakkiCreatableCombobox({
               <UserPlus className="h-4 w-4 text-primary shrink-0" />
               <p className="text-sm font-semibold">Daftarkan Muzakki Baru</p>
             </div>
+            {hasExactMatch && <p className="text-xs text-muted-foreground">Ada data dengan nama yang sama. Pastikan ini orang berbeda sebelum membuat data baru.</p>}
 
             <div className="space-y-1">
               <Label htmlFor="new-muzakki-name" className="text-xs">

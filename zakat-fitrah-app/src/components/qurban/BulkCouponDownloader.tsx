@@ -57,7 +57,7 @@ export function BulkCouponDownloader({ items, onProgress, onDone }: BulkCouponDo
     }
 
     run()
-  }, [])
+  }, [items, onDone, onProgress])
 
   return (
     <div

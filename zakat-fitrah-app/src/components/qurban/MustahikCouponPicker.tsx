@@ -74,7 +74,7 @@ export function MustahikCouponPicker({
 
   const generateMutation = useGenerateMustahikCoupons()
 
-  const mustahikList = mustahikData?.data ?? []
+  const mustahikList = useMemo(() => mustahikData?.data ?? [], [mustahikData])
 
   const activeMustahik = useMemo(() => mustahikList.filter((m) => m.is_active), [mustahikList])
 

@@ -49,7 +49,7 @@ import { supabase } from '@/lib/supabase'
 import { useQurbanEventList } from '@/hooks/useQurbanEvents'
 import { useQurbanShareListFlat, useUpdateSharePayment, useRemoveQurbanShare } from '@/hooks/useQurbanShares'
 import { useGenerateMuzakkiCoupon } from '@/hooks/useQurbanCoupons'
-import { downloadQurbanShareReceipt } from '@/components/qurban/BuktiQurban'
+import { downloadQurbanShareReceipt } from '@/components/qurban/qurbanReceipt'
 import { AddPesertaDialog } from '@/components/qurban/AddPesertaDialog'
 import { PaginationBar } from '@/components/ui/pagination-bar'
 import type { QurbanShareFlat } from '@/types/qurban'
@@ -76,12 +76,12 @@ async function fetchAnimalAndEvent(animalId: string): Promise<{ animal: QurbanAn
 
   if (error || !data) return null
 
-  const row = data as any
+  const row = data
   const animal: QurbanAnimal = {
     id: row.id,
     event_id: row.event_id,
-    jenis: row.jenis,
-    sumber_hewan: row.sumber_hewan,
+    jenis: row.jenis as QurbanAnimal['jenis'],
+    sumber_hewan: row.sumber_hewan as QurbanAnimal['sumber_hewan'],
     nomor: row.nomor,
     berat_kg: row.berat_kg,
     harga: row.harga,
@@ -135,11 +135,6 @@ export function QurbanPeserta() {
     }, 300)
     return () => clearTimeout(timer)
   }, [searchInput])
-
-  // Reset page on filter change
-  useEffect(() => {
-    setPage(1)
-  }, [selectedEventId, selectedStatus])
 
   const queryParams = {
     eventId: selectedEventId !== 'all' ? selectedEventId : undefined,
@@ -236,7 +231,7 @@ export function QurbanPeserta() {
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4 mb-4">
             <Select
               value={selectedEventId}
-              onValueChange={(val) => setSelectedEventId(val)}
+              onValueChange={(val) => { setSelectedEventId(val); setPage(1) }}
             >
               <SelectTrigger className="w-full md:w-[240px]">
                 <SelectValue placeholder="Semua Event" />
@@ -253,7 +248,7 @@ export function QurbanPeserta() {
 
             <Select
               value={selectedStatus}
-              onValueChange={(val) => setSelectedStatus(val)}
+              onValueChange={(val) => { setSelectedStatus(val); setPage(1) }}
             >
               <SelectTrigger className="w-full md:w-[180px]">
                 <SelectValue placeholder="Status Pembayaran" />

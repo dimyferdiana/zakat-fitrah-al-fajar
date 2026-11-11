@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { CalendarIcon, Plus } from 'lucide-react';
@@ -83,7 +83,7 @@ export function RekonsiliasiForm({ tahunZakatId, tahunOptions }: RekonsiliasiFor
     },
   });
 
-  const jenis = form.watch('jenis');
+  const jenis = useWatch({ control: form.control, name: 'jenis' });
 
   const onSubmit = async (data: RekonsiliasiFormData) => {
     await createMutation.mutateAsync(data);

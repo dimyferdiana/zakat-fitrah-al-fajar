@@ -1,3 +1,4 @@
+import { PrivateStorageImage } from '@/components/common/PrivateStorageImage'
 import { useRef, useState } from 'react'
 import { Camera, Trash2, Loader2, ImageOff } from 'lucide-react'
 import { toast } from 'sonner'
@@ -45,11 +46,7 @@ export function PhotoUpload({ registrationId, currentPhotoUrl, onUploadComplete 
 
       if (uploadError) throw uploadError
 
-      const { data: publicUrlData } = supabase.storage
-        .from('qurban-photos')
-        .getPublicUrl(filePath)
-
-      const publicUrl = publicUrlData.publicUrl
+      const publicUrl = `storage://qurban-photos/${filePath}`
 
       // Save photo_url to the registration record
       const { error: updateError } = await supabase
@@ -95,7 +92,7 @@ export function PhotoUpload({ registrationId, currentPhotoUrl, onUploadComplete 
       <div className="flex items-start gap-3">
         <div className="h-24 w-24 shrink-0 rounded-md border bg-muted overflow-hidden flex items-center justify-center">
           {photoUrl ? (
-            <img
+            <PrivateStorageImage
               src={photoUrl}
               alt="Foto hewan qurban"
               className="h-full w-full object-cover"

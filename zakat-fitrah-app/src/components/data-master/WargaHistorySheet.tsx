@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { useMuzakkiHistory } from '@/hooks/useMuzakki'
 import type { MuzakkiMaster } from '@/hooks/useMuzakki'
+import { useAuth } from '@/lib/auth'
 
 interface WargaHistorySheetProps {
   warga: MuzakkiMaster | null
@@ -21,7 +22,9 @@ function formatCurrency(amount: number) {
 }
 
 export function WargaHistorySheet({ warga, onClose }: WargaHistorySheetProps) {
-  const { data: history, isLoading } = useMuzakkiHistory(warga?.id ?? null)
+  const { hasRole } = useAuth()
+  const canSeeLoans = hasRole(['admin', 'petugas'])
+  const { data: history, isLoading, error } = useMuzakkiHistory(warga?.id ?? null, canSeeLoans)
 
   return (
     <Sheet open={!!warga} onOpenChange={(open) => { if (!open) onClose() }}>
@@ -32,7 +35,7 @@ export function WargaHistorySheet({ warga, onClose }: WargaHistorySheetProps) {
 
         {isLoading ? (
           <div className="flex justify-center py-8"><LoadingSpinner /></div>
-        ) : (
+        ) : error ? <p role="alert" className="mt-6 text-sm text-destructive">Riwayat belum dapat dimuat. Silakan coba kembali.</p> : (
           <div className="space-y-6 mt-6">
             {/* Zakat History */}
             <div>
@@ -53,7 +56,7 @@ export function WargaHistorySheet({ warga, onClose }: WargaHistorySheetProps) {
                     {history.zakat.map((z) => (
                       <TableRow key={z.id}>
                         <TableCell className="text-xs">
-                          {format(new Date(z.tanggal_bayar), 'dd MMM yyyy', { locale: idLocale })}
+                          {z.tanggal_bayar ? format(new Date(z.tanggal_bayar), 'dd MMM yyyy', { locale: idLocale }) : 'Tanggal tidak tersedia'}
                         </TableCell>
                         <TableCell>
                           <Badge variant={z.jenis_zakat === 'beras' ? 'secondary' : 'default'}>
@@ -107,6 +110,10 @@ export function WargaHistorySheet({ warga, onClose }: WargaHistorySheetProps) {
                 </Table>
               )}
             </div>
+            <div><h3 className="text-sm font-semibold mb-2">Sedekah yang tertaut</h3>{!history?.sedekah.length ? <p className="text-sm text-muted-foreground">Belum ada bukti sedekah yang tertaut.</p> : history.sedekah.map(item => <p className="border-b py-2 text-sm" key={item.id}>{item.tanggal} · {item.receipt_number} · {item.category} · {formatCurrency(Number(item.amount))}</p>)}</div>
+            <div><h3 className="text-sm font-semibold mb-2">Penerimaan yang tertaut</h3><p className="text-xs text-muted-foreground">Catatan penerimaan ditampilkan terpisah dan dapat berkaitan dengan pembayaran atau bukti di atas.</p>{!history?.pemasukanUang.length && !history?.pemasukanBeras.length ? <p className="text-sm text-muted-foreground">Belum ada penerimaan yang tertaut.</p> : <>{history.pemasukanUang.map(item => <p className="border-b py-2 text-sm" key={item.id}>{item.tanggal} · {item.kategori.replaceAll('_', ' ')} · {formatCurrency(Number(item.jumlah_uang_rp))}</p>)}{history.pemasukanBeras.map(item => <p className="border-b py-2 text-sm" key={item.id}>{item.tanggal} · {item.kategori.replaceAll('_', ' ')} · {item.jumlah_beras_kg} kg</p>)}</>}</div>
+            <div><h3 className="text-sm font-semibold mb-2">Distribusi mustahik yang tertaut</h3>{!history?.distribusi.length ? <p className="text-sm text-muted-foreground">Belum ada distribusi yang tertaut melalui data mustahik.</p> : history.distribusi.map(item => <p className="border-b py-2 text-sm" key={item.id}>{item.tanggal_distribusi} · {item.jenis_distribusi} · {item.jenis_distribusi === 'beras' ? `${item.jumlah_beras_kg ?? 0} kg` : formatCurrency(Number(item.jumlah_uang_rp ?? 0))}</p>)}</div>
+            {canSeeLoans && <div><h3 className="text-sm font-semibold mb-2">Pinjaman yang tertaut</h3>{!history?.pinjaman.length ? <p className="text-sm text-muted-foreground">Belum ada pinjaman yang tertaut.</p> : history.pinjaman.map(item => <p className="border-b py-2 text-sm" key={item.id}>{item.loan_number} · {item.status} · pokok {formatCurrency(Number(item.principal))}</p>)}</div>}
           </div>
         )}
       </SheetContent>

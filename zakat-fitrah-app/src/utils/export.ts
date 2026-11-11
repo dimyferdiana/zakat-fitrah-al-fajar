@@ -5,6 +5,22 @@ import { id as localeId } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
 import { BRANDING } from '@/lib/branding';
 
+type IncomeRow = {
+  tanggal_bayar?: string | null; tanggal?: string | null;
+  muzakki?: string | { nama_kk?: string | null; alamat?: string | null } | null;
+  jumlah_jiwa?: number | null; jenis?: string; jenis_zakat?: string;
+  tag?: { name?: string | null } | null; nominalDisplay?: string;
+  jumlah_beras_kg?: number | null; jumlah_uang_rp?: number | null;
+};
+type IncomeSummary = { totalBeras: number; totalUang: number; totalMuzakki: number; dateFrom?: Date; dateTo?: Date; jenisFilter?: string };
+type DistributionRow = { tanggal_distribusi: string; jenis_distribusi: string; jumlah: number; status: string; tag?: { name?: string | null } | null; mustahik?: { nama?: string | null; alamat?: string | null; kategori_mustahik?: { nama?: string | null } | null } | null };
+type DistributionSummary = { kategori: string; count: number; totalBeras: number; totalUang: number };
+type RecipientGroup = { kategori: string; totalCount: number; mustahikList: { nama: string; alamat: string; jumlah_anggota: number; no_telp: string | null; is_active: boolean | null }[] };
+type RecipientSummary = { totalMustahik: number; totalAktif: number; totalNonAktif: number; totalAnggota: number };
+type PdfWithAutoTable = jsPDF & { lastAutoTable: { finalY: number } };
+const incomeName = (muzakki: IncomeRow['muzakki']) => typeof muzakki === 'string' ? muzakki : muzakki?.nama_kk || '';
+const incomeAddress = (muzakki: IncomeRow['muzakki']) => typeof muzakki === 'object' && muzakki ? muzakki.alamat || '' : '';
+
 // Formatting helpers
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('id-ID', {
@@ -65,7 +81,7 @@ const addPDFFooter = (pdf: jsPDF) => {
     pageHeight - 10
   );
   pdf.text(
-    `Halaman ${(pdf as any).internal.getCurrentPageInfo().pageNumber}`,
+    `Halaman ${(pdf.internal as typeof pdf.internal & { getCurrentPageInfo: () => { pageNumber: number } }).getCurrentPageInfo().pageNumber}`,
     pageWidth - 20,
     pageHeight - 10,
     { align: 'right' }
@@ -76,7 +92,7 @@ const addPDFFooter = (pdf: jsPDF) => {
 // PEMASUKAN EXPORTS
 // ============================================================================
 
-export const exportPemasukanPDF = (data: any[], summary: any) => {
+export const exportPemasukanPDF = (data: IncomeRow[], summary: IncomeSummary) => {
   const pdf = new jsPDF('p', 'mm', 'a4');
   
   addPDFHeader(pdf, BRANDING.REPORT_INCOME_HEADER);
@@ -103,9 +119,9 @@ export const exportPemasukanPDF = (data: any[], summary: any) => {
   }
   
   // Table — supports both old (tanggal_bayar) and new (tanggal) field names
-  const tableData = data.map((item: any) => [
+  const tableData = data.map((item) => [
     formatDate(item.tanggal_bayar || item.tanggal),
-    item.muzakki?.nama_kk || item.muzakki || '',
+    incomeName(item.muzakki),
     item.jumlah_jiwa ?? '-',
     item.jenis ?? (item.jenis_zakat === 'beras' ? 'Beras' : 'Uang'),
     item.tag?.name || '-',
@@ -127,7 +143,7 @@ export const exportPemasukanPDF = (data: any[], summary: any) => {
   pdf.save(`Laporan-Pemasukan-${Date.now()}.pdf`);
 };
 
-export const exportPemasukanExcel = (data: any[], summary: any) => {
+export const exportPemasukanExcel = (data: IncomeRow[], summary: IncomeSummary) => {
   const ws = XLSX.utils.aoa_to_sheet([
     ['LAPORAN PEMASUKAN ZAKAT FITRAH'],
     [BRANDING.MOSQUE_NAME],
@@ -137,10 +153,10 @@ export const exportPemasukanExcel = (data: any[], summary: any) => {
     ['Total Muzakki', `${summary.totalMuzakki} KK`],
     [],
     ['Tanggal', 'Nama KK / Muzakki', 'Alamat', 'Jiwa', 'Jenis', 'Tag', 'Jumlah'],
-    ...data.map((item: any) => [
+    ...data.map((item) => [
       formatDate(item.tanggal_bayar || item.tanggal),
-      item.muzakki?.nama_kk || item.muzakki || '',
-      item.muzakki?.alamat || '',
+      incomeName(item.muzakki),
+      incomeAddress(item.muzakki),
       item.jumlah_jiwa ?? '-',
       item.jenis ?? (item.jenis_zakat === 'beras' ? 'Beras' : 'Uang'),
       item.tag?.name || '-',
@@ -160,7 +176,7 @@ export const exportPemasukanExcel = (data: any[], summary: any) => {
 // DISTRIBUSI EXPORTS
 // ============================================================================
 
-export const exportDistribusiPDF = (data: any[], summary: any[]) => {
+export const exportDistribusiPDF = (data: DistributionRow[], summary: DistributionSummary[]) => {
   const pdf = new jsPDF('p', 'mm', 'a4');
   
   addPDFHeader(pdf, BRANDING.REPORT_DISTRIBUTION_HEADER);
@@ -191,7 +207,7 @@ export const exportDistribusiPDF = (data: any[], summary: any[]) => {
     headStyles: { fillColor: [59, 130, 246] },
   });
   
-  y = (pdf as any).lastAutoTable.finalY + 10;
+  y = (pdf as PdfWithAutoTable).lastAutoTable.finalY + 10;
   
   // Detail distribusi
   pdf.setFontSize(11);
@@ -199,7 +215,7 @@ export const exportDistribusiPDF = (data: any[], summary: any[]) => {
   pdf.text('Detail Distribusi:', 20, y);
   y += 8;
   
-  const detailTableData = data.map((item: any) => [
+  const detailTableData = data.map((item) => [
     formatDate(item.tanggal_distribusi),
     item.mustahik?.nama || '',
     item.mustahik?.kategori_mustahik?.nama || '',
@@ -222,7 +238,7 @@ export const exportDistribusiPDF = (data: any[], summary: any[]) => {
   pdf.save(`Laporan-Distribusi-${Date.now()}.pdf`);
 };
 
-export const exportDistribusiExcel = (data: any[], summary: any[]) => {
+export const exportDistribusiExcel = (data: DistributionRow[], summary: DistributionSummary[]) => {
   const ws = XLSX.utils.aoa_to_sheet([
     ['LAPORAN DISTRIBUSI ZAKAT FITRAH'],
     [BRANDING.MOSQUE_NAME],
@@ -238,7 +254,7 @@ export const exportDistribusiExcel = (data: any[], summary: any[]) => {
     [],
     ['Detail Distribusi'],
     ['Tanggal', 'Mustahik', 'Alamat', 'Kategori', 'Jenis', 'Tag', 'Jumlah', 'Status'],
-    ...data.map((item: any) => [
+    ...data.map((item) => [
       formatDate(item.tanggal_distribusi),
       item.mustahik?.nama || '',
       item.mustahik?.alamat || '',
@@ -261,7 +277,7 @@ export const exportDistribusiExcel = (data: any[], summary: any[]) => {
 // MUSTAHIK EXPORTS
 // ============================================================================
 
-export const exportMustahikPDF = (groupedData: any[], summary: any) => {
+export const exportMustahikPDF = (groupedData: RecipientGroup[], summary: RecipientSummary) => {
   const pdf = new jsPDF('p', 'mm', 'a4');
   
   addPDFHeader(pdf, 'LAPORAN DAFTAR MUSTAHIK');
@@ -292,7 +308,7 @@ export const exportMustahikPDF = (groupedData: any[], summary: any) => {
     pdf.text(`${group.kategori} (${group.totalCount} mustahik)`, 20, y);
     y += 6;
     
-    const tableData = group.mustahikList.map((m: any) => [
+    const tableData = group.mustahikList.map((m) => [
       m.nama,
       m.alamat,
       m.jumlah_anggota.toString(),
@@ -308,15 +324,15 @@ export const exportMustahikPDF = (groupedData: any[], summary: any) => {
       headStyles: { fillColor: [59, 130, 246] },
     });
     
-    y = (pdf as any).lastAutoTable.finalY + 8;
+    y = (pdf as PdfWithAutoTable).lastAutoTable.finalY + 8;
   });
   
   addPDFFooter(pdf);
   pdf.save(`Laporan-Mustahik-${Date.now()}.pdf`);
 };
 
-export const exportMustahikExcel = (groupedData: any[], summary: any) => {
-  const rows: any[] = [
+export const exportMustahikExcel = (groupedData: RecipientGroup[], summary: RecipientSummary) => {
+  const rows: (string | number)[][] = [
     ['LAPORAN DAFTAR MUSTAHIK'],
     [BRANDING.MOSQUE_NAME],
     [],
@@ -331,7 +347,7 @@ export const exportMustahikExcel = (groupedData: any[], summary: any) => {
     rows.push([`${group.kategori} (${group.totalCount} mustahik)`]);
     rows.push(['Nama', 'Alamat', 'Anggota', 'No. Telp', 'Status']);
     
-    group.mustahikList.forEach((m: any) => {
+    group.mustahikList.forEach((m) => {
       rows.push([
         m.nama,
         m.alamat,
@@ -479,7 +495,7 @@ export const exportHakAmilExcel = (
   summary: HakAmilSummary,
   filters: HakAmilExportFilters
 ) => {
-  const rows: any[] = [
+  const rows: (string | number)[][] = [
     ['LAPORAN HAK AMIL'],
     [BRANDING.MOSQUE_NAME],
     [],

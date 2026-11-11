@@ -25,6 +25,10 @@ dist-ssr
 *.sw?
 .vercel
 .env*.local
+test-results/
+playwright-report/
+tests/.recovery-cleanup-*.sql
+tests/.task3-*.sql
 
 # Generated export files
 *.xlsx

@@ -95,7 +95,7 @@ export function CouponDetailDialog({
         shareImageRef.current.firstElementChild as HTMLElement,
         `kupon-${coupon.coupon_number}.png`
       )
-    } catch (err) {
+    } catch {
       toast.error('Gagal membagikan kupon')
     } finally {
       setIsSharing(false)

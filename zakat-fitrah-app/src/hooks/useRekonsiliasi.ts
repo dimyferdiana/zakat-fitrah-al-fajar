@@ -1,5 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+const reconciliationClient = supabase as unknown as SupabaseClient;
 import { toast } from 'sonner';
 
 export interface Rekonsiliasi {
@@ -39,9 +42,7 @@ async function resolveRekonsiliasiAccountId(jenis: 'uang' | 'beras', akun?: 'kas
     ? (akun === 'bank' ? DEFAULT_BANK_ACCOUNT_NAME : DEFAULT_KAS_ACCOUNT_NAME)
     : DEFAULT_KAS_ACCOUNT_NAME;
 
-  const { data: accounts, error } = await (supabase
-    .from('accounts')
-    .select as any)('id, account_name')
+  const { data: accounts, error } = await reconciliationClient.from('accounts').select('id, account_name')
     .in('account_name', [preferredAccountName, DEFAULT_KAS_ACCOUNT_NAME])
     .eq('is_active', true);
 
@@ -62,9 +63,7 @@ async function resolveRekonsiliasiAmountRp(input: CreateRekonsiliasiInput): Prom
     return input.jumlah;
   }
 
-  const { data: tahunZakat, error } = await (supabase
-    .from('tahun_zakat')
-    .select as any)('nilai_beras_kg')
+  const { data: tahunZakat, error } = await reconciliationClient.from('tahun_zakat').select('nilai_beras_kg')
     .eq('id', input.tahun_zakat_id)
     .single();
 
@@ -88,7 +87,7 @@ export async function createRekonsiliasiLedgerEntry(input: {
 }) {
   const manualRef = `MANUAL-REKONSILIASI-${input.rekonsiliasiId}`;
 
-  const { error } = await (supabase.from('account_ledger_entries').insert as any)({
+  const { error } = await reconciliationClient.from('account_ledger_entries').insert({
     account_id: input.accountId,
     entry_type: 'REKONSILIASI',
     amount_rp: input.amountRp,
@@ -106,9 +105,7 @@ export async function createRekonsiliasiLedgerEntry(input: {
 }
 
 export async function deleteRekonsiliasiLedgerEntry(rekonsiliasiId: string) {
-  const { data: existingLedger, error: existingLedgerError } = await (supabase
-    .from('account_ledger_entries')
-    .select as any)('id')
+  const { data: existingLedger, error: existingLedgerError } = await reconciliationClient.from('account_ledger_entries').select('id')
     .eq('source_rekonsiliasi_id', rekonsiliasiId)
     .maybeSingle();
 
@@ -168,7 +165,7 @@ export function useRekonsiliasiSummary(tahunZakatId: string) {
         total_beras: 0,
       };
 
-      data.forEach((item: any) => {
+      data.forEach((item) => {
         if (item.jenis === 'uang' && item.jumlah_uang_rp) {
           summary.total_uang += Number(item.jumlah_uang_rp);
         }
@@ -199,15 +196,13 @@ export function useCreateRekonsiliasi() {
         .eq('id', user.id)
         .single();
 
-      if ((userData as any)?.role !== 'admin') {
+      if (userData?.role !== 'admin') {
         throw new Error('Only admin can create rekonsiliasi');
       }
 
       const accountId = await resolveRekonsiliasiAccountId(input.jenis, input.akun);
 
-      const { data, error } = await (supabase
-        .from('rekonsiliasi')
-        .insert as any)({
+      const { data, error } = await reconciliationClient.from('rekonsiliasi').insert({
           tahun_zakat_id: input.tahun_zakat_id,
           jenis: input.jenis,
           akun: input.jenis === 'uang' ? input.akun : null,
@@ -253,7 +248,7 @@ export function useCreateRekonsiliasi() {
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Rekonsiliasi berhasil ditambahkan');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Gagal menambahkan rekonsiliasi');
     },
   });
@@ -275,7 +270,7 @@ export function useDeleteRekonsiliasi() {
         .eq('id', user.id)
         .single();
 
-      if ((userData as any)?.role !== 'admin') {
+      if (userData?.role !== 'admin') {
         throw new Error('Only admin can delete rekonsiliasi');
       }
 
@@ -294,7 +289,7 @@ export function useDeleteRekonsiliasi() {
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Rekonsiliasi berhasil dihapus');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Gagal menghapus rekonsiliasi');
     },
   });

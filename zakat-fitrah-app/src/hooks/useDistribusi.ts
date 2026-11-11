@@ -1,8 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { offlineStore } from '@/lib/offlineStore';
 import { isUuid } from '@/lib/utils';
+
+type DistributionAmount = { jenis_distribusi: string; jumlah: number | null };
+const distributionClient = supabase as unknown as SupabaseClient;
 
 const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 // Interfaces
@@ -23,6 +27,7 @@ export interface Distribusi {
     id: string;
     nama: string;
     alamat: string;
+    kategori_id?: string | null;
     kategori_mustahik?: {
       nama: string;
     };
@@ -79,7 +84,7 @@ export function useDistribusiList(params: DistribusiListParams) {
       let query = supabase
         .from('distribusi_zakat')
         .select(
-          '*, mustahik(id, nama, alamat, kategori_mustahik(nama)), tahun_zakat(tahun_hijriah, tahun_masehi), transaction_tags(id, name, color)',
+          '*, mustahik(id, nama, alamat, kategori_id, kategori_mustahik(nama)), tahun_zakat(tahun_hijriah, tahun_masehi), transaction_tags(id, name, color)',
           { count: 'exact' }
         )
         .order('tanggal_distribusi', { ascending: false });
@@ -172,13 +177,13 @@ export function useStokCheck(tahunZakatId: string | null) {
 
       if (pemasukanError) throw pemasukanError;
 
-      const totalBerasPemasukan = (pemasukanData as any)
-        ?.filter((p: any) => p.jenis_zakat === 'beras')
-        .reduce((sum: number, p: any) => sum + (p.jumlah_beras_kg || 0), 0) || 0;
+      const totalBerasPemasukan = pemasukanData
+        ?.filter((p) => p.jenis_zakat === 'beras')
+        .reduce((sum, p) => sum + (p.jumlah_beras_kg || 0), 0) || 0;
 
-      const totalUangPemasukan = (pemasukanData as any)
-        ?.filter((p: any) => p.jenis_zakat === 'uang')
-        .reduce((sum: number, p: any) => sum + (p.jumlah_uang_rp || 0), 0) || 0;
+      const totalUangPemasukan = pemasukanData
+        ?.filter((p) => p.jenis_zakat === 'uang')
+        .reduce((sum, p) => sum + (p.jumlah_uang_rp || 0), 0) || 0;
 
       // Get distribusi totals
       const { data: distribusiData, error: distribusiError } = await supabase
@@ -189,13 +194,13 @@ export function useStokCheck(tahunZakatId: string | null) {
 
       if (distribusiError) throw distribusiError;
 
-      const totalBerasDistribusi = (distribusiData as any)
-        ?.filter((d: any) => d.jenis_distribusi === 'beras')
-        .reduce((sum: number, d: any) => sum + (d.jumlah || 0), 0) || 0;
+      const totalBerasDistribusi = (distribusiData as unknown as DistributionAmount[] | null)
+        ?.filter((d) => d.jenis_distribusi === 'beras')
+        .reduce((sum, d) => sum + (d.jumlah || 0), 0) || 0;
 
-      const totalUangDistribusi = (distribusiData as any)
-        ?.filter((d: any) => d.jenis_distribusi === 'uang')
-        .reduce((sum: number, d: any) => sum + (d.jumlah || 0), 0) || 0;
+      const totalUangDistribusi = (distribusiData as unknown as DistributionAmount[] | null)
+        ?.filter((d) => d.jenis_distribusi === 'uang')
+        .reduce((sum, d) => sum + (d.jumlah || 0), 0) || 0;
 
       return {
         total_pemasukan_beras: totalBerasPemasukan,
@@ -221,7 +226,7 @@ export function useCreateDistribusi() {
           ...input,
           catatan: input.catatan ?? null,
           status: 'pending',
-        }) as any;
+        });
       }
       // Prevent double distribution to the same mustahik in the same year
       const { data: existingDistribusi, error: existingError } = await supabase
@@ -250,12 +255,12 @@ export function useCreateDistribusi() {
         .eq('status', 'selesai');
 
       const totalPemasukan = input.jenis_distribusi === 'beras'
-        ? (stokData as any)?.filter((p: any) => p.jenis_zakat === 'beras').reduce((s: number, p: any) => s + (p.jumlah_beras_kg || 0), 0) || 0
-        : (stokData as any)?.filter((p: any) => p.jenis_zakat === 'uang').reduce((s: number, p: any) => s + (p.jumlah_uang_rp || 0), 0) || 0;
+        ? stokData?.filter((p) => p.jenis_zakat === 'beras').reduce((s, p) => s + (p.jumlah_beras_kg || 0), 0) || 0
+        : stokData?.filter((p) => p.jenis_zakat === 'uang').reduce((s, p) => s + (p.jumlah_uang_rp || 0), 0) || 0;
 
       const totalDistribusi = input.jenis_distribusi === 'beras'
-        ? (distribusiData as any)?.filter((d: any) => d.jenis_distribusi === 'beras').reduce((s: number, d: any) => s + (d.jumlah || 0), 0) || 0
-        : (distribusiData as any)?.filter((d: any) => d.jenis_distribusi === 'uang').reduce((s: number, d: any) => s + (d.jumlah || 0), 0) || 0;
+        ? (distribusiData as unknown as DistributionAmount[] | null)?.filter((d) => d.jenis_distribusi === 'beras').reduce((s, d) => s + (d.jumlah || 0), 0) || 0
+        : (distribusiData as unknown as DistributionAmount[] | null)?.filter((d) => d.jenis_distribusi === 'uang').reduce((s, d) => s + (d.jumlah || 0), 0) || 0;
 
       const sisaStok = totalPemasukan - totalDistribusi;
 
@@ -269,9 +274,7 @@ export function useCreateDistribusi() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await (supabase
-        .from('distribusi_zakat')
-        .insert as any)({
+      const { data, error } = await distributionClient.from('distribusi_zakat').insert({
           mustahik_id: input.mustahik_id,
           tahun_zakat_id: input.tahun_zakat_id,
           jenis_distribusi: input.jenis_distribusi,
@@ -295,7 +298,7 @@ export function useCreateDistribusi() {
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Distribusi berhasil ditambahkan');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Gagal menambahkan distribusi');
     },
   });
@@ -307,10 +310,8 @@ export function useUpdateDistribusiStatus() {
 
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'pending' | 'selesai' }) => {
-      if (OFFLINE_MODE) return offlineStore.updateDistribusiStatus(id, status) as any;
-      const { data, error } = await (supabase
-        .from('distribusi_zakat')
-        .update as any)({
+      if (OFFLINE_MODE) return offlineStore.updateDistribusiStatus(id, status);
+      const { data, error } = await distributionClient.from('distribusi_zakat').update({
           status,
           updated_at: new Date().toISOString(),
         })
@@ -330,7 +331,7 @@ export function useUpdateDistribusiStatus() {
           : 'Status distribusi diperbarui'
       );
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(`Gagal memperbarui status: ${error.message}`);
     },
   });
@@ -356,7 +357,7 @@ export function useDeleteDistribusi() {
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success('Distribusi berhasil dihapus');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(`Gagal menghapus distribusi: ${error.message}`);
     },
   });

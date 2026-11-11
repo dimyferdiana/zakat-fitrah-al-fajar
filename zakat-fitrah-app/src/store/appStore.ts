@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-type AppMode = 'zakat' | 'qurban' | 'data-master'
+type AppMode = 'zakat' | 'qurban' | 'data-master' | 'pinjaman'
 
 interface AppStore {
   activeApp: AppMode

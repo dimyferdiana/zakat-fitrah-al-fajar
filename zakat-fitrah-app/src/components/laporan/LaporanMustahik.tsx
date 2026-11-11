@@ -17,7 +17,8 @@ interface LaporanMustahikProps {
   tahunZakatId: string;
 }
 
-export function LaporanMustahik({ }: LaporanMustahikProps) {
+export function LaporanMustahik(_props: LaporanMustahikProps) {
+  void _props;
   const { data: mustahikData, isLoading } = useMustahikList({
     page: 1,
     limit: 1000, // Get all for report
@@ -29,15 +30,15 @@ export function LaporanMustahik({ }: LaporanMustahikProps) {
   const mustahikList = mustahikData?.data || [];
 
   // Group by kategori
-  const groupedByKategori = kategoriList.map((kategori: any) => {
+  const groupedByKategori = kategoriList.map((kategori) => {
     const mustahikKategori = mustahikList.filter(
-      (m: any) => m.kategori_id === kategori.id
+      (m) => m.kategori_id === kategori.id
     );
 
-    const aktifCount = mustahikKategori.filter((m: any) => m.is_active).length;
-    const nonAktifCount = mustahikKategori.filter((m: any) => !m.is_active).length;
+    const aktifCount = mustahikKategori.filter((m) => m.is_active).length;
+    const nonAktifCount = mustahikKategori.filter((m) => !m.is_active).length;
     const totalAnggota = mustahikKategori.reduce(
-      (sum: number, m: any) => sum + (m.jumlah_anggota || 0),
+      (sum, m) => sum + (m.jumlah_anggota || 0),
       0
     );
 
@@ -182,7 +183,7 @@ export function LaporanMustahik({ }: LaporanMustahikProps) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {group.mustahikList.map((mustahik: any) => (
+                    {group.mustahikList.map((mustahik) => (
                       <TableRow key={mustahik.id}>
                         <TableCell className="font-medium">{mustahik.nama}</TableCell>
                         <TableCell>{mustahik.alamat}</TableCell>

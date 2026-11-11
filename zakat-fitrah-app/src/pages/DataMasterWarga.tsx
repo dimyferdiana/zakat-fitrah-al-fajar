@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Plus, Upload, Pencil, Trash2, History, Search } from 'lucide-react'
+import { Plus, Upload, Pencil, History, Search, UserCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -14,7 +14,8 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { WargaForm } from '@/components/data-master/WargaForm'
 import { WargaHistorySheet } from '@/components/data-master/WargaHistorySheet'
 import { WargaImportDialog } from '@/components/data-master/WargaImportDialog'
-import { useMuzakkiList, useDeleteMuzakki } from '@/hooks/useMuzakki'
+import { PersonIdentityDialog } from '@/components/data-master/PersonIdentityDialog'
+import { useMuzakkiList, useSetPersonActive } from '@/hooks/useMuzakki'
 import type { MuzakkiMaster } from '@/hooks/useMuzakki'
 import { useAuth } from '@/lib/auth'
 
@@ -29,9 +30,10 @@ export function DataMasterWarga() {
   const [editingWarga, setEditingWarga] = useState<MuzakkiMaster | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<MuzakkiMaster | null>(null)
   const [historyWarga, setHistoryWarga] = useState<MuzakkiMaster | null>(null)
+  const [identityWarga, setIdentityWarga] = useState<MuzakkiMaster | null>(null)
   const [importOpen, setImportOpen] = useState(false)
 
-  const deleteMuzakki = useDeleteMuzakki()
+  const setPersonActive = useSetPersonActive()
 
   const { data, isLoading } = useMuzakkiList({
     search: debouncedSearch,
@@ -63,7 +65,7 @@ export function DataMasterWarga() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return
-    await deleteMuzakki.mutateAsync(deleteTarget.id)
+    await setPersonActive.mutateAsync({ id: deleteTarget.id, active: deleteTarget.aktif === false })
     setDeleteTarget(null)
   }
 
@@ -71,7 +73,7 @@ export function DataMasterWarga() {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-xl font-semibold">Warga</h2>
+        <h2 className="text-xl font-semibold">Jamaah / Data Orang</h2>
         <div className="flex gap-2 flex-wrap">
           {hasRole(['admin']) && (
             <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
@@ -81,7 +83,7 @@ export function DataMasterWarga() {
           )}
           <Button size="sm" onClick={handleAddNew}>
             <Plus className="mr-2 h-4 w-4" />
-            Tambah Warga
+            Tambah Orang
           </Button>
         </div>
       </div>
@@ -91,7 +93,7 @@ export function DataMasterWarga() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           className="pl-9"
-          placeholder="Cari nama atau alamat..."
+          placeholder="Cari nama, alamat, atau telepon..."
           value={search}
           onChange={(e) => handleSearchChange(e.target.value)}
         />
@@ -107,7 +109,7 @@ export function DataMasterWarga() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12">No.</TableHead>
-                  <TableHead>Nama KK</TableHead>
+                  <TableHead>Nama / identitas</TableHead>
                   <TableHead className="hidden lg:table-cell">NIK</TableHead>
                   <TableHead className="hidden sm:table-cell">Alamat</TableHead>
                   <TableHead className="hidden md:table-cell">No. Telp</TableHead>
@@ -118,7 +120,7 @@ export function DataMasterWarga() {
                 {!data?.data.length ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      {debouncedSearch ? 'Tidak ada hasil yang cocok.' : 'Belum ada data warga.'}
+                      {debouncedSearch ? 'Tidak ada hasil yang cocok.' : 'Belum ada data orang.'}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -127,7 +129,7 @@ export function DataMasterWarga() {
                       <TableCell className="text-muted-foreground text-xs">
                         {(page - 1) * PAGE_SIZE + idx + 1}
                       </TableCell>
-                      <TableCell className="font-medium">{warga.nama_kk}</TableCell>
+                      <TableCell className="font-medium">{warga.nama_lengkap || warga.nama_kk}<div className="text-xs text-muted-foreground">{(warga.jenis_identitas || 'belum_diverifikasi').replaceAll('_', ' ')} · {warga.aktif === false ? 'nonaktif' : 'aktif'}</div></TableCell>
                       <TableCell className="hidden lg:table-cell text-sm text-muted-foreground font-mono">{warga.nik ?? '-'}</TableCell>
                       <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{warga.alamat}</TableCell>
                       <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{warga.no_telp ?? '-'}</TableCell>
@@ -139,9 +141,7 @@ export function DataMasterWarga() {
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(warga)} title="Edit">
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteTarget(warga)} title="Hapus">
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
+                          {hasRole(['admin', 'petugas']) && <><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIdentityWarga(warga)} title="Verifikasi identitas"><UserCheck className="h-3.5 w-3.5" /></Button><Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setDeleteTarget(warga)}>{warga.aktif === false ? 'Aktifkan' : 'Nonaktifkan'}</Button></>}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -180,6 +180,7 @@ export function DataMasterWarga() {
         warga={historyWarga}
         onClose={() => setHistoryWarga(null)}
       />
+      {identityWarga && <PersonIdentityDialog person={identityWarga} onClose={() => setIdentityWarga(null)} />}
 
       {/* Import Dialog */}
       <WargaImportDialog open={importOpen} onOpenChange={setImportOpen} />
@@ -188,10 +189,9 @@ export function DataMasterWarga() {
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Warga</AlertDialogTitle>
+            <AlertDialogTitle>{deleteTarget?.aktif === false ? 'Aktifkan Data Orang' : 'Nonaktifkan Data Orang'}</AlertDialogTitle>
             <AlertDialogDescription>
-              Hapus data warga <strong>{deleteTarget?.nama_kk}</strong>?
-              Data warga tidak dapat dihapus jika memiliki riwayat transaksi.
+              {deleteTarget?.aktif === false ? 'Aktifkan kembali' : 'Nonaktifkan'} data <strong>{deleteTarget?.nama_lengkap || deleteTarget?.nama_kk}</strong>? Riwayat dan kewajiban tetap tersimpan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -200,7 +200,7 @@ export function DataMasterWarga() {
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Hapus
+              {deleteTarget?.aktif === false ? 'Aktifkan' : 'Nonaktifkan'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

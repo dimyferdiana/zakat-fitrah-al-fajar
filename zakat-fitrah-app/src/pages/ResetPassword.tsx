@@ -101,7 +101,7 @@ export function ResetPassword() {
         navigate('/login');
       }, 3000);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to reset password';
+      const errorMessage = err instanceof Error ? `${err.message}. Nasabah pinjaman perlu meminta pemulihan kepada admin.` : 'Gagal memperbarui password. Hubungi admin untuk pemulihan akun nasabah.';
       setError(errorMessage);
     } finally {
       setSubmitting(false);

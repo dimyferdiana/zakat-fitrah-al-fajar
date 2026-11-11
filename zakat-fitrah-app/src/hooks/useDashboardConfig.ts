@@ -38,7 +38,7 @@ const OFFLINE_WIDGETS: DashboardWidget[] = DEFAULT_DASHBOARD_WIDGETS.map((w, ind
 }));
 
 let offlineDashboards: DashboardConfig[] = [OFFLINE_DASHBOARD];
-let offlineWidgetsByDashboard: Record<string, DashboardWidget[]> = {
+const offlineWidgetsByDashboard: Record<string, DashboardWidget[]> = {
   [OFFLINE_DASHBOARD.id]: OFFLINE_WIDGETS,
 };
 

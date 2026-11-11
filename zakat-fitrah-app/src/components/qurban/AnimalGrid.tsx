@@ -1,3 +1,4 @@
+import { PrivateStorageImage } from '@/components/common/PrivateStorageImage'
 import { Plus, MoreVertical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -149,7 +150,7 @@ export function AnimalGrid({
                   <TableCell className="p-1.5">
                     <div className="h-10 w-10 rounded overflow-hidden bg-muted flex items-center justify-center shrink-0">
                       {animal.foto_url ? (
-                        <img
+                        <PrivateStorageImage
                           src={animal.foto_url}
                           alt={animal.nomor}
                           className="h-full w-full object-cover"

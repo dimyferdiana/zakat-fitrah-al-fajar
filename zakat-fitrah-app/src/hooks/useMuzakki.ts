@@ -2,7 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { offlineStore } from '@/lib/offlineStore';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
+const muzakkiClient = supabase as unknown as SupabaseClient;
 const OFFLINE_MODE = import.meta.env.VITE_OFFLINE_MODE === 'true';
 
 interface MuzakkiRecord {
@@ -68,6 +70,11 @@ export interface MuzakkiMaster {
   tanggal_lahir: string | null;
   keterangan: string | null;
   user_id: string | null;
+  nama_lengkap?: string | null;
+  jenis_identitas?: 'individu' | 'rumah_tangga' | 'belum_diverifikasi';
+  identitas_terverifikasi?: boolean;
+  aktif?: boolean;
+  rumah_tangga_id?: string | null;
 }
 
 interface MuzakkiListParams {
@@ -95,7 +102,7 @@ interface UpdateMuzakkiInput extends CreateMuzakkiInput {
 }
 
 export async function createMuzakkiRecord(input: CreateMuzakkiInput): Promise<MuzakkiMaster> {
-  const { data, error } = await (supabase.from('muzakki').insert as any)({
+  const { data, error } = await muzakkiClient.from('muzakki').insert({
     nama_kk: input.nama_kk,
     alamat: input.alamat,
     no_telp: input.no_telp || null,
@@ -112,7 +119,7 @@ export async function createMuzakkiRecord(input: CreateMuzakkiInput): Promise<Mu
 }
 
 export async function updateMuzakkiRecord(input: UpdateMuzakkiInput): Promise<MuzakkiMaster> {
-  const { data, error } = await (supabase.from('muzakki').update as any)({
+  const { data, error } = await muzakkiClient.from('muzakki').update({
     nama_kk: input.nama_kk,
     alamat: input.alamat,
     no_telp: input.no_telp || null,
@@ -130,6 +137,7 @@ export async function updateMuzakkiRecord(input: UpdateMuzakkiInput): Promise<Mu
 }
 
 interface CreatePembayaranInput {
+  muzakki_id?: string;
   nama_kk: string;
   alamat: string;
   no_telp?: string;
@@ -188,12 +196,15 @@ export function useMuzakkiList(params: MuzakkiListParams) {
         };
       }
 
-      let query = (supabase as any).from('muzakki').select('id, nama_kk, alamat, no_telp, nik, rt, rw, jenis_kelamin, tanggal_lahir, keterangan, user_id', { count: 'exact' });
+      let query = (supabase as unknown as SupabaseClient).from('muzakki').select('id, nama_kk, nama_lengkap, jenis_identitas, identitas_terverifikasi, aktif, rumah_tangga_id, alamat, no_telp, nik, rt, rw, jenis_kelamin, tanggal_lahir, keterangan, user_id', { count: 'exact' });
 
       if (params.search) {
-        query = query.or(
-          `nama_kk.ilike.%${params.search}%,alamat.ilike.%${params.search}%,no_telp.ilike.%${params.search}%`
-        );
+        const safeSearch = params.search.replace(/[,()%_]/g, ' ').trim();
+        if (safeSearch) {
+          query = query.or(
+            `nama_kk.ilike.%${safeSearch}%,nama_lengkap.ilike.%${safeSearch}%,alamat.ilike.%${safeSearch}%,no_telp.ilike.%${safeSearch}%`
+          );
+        }
       }
 
       const sortBy = params.sortBy || 'nama_kk';
@@ -214,6 +225,19 @@ export function useMuzakkiList(params: MuzakkiListParams) {
         count: count || 0,
       };
     },
+  });
+}
+
+export function useSetPersonActive() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      if (OFFLINE_MODE) throw new Error('Perubahan status data orang memerlukan koneksi server.');
+      const { error } = await (supabase as unknown as SupabaseClient).rpc('person_set_active', { p_person_id: id, p_active: active });
+      if (error) throw error;
+    },
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ['muzakki-list'] }); void queryClient.invalidateQueries({ queryKey: ['loan-customers'] }); toast.success('Status data orang diperbarui.'); },
+    onError: () => toast.error('Status data orang tidak dapat diperbarui.'),
   });
 }
 
@@ -290,38 +314,8 @@ export function useUpdateMuzakki() {
 }
 
 export function useDeleteMuzakki() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      if (OFFLINE_MODE) {
-        const hasHistory = offlineStore.pembayaran.some((item) => item.muzakki_id === id);
-        if (hasHistory) {
-          throw new Error('Muzakki memiliki riwayat transaksi dan tidak dapat dihapus.');
-        }
-
-        offlineStore.muzakki = offlineStore.muzakki.filter((item) => item.id !== id);
-        return;
-      }
-
-      const { count, error: historyError } = await supabase
-        .from('pembayaran_zakat')
-        .select('id', { count: 'exact', head: true })
-        .eq('muzakki_id', id);
-
-      if (historyError) throw historyError;
-
-      if ((count || 0) > 0) {
-        throw new Error('Muzakki memiliki riwayat transaksi dan tidak dapat dihapus.');
-      }
-
-      const { error } = await supabase.from('muzakki').delete().eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['muzakki-list'] });
-      toast.success('Data muzakki berhasil dihapus');
-    },
+  return useMutation<void, Error, string>({
+    mutationFn: async () => { throw new Error('Data orang tidak dapat dihapus permanen; gunakan penonaktifan.'); },
     onError: (error: Error) => {
       toast.error(`Gagal menghapus muzakki: ${error.message}`);
     },
@@ -473,7 +467,7 @@ export function usePembayaranList(params: PembayaranListParams) {
           .or(`nama_kk.ilike.%${params.search}%,alamat.ilike.%${params.search}%`);
 
         if (matchingMuzakki && matchingMuzakki.length > 0) {
-          const muzakkiIds = matchingMuzakki.map((m: any) => m.id);
+          const muzakkiIds = matchingMuzakki.map((m) => m.id);
           query = query.in('muzakki_id', muzakkiIds);
         } else {
           // No matching muzakki found, return empty result
@@ -499,8 +493,8 @@ export function usePembayaranList(params: PembayaranListParams) {
 
       // Fetch related sedekah records
       const pembayaranWithSedekah = await Promise.all(
-        (data || []).map(async (pembayaran: any) => {
-          const tanggalBayar = new Date(pembayaran.tanggal_bayar).toISOString().split('T')[0];
+        (data || []).map(async (pembayaran) => {
+          const tanggalBayar = new Date(pembayaran.tanggal_bayar ?? 0).toISOString().split('T')[0];
           const namaKk = pembayaran.muzakki?.nama_kk || '';
 
           // Query pemasukan_uang for sedekah (jenis_zakat = 'uang')
@@ -516,7 +510,7 @@ export function usePembayaranList(params: PembayaranListParams) {
               .ilike('catatan', `%Kelebihan pembayaran dari ${namaKk}%`)
               .maybeSingle();
             
-            sedekahUang = (pemasukanUang as any)?.jumlah_uang_rp || null;
+            sedekahUang = pemasukanUang?.jumlah_uang_rp || null;
           }
 
           // Query pemasukan_beras for sedekah (jenis_zakat = 'beras')
@@ -532,7 +526,7 @@ export function usePembayaranList(params: PembayaranListParams) {
               .ilike('catatan', `%Kelebihan pembayaran dari ${namaKk}%`)
               .maybeSingle();
             
-            sedekahBeras = (pemasukanBeras as any)?.jumlah_beras_kg || null;
+            sedekahBeras = pemasukanBeras?.jumlah_beras_kg || null;
           }
 
           return {
@@ -560,8 +554,8 @@ export function useCreatePembayaran() {
       if (OFFLINE_MODE) {
         const tahunZakat = offlineStore.getTahunZakatList().find((t) => t.id === input.tahun_zakat_id);
         const nilaiPerJiwa = input.jenis_zakat === 'beras' ? (tahunZakat?.nilai_beras_kg ?? 2.5) : (tahunZakat?.nilai_uang_rp ?? 45000);
-        let mzk = offlineStore.getMuzakkiAll().find((m) => m.nama_kk === input.nama_kk);
-        if (!mzk) mzk = offlineStore.addMuzakki({ nama_kk: input.nama_kk, alamat: input.alamat, no_telp: input.no_telp || null });
+        const mzk = input.muzakki_id ? offlineStore.getMuzakkiById(input.muzakki_id) : offlineStore.addMuzakki({ nama_kk: input.nama_kk, alamat: input.alamat, no_telp: input.no_telp || null });
+        if (!mzk) throw new Error('Data orang yang dipilih tidak ditemukan.');
         return offlineStore.addPembayaran({
           muzakki_id: mzk.id,
           tahun_zakat_id: input.tahun_zakat_id,
@@ -577,26 +571,16 @@ export function useCreatePembayaran() {
           tag_id: input.tag_id ?? null,
         });
       }
-      // First, check if muzakki exists by nama_kk
-      const { data: existingMuzakki } = await supabase
-        .from('muzakki')
-        .select('id')
-        .eq('nama_kk', input.nama_kk)
-        .maybeSingle();
-
       let muzakkiId: string;
 
-      if (existingMuzakki) {
-        // Use existing muzakki, but update alamat and no_telp
-        muzakkiId = (existingMuzakki as MuzakkiRecord).id;
-        await (supabase.from('muzakki').update as any)({
-          alamat: input.alamat,
-          no_telp: input.no_telp || null,
-          updated_at: new Date().toISOString(),
-        }).eq('id', muzakkiId);
+      if (input.muzakki_id) {
+        const { data: selected, error: selectError } = await supabase.from('muzakki').select('id').eq('id', input.muzakki_id).maybeSingle();
+        if (selectError) throw selectError;
+        if (!selected) throw new Error('Data orang yang dipilih tidak ditemukan.');
+        muzakkiId = (selected as { id: string }).id;
       } else {
         // Create new muzakki
-        const { data: newMuzakki, error: muzakkiError } = await (supabase.from('muzakki').insert as any)({
+        const { data: newMuzakki, error: muzakkiError } = await muzakkiClient.from('muzakki').insert({
           nama_kk: input.nama_kk,
           alamat: input.alamat,
           no_telp: input.no_telp || null,
@@ -653,7 +637,7 @@ export function useCreatePembayaran() {
         try {
           if (input.jenis_zakat === 'uang') {
             // Create zakat payment record
-            const { data: zakatData, error: zakatError } = await (supabase.from('pembayaran_zakat').insert as any)({
+            const { data: zakatData, error: zakatError } = await muzakkiClient.from('pembayaran_zakat').insert({
               muzakki_id: muzakkiId,
               tahun_zakat_id: input.tahun_zakat_id,
               tanggal_bayar: input.tanggal_bayar,
@@ -672,7 +656,7 @@ export function useCreatePembayaran() {
             if (zakatError) throw zakatError;
 
             // Create sedekah/infak record in pemasukan_uang
-            const { error: sedekahError } = await (supabase.from('pemasukan_uang').insert as any)({
+            const { error: sedekahError } = await muzakkiClient.from('pemasukan_uang').insert({
               tahun_zakat_id: input.tahun_zakat_id,
               muzakki_id: muzakkiId,
               kategori: 'infak_sedekah_uang',
@@ -689,7 +673,7 @@ export function useCreatePembayaran() {
           } else {
             // Beras payment split
             // Create zakat payment record
-            const { data: zakatData, error: zakatError } = await (supabase.from('pembayaran_zakat').insert as any)({
+            const { data: zakatData, error: zakatError } = await muzakkiClient.from('pembayaran_zakat').insert({
               muzakki_id: muzakkiId,
               tahun_zakat_id: input.tahun_zakat_id,
               tanggal_bayar: input.tanggal_bayar,
@@ -708,7 +692,7 @@ export function useCreatePembayaran() {
             if (zakatError) throw zakatError;
 
             // Create sedekah beras record in pemasukan_beras
-            const { error: sedekahError } = await (supabase.from('pemasukan_beras').insert as any)({
+            const { error: sedekahError } = await muzakkiClient.from('pemasukan_beras').insert({
               tahun_zakat_id: input.tahun_zakat_id,
               muzakki_id: muzakkiId,
               kategori: 'infak_sedekah_beras',
@@ -730,7 +714,7 @@ export function useCreatePembayaran() {
         }
       } else {
         // Normal payment without split
-        const { data, error } = await (supabase.from('pembayaran_zakat').insert as any)({
+        const { data, error } = await muzakkiClient.from('pembayaran_zakat').insert({
           muzakki_id: muzakkiId,
           tahun_zakat_id: input.tahun_zakat_id,
           tanggal_bayar: input.tanggal_bayar,
@@ -783,7 +767,7 @@ export function useUpdatePembayaran() {
         });
       }
       // Update muzakki
-      await (supabase.from('muzakki').update as any)({
+      await muzakkiClient.from('muzakki').update({
         nama_kk: input.nama_kk,
         alamat: input.alamat,
         no_telp: input.no_telp || null,
@@ -825,7 +809,7 @@ export function useUpdatePembayaran() {
       if (!user) throw new Error('User not authenticated');
 
       // Update pembayaran
-      const { data, error } = await (supabase.from('pembayaran_zakat').update as any)({
+      const { data, error } = await muzakkiClient.from('pembayaran_zakat').update({
         tanggal_bayar: input.tanggal_bayar,
         jumlah_jiwa: input.jumlah_jiwa,
         jenis_zakat: input.jenis_zakat,
@@ -910,7 +894,7 @@ export function usePembayaranDetail(id: string | null) {
 
 export interface MuzakkiZakatHistory {
   id: string;
-  tanggal_bayar: string;
+  tanggal_bayar: string | null;
   jenis_zakat: 'beras' | 'uang';
   jumlah_jiwa: number;
   jumlah_beras_kg: number | null;
@@ -929,15 +913,18 @@ export interface MuzakkiQurbanHistory {
 export interface MuzakkiHistory {
   zakat: MuzakkiZakatHistory[];
   qurban: MuzakkiQurbanHistory[];
+  sedekah: { id: string; receipt_number: string; category: string; amount: number; tanggal: string }[];
+  pemasukanUang: { id: string; tanggal: string; kategori: string; jumlah_uang_rp: number }[];
+  pemasukanBeras: { id: string; tanggal: string; kategori: string; jumlah_beras_kg: number }[];
+  distribusi: { id: string; tanggal_distribusi: string; jenis_distribusi: string; jumlah_beras_kg: number | null; jumlah_uang_rp: number | null }[];
+  pinjaman: { id: string; loan_number: string; status: string; principal: number; disbursement_date: string | null }[];
 }
 
-export function useMuzakkiHistory(muzakkiId: string | null) {
-  return useQuery({
-    queryKey: ['muzakki-history', muzakkiId],
-    queryFn: async (): Promise<MuzakkiHistory> => {
-      if (!muzakkiId) return { zakat: [], qurban: [] };
+export async function fetchMuzakkiHistory(muzakkiId: string | null, includeLoans = false): Promise<MuzakkiHistory> {
+      if (!muzakkiId) return { zakat: [], qurban: [], sedekah: [], pemasukanUang: [], pemasukanBeras: [], distribusi: [], pinjaman: [] };
+      const client = supabase as unknown as SupabaseClient;
 
-      const [zakatResult, qurbanResult] = await Promise.all([
+      const [zakatResult, qurbanResult, sedekahResult, mustahikResult, loanResult, uangResult, berasResult] = await Promise.all([
         supabase
           .from('pembayaran_zakat')
           .select('id, tanggal_bayar, jenis_zakat, jumlah_jiwa, jumlah_beras_kg, jumlah_uang_rp')
@@ -948,20 +935,26 @@ export function useMuzakkiHistory(muzakkiId: string | null) {
           .select('id, status_pembayaran, nominal, qurban_animals(nomor, jenis, qurban_events(nama))')
           .eq('muzakki_id', muzakkiId)
           .order('created_at', { ascending: false }),
+        client.from('bukti_sedekah').select('id,receipt_number,category,amount,tanggal').eq('donor_id', muzakkiId).order('tanggal', { ascending: false }),
+        client.from('mustahik').select('id,distribusi_zakat(id,tanggal_distribusi,jenis_distribusi,jumlah_beras_kg,jumlah_uang_rp)').eq('orang_id', muzakkiId),
+        includeLoans ? client.from('loan_customers').select('id,loans(id,loan_number,status,principal,disbursement_date)').eq('person_id', muzakkiId).maybeSingle() : Promise.resolve({ data: null, error: null }),
+        client.from('pemasukan_uang').select('id,tanggal,kategori,jumlah_uang_rp').eq('muzakki_id', muzakkiId).order('tanggal', { ascending: false }),
+        client.from('pemasukan_beras').select('id,tanggal,kategori,jumlah_beras_kg').eq('muzakki_id', muzakkiId).order('tanggal', { ascending: false }),
       ]);
 
-      if (zakatResult.error) throw zakatResult.error;
+      for (const result of [zakatResult, qurbanResult, sedekahResult, mustahikResult, loanResult, uangResult, berasResult]) if (result.error) throw result.error;
 
-      const zakat: MuzakkiZakatHistory[] = (zakatResult.data || []).map((r: any) => ({
+      const zakat: MuzakkiZakatHistory[] = (zakatResult.data || []).map(r => ({
         id: r.id,
         tanggal_bayar: r.tanggal_bayar,
-        jenis_zakat: r.jenis_zakat,
+        jenis_zakat: r.jenis_zakat as 'beras' | 'uang',
         jumlah_jiwa: r.jumlah_jiwa,
         jumlah_beras_kg: r.jumlah_beras_kg,
         jumlah_uang_rp: r.jumlah_uang_rp,
       }));
 
-      const qurban: MuzakkiQurbanHistory[] = (qurbanResult.data || []).map((r: any) => ({
+      const qurbanRows = (qurbanResult.data || []) as unknown as { id: string; status_pembayaran: string; nominal: number | null; qurban_animals: { nomor: string; jenis: string; qurban_events: { nama: string } | null } | null }[];
+      const qurban: MuzakkiQurbanHistory[] = qurbanRows.map(r => ({
         id: r.id,
         event_nama: r.qurban_animals?.qurban_events?.nama ?? '-',
         animal_nomor: r.qurban_animals?.nomor ?? '-',
@@ -970,8 +963,17 @@ export function useMuzakkiHistory(muzakkiId: string | null) {
         nominal: r.nominal ?? 0,
       }));
 
-      return { zakat, qurban };
-    },
+      const relatedMustahik = (mustahikResult.data ?? []) as { distribusi_zakat: MuzakkiHistory['distribusi'] | null }[];
+      const customer = loanResult.data as { loans: MuzakkiHistory['pinjaman'] | null } | null;
+      return { zakat, qurban, sedekah: (sedekahResult.data ?? []) as MuzakkiHistory['sedekah'],
+        pemasukanUang: (uangResult.data ?? []) as MuzakkiHistory['pemasukanUang'], pemasukanBeras: (berasResult.data ?? []) as MuzakkiHistory['pemasukanBeras'],
+        distribusi: relatedMustahik.flatMap(item => item.distribusi_zakat ?? []), pinjaman: customer?.loans ?? [] };
+}
+
+export function useMuzakkiHistory(muzakkiId: string | null, includeLoans = false) {
+  return useQuery({
+    queryKey: ['muzakki-history', muzakkiId, includeLoans],
+    queryFn: () => fetchMuzakkiHistory(muzakkiId, includeLoans),
     enabled: !!muzakkiId,
   });
 }

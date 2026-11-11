@@ -122,6 +122,7 @@ export function SedekahReceiptForm({ editData, onSuccess, onCancel }: SedekahRec
   }, [editData, form]);
 
   const amount = form.watch('amount') || 0;
+  const donorId = form.watch('donorId');
   const category = form.watch('category');
   const categoryCustom = form.watch('categoryCustom');
   const terbilangText = amount > 0 ? getTerbilangText(amount) : '';
@@ -206,11 +207,12 @@ export function SedekahReceiptForm({ editData, onSuccess, onCancel }: SedekahRec
         return;
       }
 
-      const donor = await upsertDonor.mutateAsync({
+      const donor = values.donorId || !isEditMode ? await upsertDonor.mutateAsync({
+        personId: values.donorId,
         nama: values.donorName,
         alamat: values.donorAddress,
         no_telp: values.donorPhone,
-      });
+      }) : null;
 
       const categoryKey = normalizeCategory(finalCategory);
 
@@ -221,7 +223,7 @@ export function SedekahReceiptForm({ editData, onSuccess, onCancel }: SedekahRec
           payload: {
             category: finalCategory,
             category_key: categoryKey,
-            donor_id: donor?.id ?? editData.donor_id,
+            donor_id: donor?.id ?? null,
             donor_name: values.donorName,
             donor_address: values.donorAddress,
             donor_phone: values.donorPhone || null,
@@ -355,7 +357,7 @@ export function SedekahReceiptForm({ editData, onSuccess, onCancel }: SedekahRec
                     onClick={() => handleDonorSelect(donor)}
                   >
                     <div className="font-medium">{donor.nama}</div>
-                    <div className="text-sm text-slate-600">{donor.no_telp}</div>
+                    <div className="text-sm text-slate-600">{donor.alamat}{donor.no_telp && ` · ${donor.no_telp}`}</div>
                   </button>
                 ))}
               </div>
@@ -368,11 +370,13 @@ export function SedekahReceiptForm({ editData, onSuccess, onCancel }: SedekahRec
             )}
           </div>
 
-          {selectedDonor && (
+          {donorId && (
             <div className="text-sm text-slate-700 bg-green-50 p-2 rounded mb-3">
-              ✓ Donor terpilih: <strong>{selectedDonor.nama}</strong>
+              Donor terhubung: <strong>{selectedDonor?.nama || form.getValues('donorName')}</strong>{' '}
+              <Button type="button" variant="outline" size="sm" onClick={() => { setSelectedDonor(null); form.setValue('donorId', undefined); }}>Lepaskan pilihan</Button>
             </div>
           )}
+          {!donorId && !isEditMode && <p className="mb-3 text-sm text-muted-foreground">Jika tidak memilih data yang sudah ada, data orang baru akan dibuat saat bukti disimpan.</p>}
         </div>
 
         <div className="space-y-4">

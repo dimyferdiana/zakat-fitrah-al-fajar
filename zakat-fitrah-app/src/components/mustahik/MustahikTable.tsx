@@ -28,7 +28,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Edit, Power, Search, ChevronLeft, ChevronRight, History, Trash2 } from 'lucide-react';
+import { Edit, Power, Search, ChevronLeft, ChevronRight, History } from 'lucide-react';
 import type { Mustahik, KategoriMustahik } from '@/hooks/useMustahik';
 
 interface MustahikTableProps {
@@ -39,7 +39,6 @@ interface MustahikTableProps {
   onEdit: (mustahik: Mustahik) => void;
   onToggleActive: (id: string, currentStatus: boolean) => void;
   onViewHistory: (mustahik: Mustahik) => void;
-  onDelete: (id: string) => void;
   onSearch: (search: string) => void;
   onFilterKategori: (kategoriId: string) => void;
   onFilterStatus: (status: string) => void;
@@ -57,7 +56,6 @@ export function MustahikTable({
   onEdit,
   onToggleActive,
   onViewHistory,
-  onDelete,
   onSearch,
   onFilterKategori,
   onFilterStatus,
@@ -70,7 +68,7 @@ export function MustahikTable({
   const [kategoriFilter, setKategoriFilter] = useState('semua');
   const [statusFilter, setStatusFilter] = useState('semua');
   const [toggleId, setToggleId] = useState<string | null>(null);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [recentThreshold] = useState(() => Date.now() - 7 * 24 * 60 * 60 * 1000);
 
   // Debounced search
   useEffect(() => {
@@ -202,7 +200,7 @@ export function MustahikTable({
                       )}
                       {!mustahik.is_data_lama &&
                         new Date(mustahik.created_at).getTime() >
-                          Date.now() - 7 * 24 * 60 * 60 * 1000 && (
+                          recentThreshold && (
                           <Badge className="bg-green-600 text-xs">Penerima Baru</Badge>
                         )}
                     </div>
@@ -259,14 +257,6 @@ export function MustahikTable({
                             mustahik.is_active ? 'text-red-600' : 'text-green-600'
                           }`}
                         />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeleteId(mustahik.id)}
-                        title="Hapus"
-                      >
-                        <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
                     </div>
                   </TableCell>
@@ -334,32 +324,6 @@ export function MustahikTable({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Mustahik</AlertDialogTitle>
-            <AlertDialogDescription>
-              Data mustahik akan dihapus permanen. Jika sudah ada distribusi terkait,
-              penghapusan akan ditolak oleh sistem.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700"
-              onClick={() => {
-                if (deleteId) {
-                  onDelete(deleteId);
-                  setDeleteId(null);
-                }
-              }}
-            >
-              Hapus
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

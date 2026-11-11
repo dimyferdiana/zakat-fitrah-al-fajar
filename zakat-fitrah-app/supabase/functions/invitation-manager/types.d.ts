@@ -24,10 +24,10 @@ declare global {
   type HeadersInit = string[][] | Record<string, string>;
 
   const console: {
-    log(...args: any[]): void;
-    error(...args: any[]): void;
-    warn(...args: any[]): void;
-    info(...args: any[]): void;
+    log(...args: unknown[]): void;
+    error(...args: unknown[]): void;
+    warn(...args: unknown[]): void;
+    info(...args: unknown[]): void;
   };
 }
 

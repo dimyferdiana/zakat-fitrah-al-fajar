@@ -21,6 +21,7 @@ import {
   CalendarDays,
   List,
   Truck,
+  HandCoins,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import type { UserRole } from '@/types/database.types'
@@ -207,6 +208,11 @@ const qurbanNavSections: NavSection[] = [
   },
 ]
 
+const loanNavSections: NavSection[] = [{
+  title: 'Pinjaman Jamaah',
+  items: [{ label: 'Nasabah & Pinjaman', path: '/pinjaman', icon: HandCoins, roles: ['admin', 'petugas'] }],
+}]
+
 const dataMasterNavSections: NavSection[] = [
   {
     title: 'Data Master',
@@ -240,7 +246,7 @@ const dataMasterNavSections: NavSection[] = [
 export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user, logout, hasRole } = useAuth()
+  const { user, logout, hasRole, canSwitchCustomer, switchMode } = useAuth()
   const { activeApp } = useAppStore()
 
   const handleLogout = async () => {
@@ -251,6 +257,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const allNavSections =
     activeApp === 'zakat' ? zakatNavSections :
     activeApp === 'qurban' ? qurbanNavSections :
+    activeApp === 'pinjaman' ? loanNavSections :
     dataMasterNavSections
 
   const filteredNavSections = allNavSections
@@ -379,6 +386,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           <div className="flex flex-1 items-center gap-2">
             <h1 className="text-lg font-semibold">{currentPageTitle}</h1>
           </div>
+          {canSwitchCustomer && <button className="rounded border px-3 py-2 text-sm" onClick={() => void switchMode('customer').catch(() => window.location.assign('/login'))}>Mode nasabah</button>}
           {/* Mobile user menu */}
           <div className="flex items-center gap-2 md:hidden">
             <DropdownMenu>

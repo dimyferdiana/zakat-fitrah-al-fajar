@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -143,13 +143,16 @@ export function PemasukanForm({
     }
   }, [accountOptions, form]);
 
+  const fallbackAccountId = useRef(accountOptions[0]?.id || '');
+  useEffect(() => { fallbackAccountId.current = accountOptions[0]?.id || ''; }, [accountOptions]);
+
   // Reset form when defaultValues change (e.g., when editing a different item)
   useEffect(() => {
     if (defaultValues) {
       form.reset({
         tahun_zakat_id: defaultValues.tahun_zakat_id,
         kategori: defaultValues.kategori,
-        account_id: defaultValues.account_id || accountOptions[0]?.id || '',
+        account_id: defaultValues.account_id || fallbackAccountId.current,
         jumlah_uang_rp: defaultValues.jumlah_uang_rp,
         tanggal: new Date(defaultValues.tanggal),
         catatan: defaultValues.catatan || '',

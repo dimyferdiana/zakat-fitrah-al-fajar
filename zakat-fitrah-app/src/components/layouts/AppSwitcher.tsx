@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronsUpDown, Check, Wheat, Beef, Database } from 'lucide-react'
+import { ChevronsUpDown, Check, Wheat, Beef, Database, HandCoins } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,8 +16,9 @@ import {
 } from '@/components/ui/sidebar'
 import { useAppStore } from '@/store/appStore'
 import { BRANDING } from '@/lib/branding'
+import { useAuth } from '@/lib/auth'
 
-type AppMode = 'zakat' | 'qurban' | 'data-master'
+type AppMode = 'zakat' | 'qurban' | 'data-master' | 'pinjaman'
 
 interface AppConfig {
   mode: AppMode
@@ -49,18 +50,26 @@ const apps: AppConfig[] = [
     icon: Database,
     defaultPath: '/data-master/warga',
   },
+  {
+    mode: 'pinjaman',
+    name: 'Pinjaman Jamaah',
+    description: 'Pencatatan Pinjaman',
+    icon: HandCoins,
+    defaultPath: '/pinjaman',
+  },
 ]
 
 export function AppSwitcher() {
   const navigate = useNavigate()
   const { activeApp, setActiveApp } = useAppStore()
+  const { user } = useAuth()
 
   const currentApp = apps.find((a) => a.mode === activeApp) ?? apps[0]
   const CurrentIcon = currentApp.icon
 
   const handleSelect = (app: AppConfig) => {
     setActiveApp(app.mode)
-    navigate(app.defaultPath)
+    navigate(app.mode === 'pinjaman' && user?.role === 'viewer' ? '/pinjaman/ringkasan' : app.defaultPath)
   }
 
   return (
@@ -112,6 +121,7 @@ export function AppSwitcher() {
                 </DropdownMenuItem>
               )
             })}
+            {(user?.role === 'admin' || user?.role === 'petugas') && <DropdownMenuItem onClick={() => { setActiveApp('pinjaman'); navigate('/pinjaman/ringkasan') }}>Ringkasan &amp; izin pinjaman</DropdownMenuItem>}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ComponentProps } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,6 +24,7 @@ import { DistribusiTable } from '@/components/distribusi/DistribusiTable';
 import { DistribusiForm } from '@/components/distribusi/DistribusiForm';
 import { BuktiTerima } from '@/components/distribusi/BuktiTerima';
 import {
+  type Distribusi as DistribusiRecord,
   useDistribusiList,
   useStokCheck,
   useCreateDistribusi,
@@ -39,14 +40,14 @@ export default function Distribusi() {
   const [selectedTagId, setSelectedTagId] = useState<string | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
-  const [printData, setPrintData] = useState<any>(null);
+  const [printData, setPrintData] = useState<ComponentProps<typeof BuktiTerima>['distribusi']>(null);
   const [selesaiId, setSelesaiId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   // Queries
   const { data: tahunZakatData, isLoading: loadingTahunZakat } = useTahunZakatList();
   const tahunZakatList = tahunZakatData || [];
-  const activeTahun = tahunZakatList.find((t: any) => t.is_active);
+  const activeTahun = tahunZakatList.find((t) => t.is_active);
 
   // Set default selected tahun to active year
   if (selectedTahun === '' && activeTahun) {
@@ -78,7 +79,7 @@ export default function Distribusi() {
     setFormOpen(false);
   };
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: Parameters<ComponentProps<typeof DistribusiForm>['onSubmit']>[0]) => {
     await createMutation.mutateAsync({
       mustahik_id: data.mustahik_id,
       tahun_zakat_id: selectedTahun,
@@ -90,8 +91,8 @@ export default function Distribusi() {
     handleCloseForm();
   };
 
-  const handlePrint = (distribusi: any) => {
-    setPrintData(distribusi);
+  const handlePrint = (distribusi: DistribusiRecord) => {
+    setPrintData(distribusi as unknown as ComponentProps<typeof BuktiTerima>['distribusi']);
   };
 
   const handleMarkSelesai = async () => {
@@ -161,7 +162,7 @@ export default function Distribusi() {
               <SelectValue placeholder="Pilih tahun zakat" />
             </SelectTrigger>
             <SelectContent>
-              {(tahunZakatList as any).map((tahun: any) => (
+              {tahunZakatList.map((tahun) => (
                 <SelectItem key={tahun.id} value={tahun.id}>
                   {tahun.tahun_hijriah} ({tahun.tahun_masehi})
                   {tahun.is_active && ' - Aktif'}

@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus, Pencil, Trash2, Search } from 'lucide-react'
+import { Plus, Pencil, Search } from 'lucide-react'
+import { MustahikLinkDialog } from '@/components/data-master/MustahikLinkDialog'
+import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -14,10 +16,6 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from '@/components/ui/form'
 import {
@@ -28,7 +26,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import {
   useMustahikList, useKategoriMustahik, useCreateMustahik,
-  useUpdateMustahik, useToggleMustahikActive, useDeleteMustahik,
+  useUpdateMustahik, useToggleMustahikActive,
 } from '@/hooks/useMustahik'
 import type { Mustahik, CreateMustahikInput } from '@/hooks/useMustahik'
 
@@ -47,13 +45,14 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>
 
 export function DataMasterMustahik() {
+  const { hasRole } = useAuth()
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<'semua' | 'aktif' | 'non-aktif'>('semua')
   const [page, setPage] = useState(1)
   const [formOpen, setFormOpen] = useState(false)
   const [editingMustahik, setEditingMustahik] = useState<Mustahik | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<Mustahik | null>(null)
+  const [mappingTarget, setMappingTarget] = useState<Mustahik | null>(null)
 
   const { data: listData, isLoading } = useMustahikList({
     search: debouncedSearch,
@@ -66,7 +65,6 @@ export function DataMasterMustahik() {
   const createMustahik = useCreateMustahik()
   const updateMustahik = useUpdateMustahik()
   const toggleActive = useToggleMustahikActive()
-  const deleteMustahik = useDeleteMustahik()
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -116,12 +114,6 @@ export function DataMasterMustahik() {
       await createMustahik.mutateAsync(input)
     }
     setFormOpen(false)
-  }
-
-  const handleDelete = async () => {
-    if (!deleteTarget) return
-    await deleteMustahik.mutateAsync(deleteTarget.id)
-    setDeleteTarget(null)
   }
 
   const isPending = createMustahik.isPending || updateMustahik.isPending
@@ -189,7 +181,7 @@ export function DataMasterMustahik() {
                   listData.data.map((m, idx) => (
                     <TableRow key={m.id}>
                       <TableCell className="text-muted-foreground text-xs">{(page - 1) * PAGE_SIZE + idx + 1}</TableCell>
-                      <TableCell className="font-medium">{m.nama}</TableCell>
+                      <TableCell className="font-medium">{m.nama}<div className="text-xs text-muted-foreground">{(m as Mustahik).orang_id ? 'Terhubung ke data orang' : 'Belum dipetakan'}</div></TableCell>
                       <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">{m.alamat}</TableCell>
                       <TableCell className="hidden md:table-cell">
                         {m.kategori_mustahik && (
@@ -204,6 +196,7 @@ export function DataMasterMustahik() {
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-1">
+                          {hasRole(['admin', 'petugas']) && !(m as Mustahik).orang_id && <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setMappingTarget(m as Mustahik)}>Hubungkan</Button>}
                           <Button
                             variant="ghost" size="sm"
                             className="h-7 text-xs"
@@ -213,9 +206,6 @@ export function DataMasterMustahik() {
                           </Button>
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleOpenEdit(m as Mustahik)}>
                             <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteTarget(m as Mustahik)}>
-                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       </TableCell>
@@ -241,6 +231,7 @@ export function DataMasterMustahik() {
       )}
 
       {/* Form Dialog */}
+      {mappingTarget && <MustahikLinkDialog beneficiary={mappingTarget} onClose={() => setMappingTarget(null)} />}
       <Dialog open={formOpen} onOpenChange={(open) => { setFormOpen(open); if (!open) setEditingMustahik(null) }}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -318,26 +309,6 @@ export function DataMasterMustahik() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Mustahik</AlertDialogTitle>
-            <AlertDialogDescription>
-              Hapus data mustahik <strong>{deleteTarget?.nama}</strong>? Tindakan ini tidak dapat dibatalkan.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Hapus
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }
