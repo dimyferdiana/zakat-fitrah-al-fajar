@@ -55,7 +55,7 @@ const apps: AppConfig[] = [
     name: 'Pinjaman Jamaah',
     description: 'Pencatatan Pinjaman',
     icon: HandCoins,
-    defaultPath: '/pinjaman',
+    defaultPath: '/pinjaman/dashboard',
   },
 ]
 
@@ -79,16 +79,17 @@ export function AppSwitcher() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
+              aria-label={`Pilih aplikasi, ${currentApp.name}`}
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+              <div className="flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                 <CurrentIcon className="size-4" />
               </div>
-              <div className="flex flex-col gap-0.5 leading-none">
+              <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                 <span className="font-semibold">{currentApp.name}</span>
                 <span className="text-xs text-sidebar-foreground/70">{currentApp.description}</span>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -121,7 +122,6 @@ export function AppSwitcher() {
                 </DropdownMenuItem>
               )
             })}
-            {(user?.role === 'admin' || user?.role === 'petugas') && <DropdownMenuItem onClick={() => { setActiveApp('pinjaman'); navigate('/pinjaman/ringkasan') }}>Ringkasan &amp; izin pinjaman</DropdownMenuItem>}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

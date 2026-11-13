@@ -20,8 +20,9 @@ test('admin and customer loan pages remain usable on a narrow screen', async ({ 
     const adminPage=await adminContext.newPage(), borrowerPage=await borrowerContext.newPage();
     await login(adminPage,admin); await expect(adminPage).toHaveURL(/\/dashboard$/);
     await adminPage.goto('/pinjaman');
-    await expect(adminPage.getByRole('heading',{name:'Pinjaman Jamaah',exact:true})).toBeVisible();
-    await expect(adminPage.getByText('Buat draft pinjaman',{exact:true})).toBeVisible();
+    await expect(adminPage.getByRole('heading',{name:'Ringkasan Pinjaman',exact:true})).toBeVisible();
+    await adminPage.goto('/pinjaman/baru');
+    await expect(adminPage.getByText('Buat draf pinjaman',{exact:true})).toBeVisible();
     await expect.poll(() => adminPage.evaluate(() => document.documentElement.scrollWidth-window.innerWidth)).toBeLessThanOrEqual(1);
     await login(borrowerPage,borrower);
     await expect(borrowerPage.getByRole('heading',{name:'Pinjaman Saya',exact:true})).toBeVisible();

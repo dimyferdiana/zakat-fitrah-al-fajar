@@ -21,15 +21,17 @@ test('admin creates account; customer login, recovery, dual mode and viewer acce
     contexts.push(adminContext,customerContext,viewerContext);
     const adminPage = await adminContext.newPage(), customerPage = await customerContext.newPage(), viewerPage = await viewerContext.newPage();
     await login(adminPage,admin.email,admin.password); await expect(adminPage).toHaveURL(/\/dashboard$/);
-    await adminPage.goto('/pinjaman'); await expect(adminPage.getByRole('heading',{name:'Pinjaman Jamaah',exact:true})).toBeVisible();
+    await adminPage.goto(`/pinjaman/nasabah/${created.id}`); await expect(adminPage.getByRole('heading',{name:'Profil Nasabah',exact:true})).toBeVisible();
+    await adminPage.getByRole('tab',{name:'Akses Akun'}).click();
     const accountPanel = adminPage.getByTestId('loan-account-panel');
     await expect(accountPanel).toBeVisible();
     const email = `${randomUUID()}@example.test`, password = `B-${randomUUID()}-1z`, replacement = `C-${randomUUID()}-2z`;
-    await accountPanel.getByRole('combobox',{name:'Nasabah',exact:true}).first().selectOption(created.id);
     await accountPanel.getByLabel('Email',{exact:true}).fill(email);
     await accountPanel.getByLabel('Password awal',{exact:true}).fill(password);
     await accountPanel.getByRole('button',{name:'Buat akun',exact:true}).click();
     await expect(adminPage.getByText('Akun nasabah berhasil dibuat.',{exact:true})).toBeVisible();
+    expect(adminPage.url()).not.toContain(password);
+    expect(await adminPage.evaluate(secret => Object.values(localStorage).some(value => value.includes(secret)) || Object.values(sessionStorage).some(value => value.includes(secret)),password)).toBe(false);
     const linked = check(await f.service.from('loan_customers').select('auth_user_id').eq('id',created.id).single());
     f.users.push(linked.auth_user_id);
     const ownLoan = await f.loan(created.id,admin.id);
@@ -43,7 +45,6 @@ test('admin creates account; customer login, recovery, dual mode and viewer acce
     await customerPage.goto('/data-master/warga'); await expect(customerPage).toHaveURL(/\/portal-pinjaman$/);
 
     const recovery = adminPage.getByRole('heading',{name:'Pemulihan akun nasabah',exact:true}).locator('..');
-    await recovery.getByRole('combobox',{name:'Nasabah',exact:true}).selectOption(created.id);
     await recovery.getByLabel('Password baru',{exact:true}).fill(replacement);
     await recovery.getByRole('button',{name:'Simpan perubahan akses',exact:true}).click();
     await expect(adminPage.getByText('Akun diperbarui. Nasabah harus masuk kembali.',{exact:true})).toBeVisible();
@@ -52,19 +53,30 @@ test('admin creates account; customer login, recovery, dual mode and viewer acce
     await customerPage.getByLabel('Password',{exact:true}).fill(replacement); await customerPage.getByRole('button',{name:'Login',exact:true}).click();
     await expect(customerPage).toHaveURL(/\/portal-pinjaman$/);
     const nextEmail = `${randomUUID()}@example.test`;
-    await recovery.getByRole('combobox',{name:'Tindakan',exact:true}).selectOption('recover_email');
+    await recovery.getByRole('combobox',{name:'Tindakan',exact:true}).click();
+    await adminPage.getByRole('option',{name:'Ubah email'}).click();
     await recovery.getByLabel('Email baru',{exact:true}).fill(nextEmail);
     await recovery.getByRole('button',{name:'Simpan perubahan akses',exact:true}).click();
     await expect.poll(async () => (await f.service.auth.admin.getUserById(linked.auth_user_id)).data.user.email).toBe(nextEmail);
     await customerPage.reload(); await expect(customerPage).toHaveURL(/\/login$/);
     await login(customerPage,nextEmail,replacement); await expect(customerPage).toHaveURL(/\/portal-pinjaman$/);
 
+    await recovery.getByLabel('Email baru',{exact:true}).fill(admin.email);
+    await recovery.getByRole('button',{name:'Simpan perubahan akses',exact:true}).click();
+    await expect(adminPage.getByText('Akses akun ditangguhkan.')).toBeVisible();
+    await recovery.getByRole('combobox',{name:'Tindakan',exact:true}).click();
+    await adminPage.getByRole('option',{name:'Atur ulang password'}).click();
+    await recovery.getByLabel('Password baru',{exact:true}).fill(replacement);
+    await recovery.getByRole('button',{name:'Simpan perubahan akses',exact:true}).click();
+    await expect(adminPage.getByText('Akun sudah terhubung.')).toBeVisible();
+
     const dual = await f.customer(null,await f.person('Task3 Pengurus Nasabah'));
     const dualLoan = await f.loan(dual.id,admin.id);
-    await adminPage.reload();
+    await adminPage.goto(`/pinjaman/nasabah/${dual.id}`);
+    await adminPage.getByRole('tab',{name:'Akses Akun'}).click();
     const staffLink = adminPage.getByRole('heading',{name:'Pengurus yang juga nasabah',exact:true}).locator('..');
-    await staffLink.getByRole('combobox',{name:'Identitas nasabah',exact:true}).selectOption(dual.id);
-    await staffLink.getByRole('combobox',{name:'Akun pengurus',exact:true}).selectOption(admin.id);
+    await staffLink.getByRole('combobox',{name:'Akun pengurus',exact:true}).click();
+    await adminPage.getByRole('option',{name:new RegExp(admin.email)}).click();
     await staffLink.getByRole('button',{name:'Tautkan akun pengurus',exact:true}).click();
     await expect(adminPage.getByText(/Akun pengurus ditautkan/)).toBeVisible(); await adminPage.reload();
     await adminPage.getByRole('button',{name:'Mode nasabah',exact:true}).click();

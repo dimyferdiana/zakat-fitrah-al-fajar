@@ -61,7 +61,7 @@ export function PaginationBar({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
       {/* Left: info + page size */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <span className="text-muted-foreground whitespace-nowrap">
           Halaman <span className="font-medium text-foreground">{currentPage}</span> dari{' '}
           <span className="font-medium text-foreground">{totalPages}</span>{' '}
@@ -75,7 +75,7 @@ export function PaginationBar({
             value={String(pageSize)}
             onValueChange={(v) => onPageSizeChange(Number(v))}
           >
-            <SelectTrigger className="h-8 w-[70px] text-xs">
+            <SelectTrigger aria-label="Jumlah item per halaman" className="h-8 w-[70px] text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -111,6 +111,8 @@ export function PaginationBar({
               key={p}
               variant={p === currentPage ? 'default' : 'outline'}
               size="sm"
+              aria-current={p === currentPage ? 'page' : undefined}
+              aria-label={`Halaman ${p}`}
               className="h-8 w-8 p-0"
               onClick={() => onPageChange(p)}
             >

@@ -9,6 +9,8 @@ import { downloadLoanReceipt } from '@/lib/loanReceipt';
 import { downloadLoanDocument } from '@/lib/loanDocuments';
 import { toast } from 'sonner';
 import { LoanPaymentClaim } from '@/components/loans/LoanPaymentClaim';
+import { loanDate, loanStatus } from '@/lib/loanDisplay';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface PortalLoan {
   id: string;
@@ -70,7 +72,7 @@ export function LoanCustomerPortal() {
   const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-4 sm:p-8">
-      <header className="flex items-center justify-between gap-4">
+      <header className="flex flex-wrap items-center justify-between gap-4">
         <div><h1 className="text-2xl font-semibold">Pinjaman Saya</h1><p className="text-sm text-muted-foreground">Ringkasan pinjaman jamaah</p></div>
         <div className="flex gap-2">{canSwitchStaff && <Button variant="outline" onClick={() => void switchMode('staff').catch(() => toast.error('Mode tidak dapat diganti. Silakan masuk kembali.'))}>Mode pengurus</Button>}<Button variant="outline" onClick={() => void logout()}>Keluar</Button></div>
       </header>
@@ -98,17 +100,17 @@ export function LoanCustomerPortal() {
         }
         return (
           <Card key={loan.id}>
-            <CardHeader><CardTitle>{loan.loan_number}</CardTitle><p className="text-sm text-muted-foreground">{loan.status === 'paid' ? 'Lunas' : loan.status === 'needs_reconciliation' ? 'Aktif — pemulihan akibat koreksi' : 'Aktif'}</p></CardHeader>
+            <CardHeader><CardTitle>{loan.loan_number}</CardTitle><p className="text-sm text-muted-foreground">{loanStatus(loan.status)}{loan.status === 'needs_reconciliation' && ' — pemulihan akibat koreksi'}</p></CardHeader>
             <CardContent className="space-y-2 text-sm">
               <p>Pokok: {formatMoney(Number(loan.principal))}</p>
               {position ? <><p>Sisa pokok: <strong>{formatMoney(position.remaining)}</strong></p><p>Tunggakan: {formatMoney(position.overdue)}</p><p>Tagihan hari ini: {formatMoney(position.dueToday)}</p><p>Hari keterlambatan: {position.daysPastDue}</p><p>Transaksi terkonfirmasi: {position.paymentsCount}{loan.migration_cutoff ? ' (yang diketahui)' : ''}</p><p>Angsuran lunas: {position.settledInstallments} dari {installments.length}</p></> : <p>Rincian saldo belum tersedia. Hubungi pengurus.</p>}
               {loan.migration_cutoff && <p>Data sebelum {loan.migration_cutoff} mungkin belum lengkap.</p>}
-              {position && position.remaining > 0 && (() => { const next=position.installments.find(item=>item.remaining>0); return next ? <p className="rounded border p-2">Pengingat tagihan: {next.dueDate} · sisa {formatMoney(next.remaining)}{next.dueDate < today ? ' (sudah jatuh tempo)' : ''}.</p> : null; })()}
+              {position && position.remaining > 0 && (() => { const next=position.installments.find(item=>item.remaining>0); return next ? <p className="rounded border p-2">Pengingat tagihan: {loanDate(next.dueDate)} · sisa {formatMoney(next.remaining)}{next.dueDate < today ? ' (sudah jatuh tempo)' : ''}.</p> : null; })()}
               {(loan.status === 'active' || loan.status === 'needs_reconciliation') && position && <LoanPaymentClaim loanId={loan.id} />}
               <CustomerDocuments loanId={loan.id} />
               <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => void downloadLoanDocument(loan.id,'disbursement').catch(() => toast.error('Ringkasan belum tersedia.'))}>Unduh ringkasan pencairan</Button><Button variant="outline" onClick={() => void downloadLoanDocument(loan.id,'card').catch(() => toast.error('Kartu pinjaman belum tersedia.'))}>Unduh kartu pinjaman</Button></div>
-              {position && <div className="overflow-x-auto pt-3"><h2 className="font-semibold">Jadwal angsuran</h2><table className="w-full"><thead><tr className="border-b text-left"><th className="p-2">Jatuh tempo</th><th>Nominal</th><th>Sisa</th></tr></thead><tbody>{installments.map((item, index) => <tr key={item.installment_number} className="border-b"><td className="p-2">{item.due_date}</td><td>{formatMoney(Number(item.amount))}</td><td>{formatMoney(position!.installments[index].remaining)}</td></tr>)}</tbody></table></div>}
-              <div className="pt-3"><h2 className="font-semibold">Riwayat pembayaran</h2>{loan.loan_payments.length === 0 ? <p>Belum ada pembayaran yang tercatat.</p> : <ul className="divide-y">{[...loan.loan_payments].sort((a, b) => b.payment_date.localeCompare(a.payment_date)).map(payment => <li className="space-y-2 py-2" key={payment.id}><p>{payment.payment_date} · {formatMoney(Number(payment.amount))} · {({ confirmed: 'Terkonfirmasi', pending: 'Menunggu pemeriksaan', rejected: 'Ditolak', cancelled: 'Dibatalkan' })[payment.status]}</p>{payment.customer_note && <p>Catatan Anda: {payment.customer_note}</p>}{payment.status === 'rejected' && payment.rejection_reason && <p>Alasan: {payment.rejection_reason}</p>}{(payment.status === 'confirmed' || payment.status === 'cancelled') && <Button variant="outline" onClick={() => void downloadLoanReceipt(payment.id, false).catch(() => toast.error('Tanda terima belum tersedia. Hubungi pengurus.'))}>Unduh tanda terima</Button>}</li>)}</ul>}</div>
+              {position && <div className="pt-3"><h2 className="font-semibold">Jadwal angsuran</h2><p className="text-xs text-muted-foreground sm:hidden">Geser tabel ke samping untuk melihat seluruh kolom.</p><div className="overflow-x-auto"><Table className="min-w-[420px]"><TableHeader><TableRow><TableHead>Jatuh tempo</TableHead><TableHead>Nominal</TableHead><TableHead>Sisa</TableHead></TableRow></TableHeader><TableBody>{installments.map((item, index) => <TableRow key={item.installment_number}><TableCell>{loanDate(item.due_date)}</TableCell><TableCell>{formatMoney(Number(item.amount))}</TableCell><TableCell>{formatMoney(position!.installments[index].remaining)}</TableCell></TableRow>)}</TableBody></Table></div></div>}
+              <div className="pt-3"><h2 className="font-semibold">Riwayat pembayaran</h2>{loan.loan_payments.length === 0 ? <p>Belum ada pembayaran yang tercatat.</p> : <ul className="divide-y">{[...loan.loan_payments].sort((a, b) => b.payment_date.localeCompare(a.payment_date)).map(payment => <li className="space-y-2 py-2" key={payment.id}><p>{loanDate(payment.payment_date)} · {formatMoney(Number(payment.amount))} · {loanStatus(payment.status)}</p>{payment.customer_note && <p>Catatan Anda: {payment.customer_note}</p>}{payment.status === 'rejected' && payment.rejection_reason && <p>Alasan: {payment.rejection_reason}</p>}{(payment.status === 'confirmed' || payment.status === 'cancelled') && <Button variant="outline" onClick={() => void downloadLoanReceipt(payment.id, false).catch(() => toast.error('Tanda terima belum tersedia. Hubungi pengurus.'))}>Unduh tanda terima</Button>}</li>)}</ul>}</div>
             </CardContent>
           </Card>
         );

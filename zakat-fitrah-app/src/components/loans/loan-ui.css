@@ -1,0 +1,9 @@
+/* Touch-sized actions within the loan workspace; tabs and checkboxes keep their Shadcn layout. */
+.loan-ui button:not([role='tab']):not([role='checkbox']) {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+}
+
+.loan-ui {
+  overflow-wrap: anywhere;
+}

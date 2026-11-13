@@ -4,13 +4,13 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { LoanCustomerSelect } from '@/components/loans/LoanCustomerSelect';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const client = supabase as unknown as SupabaseClient;
-export function LoanStaffAccountLink({ customers, enabled }: { customers: { id: string; person: { nama_kk: string; nama_lengkap: string | null } | null }[]; enabled: boolean }) {
-  const [customer, setCustomer] = useState('');
+export function LoanStaffAccountLink({ customerId, enabled, onLinked }: { customerId: string; enabled: boolean; onLinked?: () => void }) {
   const [staff, setStaff] = useState('');
   const [pending, setPending] = useState(false);
+  const [formError,setFormError] = useState('');
   const accounts = useQuery({ queryKey: ['loan-staff-accounts'], queryFn: async () => {
     const { data, error } = await client.rpc('loan_list_staff_accounts'); if (error) throw error;
     return data as { id: string; nama_lengkap: string; email: string }[];
@@ -18,18 +18,18 @@ export function LoanStaffAccountLink({ customers, enabled }: { customers: { id: 
   async function link() {
     setPending(true);
     try {
-      const { error } = await client.rpc('loan_link_staff_customer', { p_customer_id: customer, p_user_id: staff });
+      const { error } = await client.rpc('loan_link_staff_customer', { p_customer_id: customerId, p_user_id: staff });
       if (error) throw error;
       toast.success('Akun pengurus ditautkan. Pengguna dapat beralih ke mode nasabah setelah memuat ulang aplikasi.');
-      setCustomer(''); setStaff('');
-    } catch { toast.error('Tautan tidak dapat disimpan. Pastikan identitas benar dan akun belum ditautkan.'); }
+      setStaff('');setFormError(''); onLinked?.();
+    } catch { setFormError('Tautan tidak dapat disimpan. Pastikan identitas benar dan akun belum ditautkan.');toast.error('Tautan tidak dapat disimpan. Pastikan identitas benar dan akun belum ditautkan.'); }
     finally { setPending(false); }
   }
   return <section className="space-y-2 border-t pt-4"><h3 className="font-semibold">Pengurus yang juga nasabah</h3>
     <p className="text-sm text-muted-foreground">Pastikan kedua pilihan mewakili orang yang sama. Akun tetap memiliki kewenangan pengurus, sedangkan mode nasabah dibatasi pada pinjamannya sendiri.</p>
-    <LoanCustomerSelect label="Identitas nasabah" customers={customers} value={customer} onChange={setCustomer} />
-    <label className="block">Akun pengurus<select className="h-10 w-full rounded border bg-background px-3" value={staff} onChange={e => setStaff(e.target.value)}><option value="">Pilih akun pengurus</option>{accounts.data?.map(s => <option key={s.id} value={s.id}>{s.nama_lengkap} · {s.email}</option>)}</select></label>
+    <div className="space-y-1"><span className="text-sm">Akun pengurus</span><Select value={staff} onValueChange={setStaff}><SelectTrigger aria-label="Akun pengurus"><SelectValue placeholder="Pilih akun pengurus" /></SelectTrigger><SelectContent>{accounts.data?.map(s => <SelectItem key={s.id} value={s.id}>{s.nama_lengkap} · {s.email}</SelectItem>)}</SelectContent></Select></div>
     {accounts.isError && <p role="alert">Akun pengurus tidak dapat dimuat.</p>}
-    <Button variant="outline" disabled={!enabled || !staff || !customer || pending} onClick={() => void link()}>Tautkan akun pengurus</Button>
+    {formError && <p role="alert" className="text-destructive">{formError}</p>}
+    <Button variant="outline" disabled={!enabled || !staff || pending} onClick={() => void link()}>{pending?'Menyimpan...':'Tautkan akun pengurus'}</Button>
   </section>;
 }

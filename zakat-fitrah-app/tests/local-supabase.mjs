@@ -4,8 +4,17 @@ import { randomUUID } from 'node:crypto';
 import { writeFileSync, unlinkSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
+const appRoot = fileURLToPath(new URL('..', import.meta.url));
 const cli = fileURLToPath(new URL('../node_modules/supabase/dist/supabase.js', import.meta.url));
-export function cliRun(args) { return execFileSync(process.execPath, [cli, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }); }
+
+export function cliRun(args) {
+  return execFileSync(process.execPath, [cli, ...args], {
+    cwd: appRoot,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'ignore'],
+  });
+}
+
 export function localStatus() {
   const status = JSON.parse(cliRun(['status', '-o', 'json']));
   if (new URL(status.API_URL).hostname !== '127.0.0.1') throw new Error('Pengujian hanya boleh menggunakan Supabase lokal');
@@ -85,6 +94,6 @@ export async function task3Fixture() {
     END $$;`);
     for (const id of users) check(await service.auth.admin.deleteUser(id));
   }
-  return { status, service, client, authUser, person, customer, loan, enable, cleanup, objects, users, customers, loans };
+  return { status, service, client, authUser, person, customer, loan, enable, cleanup, objects, users, people, customers, loans };
 }
 export function check(result) { if (result.error) throw new Error(`Supabase lokal: ${result.error.message}`); return result.data; }

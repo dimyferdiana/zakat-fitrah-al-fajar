@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { Suspense, lazy } from 'react';
@@ -52,11 +52,27 @@ function CustomerPortalRoute() {
   return <LoanCustomerPortal />;
 }
 
-function App() {
+function LegacyLoanRedirect() {
+  const { hash } = useLocation();
+  const destinations: Record<string, string> = {
+    '#loan-dashboard': '/pinjaman/dashboard',
+    '#loan-customers': '/pinjaman/nasabah',
+    '#loan-drafts': '/pinjaman/baru',
+    '#loan-claims': '/pinjaman/pembayaran?tab=verifikasi',
+    '#loan-settings': '/pinjaman/pengaturan',
+    '#rincian-pinjaman': '/pinjaman/daftar',
+    '#loan-detail': '/pinjaman/daftar',
+  };
+  return <Navigate to={destinations[hash] ?? '/pinjaman/dashboard'} replace />;
+}
+
+function LoanWorkRoute() {
+  const { pathname } = useLocation();
+  return <ProtectedRoute allowedRoles={['admin', 'petugas']}><AppLayout><LoanManagement key={pathname} /></AppLayout></ProtectedRoute>;
+}
+
+function AppRoutes() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               <Route path="/login" element={<Login />} />
@@ -65,7 +81,10 @@ function App() {
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/portal-pinjaman" element={<CustomerPortalRoute />} />
-              <Route path="/pinjaman" element={<ProtectedRoute allowedRoles={['admin', 'petugas']}><AppLayout><LoanManagement /></AppLayout></ProtectedRoute>} />
+              <Route path="/pinjaman" element={<ProtectedRoute allowedRoles={['admin', 'petugas']}><LegacyLoanRedirect /></ProtectedRoute>} />
+              {['dashboard', 'nasabah', 'nasabah/baru', 'nasabah/:customerId', 'daftar', 'daftar/:loanId', 'baru', 'pembayaran', 'laporan', 'pengaturan'].map(path => (
+                <Route key={path} path={`/pinjaman/${path}`} element={<LoanWorkRoute />} />
+              ))}
               <Route path="/pinjaman/ringkasan" element={<ProtectedRoute allowedRoles={['admin', 'petugas', 'viewer']}><AppLayout><LoanViewerSummary /></AppLayout></ProtectedRoute>} />
               <Route
                 path="/dashboard"
@@ -307,7 +326,16 @@ function App() {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </Suspense>
-        </BrowserRouter>
+  );
+}
+
+const router = createBrowserRouter([{ path: '*', element: <AppRoutes /> }]);
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <RouterProvider router={router} />
         <Toaster />
         <Analytics />
       </AuthProvider>

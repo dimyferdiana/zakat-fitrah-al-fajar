@@ -1,4 +1,5 @@
 import { useNavigate, useLocation, Link } from 'react-router-dom'
+import { useEffect } from 'react'
 import {
   LayoutDashboard,
   Users,
@@ -42,6 +43,7 @@ import {
   SidebarProvider,
   SidebarRail,
   SidebarTrigger,
+  SidebarCloseOnSelect,
 } from '@/components/ui/sidebar'
 import {
   DropdownMenu,
@@ -53,6 +55,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -210,8 +213,23 @@ const qurbanNavSections: NavSection[] = [
 
 const loanNavSections: NavSection[] = [{
   title: 'Pinjaman Jamaah',
-  items: [{ label: 'Nasabah & Pinjaman', path: '/pinjaman', icon: HandCoins, roles: ['admin', 'petugas'] }],
+  items: [
+    { label: 'Ringkasan Pinjaman', path: '/pinjaman/dashboard', icon: LayoutDashboard, roles: ['admin', 'petugas'] },
+    { label: 'Ringkasan & izin pinjaman', path: '/pinjaman/ringkasan', icon: UserCheck, roles: ['admin', 'petugas'] },
+    { label: 'Nasabah', path: '/pinjaman/nasabah', icon: Users, roles: ['admin', 'petugas'] },
+    { label: 'Pinjaman', path: '/pinjaman/daftar', icon: HandCoins, roles: ['admin', 'petugas'] },
+    { label: 'Pembayaran', path: '/pinjaman/pembayaran', icon: Wallet, roles: ['admin', 'petugas'] },
+    { label: 'Laporan Pinjaman', path: '/pinjaman/laporan', icon: BarChart3, roles: ['admin', 'petugas'] },
+    { label: 'Pengaturan Pinjaman', path: '/pinjaman/pengaturan', icon: Settings, roles: ['admin', 'petugas'] },
+  ],
 }]
+
+function NavigationLink({ item, isActive }: { item: NavItem; isActive: boolean }) {
+  const Icon = item.icon
+  return <SidebarMenuItem><SidebarCloseOnSelect><SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
+    <Link to={item.path} aria-current={isActive ? 'page' : undefined}><Icon /><span>{item.label}</span></Link>
+  </SidebarMenuButton></SidebarCloseOnSelect></SidebarMenuItem>
+}
 
 const dataMasterNavSections: NavSection[] = [
   {
@@ -247,7 +265,13 @@ export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout, hasRole, canSwitchCustomer, switchMode } = useAuth()
-  const { activeApp } = useAppStore()
+  const { activeApp, setActiveApp } = useAppStore()
+  const loanPath = location.pathname === '/pinjaman' || location.pathname.startsWith('/pinjaman/')
+  const currentApp = loanPath ? 'pinjaman' : location.pathname.startsWith('/qurban') ? 'qurban' : location.pathname.startsWith('/data-master') ? 'data-master' : 'zakat'
+
+  useEffect(() => {
+    if (activeApp !== currentApp) setActiveApp(currentApp)
+  }, [currentApp, activeApp, setActiveApp])
 
   const handleLogout = async () => {
     await logout()
@@ -255,9 +279,9 @@ export function AppLayout({ children }: AppLayoutProps) {
   }
 
   const allNavSections =
-    activeApp === 'zakat' ? zakatNavSections :
-    activeApp === 'qurban' ? qurbanNavSections :
-    activeApp === 'pinjaman' ? loanNavSections :
+    currentApp === 'zakat' ? zakatNavSections :
+    currentApp === 'qurban' ? qurbanNavSections :
+    currentApp === 'pinjaman' ? loanNavSections :
     dataMasterNavSections
 
   const filteredNavSections = allNavSections
@@ -272,7 +296,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   // Find current page title from all items in all sections (including hidden)
   const allNavItems = allNavSections.flatMap((s) => s.items)
   const currentPageTitle =
-    allNavItems.find((item) => item.path === location.pathname)?.label ?? 'Dashboard'
+    allNavItems.find((item) => item.path === location.pathname || (item.path === '/pinjaman/daftar' && (location.pathname.startsWith('/pinjaman/daftar/') || location.pathname === '/pinjaman/baru')) || (item.path === '/pinjaman/nasabah' && location.pathname.startsWith('/pinjaman/nasabah/')))?.label ?? (loanPath ? 'Ringkasan Pinjaman' : 'Dashboard')
 
   const userInitials = user?.nama_lengkap
     ? user.nama_lengkap
@@ -296,24 +320,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <SidebarGroupLabel>{section.title}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {section.items.map((item) => {
-                    const Icon = item.icon
-                    const isActive = location.pathname === item.path
-                    return (
-                      <SidebarMenuItem key={item.path}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={isActive}
-                          tooltip={item.label}
-                        >
-                          <Link to={item.path}>
-                            <Icon />
-                            <span>{item.label}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    )
-                  })}
+                  {section.items.map((item) => <NavigationLink key={item.path} item={item} isActive={location.pathname === item.path || (item.path === '/pinjaman/daftar' && (location.pathname.startsWith('/pinjaman/daftar/') || location.pathname === '/pinjaman/baru')) || (item.path === '/pinjaman/nasabah' && location.pathname.startsWith('/pinjaman/nasabah/'))} />)}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -327,6 +334,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <DropdownMenuTrigger asChild>
                   <SidebarMenuButton
                     size="lg"
+                    aria-label={`Menu akun ${user?.nama_lengkap ?? 'pengguna'}`}
                     className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                   >
                     <Avatar className="h-8 w-8 rounded-lg">
@@ -334,13 +342,13 @@ export function AppLayout({ children }: AppLayoutProps) {
                         {userInitials}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="grid flex-1 text-left text-sm leading-tight">
+                    <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                       <span className="truncate font-semibold">{user?.nama_lengkap}</span>
                       <span className="truncate text-xs capitalize text-sidebar-foreground/70">
                         {user?.role}
                       </span>
                     </div>
-                    <ChevronsUpDown className="ml-auto size-4" />
+                    <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -381,21 +389,21 @@ export function AppLayout({ children }: AppLayoutProps) {
       <SidebarInset>
         {/* Page Header */}
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
+          <SidebarTrigger className={loanPath ? '-ml-1 h-11 w-11' : '-ml-1'} />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <div className="flex flex-1 items-center gap-2">
-            <h1 className="text-lg font-semibold">{currentPageTitle}</h1>
+            {loanPath ? <span className="text-lg font-semibold">{currentPageTitle}</span> : <h1 className="text-lg font-semibold">{currentPageTitle}</h1>}
           </div>
-          {canSwitchCustomer && <button className="rounded border px-3 py-2 text-sm" onClick={() => void switchMode('customer').catch(() => window.location.assign('/login'))}>Mode nasabah</button>}
+          {canSwitchCustomer && <Button variant="outline" className="min-h-11" onClick={() => void switchMode('customer').catch(() => window.location.assign('/login'))}>Mode nasabah</Button>}
           {/* Mobile user menu */}
           <div className="flex items-center gap-2 md:hidden">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1 rounded-full p-1 hover:bg-muted">
+                <Button variant="ghost" size="icon" className="h-11 w-11 rounded-full" aria-label={`Menu akun ${user?.nama_lengkap ?? 'pengguna'}`}>
                   <Avatar className="h-7 w-7">
                     <AvatarFallback className="text-xs">{userInitials}</AvatarFallback>
                   </Avatar>
-                </button>
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
